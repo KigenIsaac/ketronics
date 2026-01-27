@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="x-apple-disable-message-reformatting">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Confirm Your Email - Ketronics LTD</title>
+    <style>
+        /* Reset styles for email clients */
+        body, table, td, p, a, li, blockquote {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+        table, td {
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
+        img {
+            -ms-interpolation-mode: bicubic;
+        }
+        /* Base styles */
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background-color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .wrapper {
+            width: 100%;
+            table-layout: fixed;
+            background-color: #f8fafc;
+        }
+        .main {
+            background-color: #ffffff;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 600px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        /* Header styles */
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ffffff;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+        .tagline {
+            font-size: 14px;
+            color: #cbd5e1;
+            margin: 8px 0 0 0;
+            font-weight: 400;
+        }
+        /* Content styles */
+        .content {
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .icon {
+            width: 64px;
+            height: 64px;
+            background-color: #3b82f6;
+            border-radius: 50%;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 16px 0;
+            line-height: 1.3;
+        }
+        .subtitle {
+            font-size: 16px;
+            color: #64748b;
+            margin: 0 0 32px 0;
+            line-height: 1.5;
+        }
+        /* Button styles */
+        .button-container {
+            margin: 32px 0;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            transition: all 0.3s ease;
+            border: none;
+            min-width: 200px;
+        }
+        .button:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+        }
+        /* Security info */
+        .security-info {
+            background-color: #f1f5f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 32px 0;
+            border-left: 4px solid #3b82f6;
+        }
+        .security-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 8px 0;
+        }
+        .security-text {
+            font-size: 14px;
+            color: #64748b;
+            margin: 0;
+            line-height: 1.4;
+        }
+        /* Footer styles */
+        .footer {
+            background-color: #f8fafc;
+            padding: 30px;
+            border-top: 1px solid #e2e8f0;
+        }
+        .footer-content {
+            text-align: center;
+        }
+        .footer-text {
+            font-size: 14px;
+            color: #64748b;
+            margin: 0 0 16px 0;
+            line-height: 1.5;
+        }
+        .footer-links {
+            margin: 20px 0;
+        }
+        .footer-link {
+            color: #3b82f6;
+            text-decoration: none;
+            font-size: 14px;
+            margin: 0 12px;
+        }
+        .footer-link:hover {
+            text-decoration: underline;
+        }
+        .copyright {
+            font-size: 12px;
+            color: #94a3b8;
+            margin: 16px 0 0 0;
+        }
+        /* Responsive styles */
+        @media only screen and (max-width: 600px) {
+            .main {
+                width: 100% !important;
+                border-radius: 0 !important;
+            }
+            .header, .content, .footer {
+                padding-left: 20px !important;
+                padding-right: 20px !important;
+            }
+            .title {
+                font-size: 20px !important;
+            }
+            .button {
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Fallback text for email clients that don't support HTML -->
+    <div style="display: none; font-size: 1px; color: #fefefe; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden;">
+        Welcome to Ketronics LTD! Please confirm your email address to complete your account setup.
+    </div>
+
+    <table class="wrapper" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+        <tr>
+            <td align="center">
+                <table class="main" width="600" cellpadding="0" cellspacing="0" role="presentation">
+                    <!-- Header -->
+                    <tr>
+                        <td class="header">
+                            <h1 class="logo">Ketronics LTD</h1>
+                            <p class="tagline">Tech Products & Expert Services</p>
+                        </td>
+                    </tr>
+
+                    <!-- Content -->
+                    <tr>
+                        <td class="content">
+                            <div class="icon">✓</div>
+                            <h2 class="title">Welcome to Ketronics LTD!</h2>
+                            <p class="subtitle">
+                                Thank you for joining us. To complete your account setup and start shopping for the latest tech products, please confirm your email address.
+                            </p>
+
+                            <div class="button-container">
+                                <a href="{{ .ConfirmationURL }}" class="button">
+                                    Confirm Your Email
+                                </a>
+                            </div>
+
+                            <div class="security-info">
+                                <h3 class="security-title">🔒 Security Information</h3>
+                                <p class="security-text">
+                                    This link is secure and will expire in 24 hours. If you didn't create an account with Ketronics LTD, please ignore this email.
+                                </p>
+                            </div>
+
+                            <p style="font-size: 14px; color: #64748b; margin: 20px 0 0 0;">
+                                Need help? Contact our support team at
+                                <a href="mailto:support@ketronics.co.ke" style="color: #3b82f6; text-decoration: none;">support@ketronics.co.ke</a>
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td class="footer">
+                            <div class="footer-content">
+                                <p class="footer-text">
+                                    Stay connected with us for the latest tech updates, exclusive deals, and expert advice on laptops, printers, TVs, PCs, and more.
+                                </p>
+
+                                <div class="footer-links">
+                                    <a href="#" class="footer-link">Privacy Policy</a>
+                                    <a href="#" class="footer-link">Terms of Service</a>
+                                    <a href="#" class="footer-link">Contact Us</a>
+                                </div>
+
+                                <p class="copyright">
+                                    © 2024 Ketronics LTD. All rights reserved.<br>
+                                    Nairobi, Kenya
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

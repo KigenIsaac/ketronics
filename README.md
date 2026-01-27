@@ -85,8 +85,10 @@ ketronics/
 │   ├── lib/                   # Utilities and configurations
 │   │   ├── stores/            # Zustand stores
 │   │   ├── utils/             # Helper functions
-│   │   └── validations/       # Zod schemas
-│   └── hooks/                 # Custom React hooks
+│   │   └── validations/       # Zod schemas│   ├── templates/             # Email templates
+│   │   ├── email-confirmation.html    # HTML email template
+│   │   ├── email-confirmation.txt     # Plain text fallback
+│   │   └── README.md          # Template documentation│   └── hooks/                 # Custom React hooks
 ├── database_updates.sql       # Database schema
 ├── components.json           # Shadcn/UI configuration
 ├── tailwind.config.js        # Tailwind configuration
