@@ -196,7 +196,7 @@ export function Sidebar({ className, isOpen = false, onToggle }: SidebarProps) {
           {/* Footer */}
           <div className="border-t p-4">
             <div className="text-xs text-muted-foreground text-center">
-              © 2024 Ketronics LTD
+              Built by Isaac Kigen | <a href="tel:+254721142723" className="underline">+254 721 142 723</a>
             </div>
           </div>
         </div>
