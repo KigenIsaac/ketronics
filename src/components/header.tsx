@@ -14,12 +14,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { Sidebar } from "@/components/sidebar";
+import { useMobileSidebar } from "@/components/providers";
 
 export function Header() {
   const { user, logout } = useUserStore();
   const { getItemCount } = useCartStore();
   const cartItemCount = getItemCount();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isOpen: isMobileMenuOpen, setIsOpen: setIsMobileMenuOpen } = useMobileSidebar();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -100,13 +101,6 @@ export function Header() {
             )}
           </nav>
       </div>
-
-      {/* Mobile Sidebar */}
-      <Sidebar
-        className="lg:hidden"
-        isOpen={isMobileMenuOpen}
-        onToggle={setIsMobileMenuOpen}
-      />
     </header>
   );
 }

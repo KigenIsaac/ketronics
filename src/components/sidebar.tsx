@@ -167,6 +167,14 @@ export function Sidebar({ className, isOpen = false, onToggle }: SidebarProps) {
 
   return (
     <>
+      {/* Mobile overlay - render first so it appears behind sidebar */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-35 lg:hidden"
+          onClick={() => onToggle?.(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <div
         className={cn(
@@ -199,14 +207,6 @@ export function Sidebar({ className, isOpen = false, onToggle }: SidebarProps) {
           </div>
         </div>
       </div>
-
-      {/* Mobile overlay */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
-          onClick={() => onToggle?.(false)}
-        />
-      )}
     </>
   );
 }
