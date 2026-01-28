@@ -44,22 +44,22 @@ export default function CartPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Shopping Cart</h1>
-        <Badge variant="secondary" className="text-lg px-3 py-1">
+    <div className="container mx-auto px-4 py-4 sm:px-6 sm:py-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">
+        <h1 className="text-2xl sm:text-3xl font-bold">Shopping Cart</h1>
+        <Badge variant="secondary" className="text-sm sm:text-lg px-2 sm:px-3 py-1 self-start">
           {itemCount} {itemCount === 1 ? 'item' : 'items'}
         </Badge>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-4">
           {items.map((item) => (
             <Card key={item.id}>
-              <CardContent className="p-4">
-                <div className="flex gap-4">
-                  <div className="relative w-20 h-20 flex-shrink-0">
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                  <div className="relative w-full sm:w-20 h-16 sm:h-20 flex-shrink-0 mx-auto sm:mx-0">
                     <Image
                       src={item.image}
                       alt={item.name}
@@ -67,49 +67,53 @@ export default function CartPage() {
                       className="object-cover rounded"
                     />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold mb-1">{item.name}</h3>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold mb-1 text-sm sm:text-base truncate">{item.name}</h3>
                     {item.attributes && Object.keys(item.attributes).length > 0 && (
-                      <p className="text-sm text-muted-foreground mb-2">
+                      <p className="text-xs sm:text-sm text-muted-foreground mb-2 break-words truncate">
                         {Object.entries(item.attributes)
                           .slice(0, 2)
                           .map(([key, value]) => `${key}: ${value}`)
                           .join(', ')}
                       </p>
                     )}
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                       <div className="flex items-center gap-2">
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
                           disabled={item.quantity <= 1}
+                          className="h-8 w-8 p-0 flex-shrink-0"
                         >
-                          <Minus className="h-4 w-4" />
+                          <Minus className="h-3 w-3" />
                         </Button>
                         <Input
                           type="number"
                           value={item.quantity}
                           onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 1)}
-                          className="w-16 text-center"
+                          className="w-12 sm:w-16 text-center h-8 text-sm"
                           min="1"
                         />
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                          className="h-8 w-8 p-0 flex-shrink-0"
                         >
-                          <Plus className="h-4 w-4" />
+                          <Plus className="h-3 w-3" />
                         </Button>
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold">Ksh. {(item.price * item.quantity).toFixed(2)}</p>
+                      <div className="flex items-center justify-between sm:flex-col sm:items-end sm:justify-center gap-2">
+                        <p className="font-semibold text-sm sm:text-base">Ksh. {(item.price * item.quantity).toFixed(2)}</p>
                         <Button
                           size="sm"
                           variant="destructive"
                           onClick={() => handleRemoveItem(item.id)}
+                          className="h-8 px-2 text-xs"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3 w-3" />
+                          <span className="ml-1 hidden sm:inline">Remove</span>
                         </Button>
                       </div>
                     </div>
@@ -122,20 +126,20 @@ export default function CartPage() {
 
         {/* Cart Summary */}
         <div className="lg:col-span-1">
-          <Card>
-            <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
+          <Card className="sticky top-20">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Order Summary</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex justify-between">
+              <div className="flex justify-between text-sm">
                 <span>Subtotal ({itemCount} items)</span>
                 <span>Ksh. {total.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between text-sm">
                 <span>Shipping</span>
-                <span>Free</span>
+                <span className="text-green-600 font-medium">Free</span>
               </div>
-              <div className="flex justify-between font-semibold text-lg border-t pt-2">
+              <div className="flex justify-between font-semibold text-lg border-t pt-3">
                 <span>Total</span>
                 <span>Ksh. {total.toFixed(2)}</span>
               </div>
