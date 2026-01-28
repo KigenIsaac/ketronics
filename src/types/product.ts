@@ -38,6 +38,7 @@ export interface Product {
   subcategory_id?: string;
   images: string[];
   attributes: Record<string, any>; // key-value pairs for subcategory attributes
+  status?: 'active' | 'inactive' | 'draft';
   created_at: string;
   updated_at: string;
   created_by?: string;
