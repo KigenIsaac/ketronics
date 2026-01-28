@@ -178,18 +178,12 @@ export function Sidebar({ className, isOpen = false, onToggle }: SidebarProps) {
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 bg-background border-r shadow-lg transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:shadow-none",
+          "fixed inset-y-0 left-0 z-40 w-64 bg-background border-r shadow-lg transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:shadow-none lg:top-0 lg:bottom-0 lg:h-auto",
           isOpen ? "translate-x-0" : "-translate-x-full",
           className
         )}
       >
         <div className="flex flex-col h-full w-46">
-          <div className="flex items-center justify-center h-14 border-b px-4">
-            <Link href="/" className="flex items-center space-x-2" onClick={() => onToggle?.(false)}>
-              <span className="font-bold text-lg">Ketronics LTD</span>
-            </Link>
-          </div>
-
           {/* Navigation */}
           <ScrollArea className="flex-1 px-3 py-4">
             <nav className="space-y-1">

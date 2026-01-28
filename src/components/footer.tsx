@@ -80,8 +80,8 @@ export function Footer() {
 
   if (loading) {
     return (
-      <footer className="bg-muted/50 border-t">
-        <div className="container mx-auto px-4 py-8">
+      <footer className="bg-muted/50 border-t w-full">
+        <div className="mx-auto px-4 py-8 max-w-screen-2xl">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="space-y-4">
@@ -100,8 +100,8 @@ export function Footer() {
   }
 
   return (
-    <footer className="bg-muted/50 border-t">
-      <div className="container mx-auto px-4 py-12">
+    <footer className="bg-muted/50 border-t w-full">
+      <div className="mx-auto px-4 py-12 max-w-screen-2xl">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">

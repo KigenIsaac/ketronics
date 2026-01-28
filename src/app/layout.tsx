@@ -34,29 +34,31 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
         <Providers>
-          <div className="min-h-screen flex">
-            {/* Sidebar */}
-            <Sidebar className="hidden lg:flex w-auto flex-shrink-0" />
+          <div className="min-h-screen flex flex-col">
+            {/* Header - full width */}
+            <Header />
 
-            {/* Main content */}
-            <div className="flex-1 flex flex-col min-w-0 lg:ml-0">
-              {/* Scrolling Banner */}
-              <ScrollingBanner />
+            <div className="flex flex-1 min-h-0">
+              {/* Sidebar - positioned between header and footer on desktop */}
+              <Sidebar className="hidden lg:flex w-auto flex-shrink-0" />
 
-              {/* Header */}
-              <Header />
+              {/* Main content */}
+              <div className="flex-1 flex flex-col min-w-0 lg:ml-0">
+                {/* Scrolling Banner */}
+                <ScrollingBanner />
 
-              {/* Mobile header spacing for sidebar toggle */}
-              <div className="lg:hidden h-14" />
+                {/* Mobile header spacing for sidebar toggle */}
+                <div className="lg:hidden h-14" />
 
-              {/* Page content */}
-              <main className="flex-1 lg:px-6 lg:py-6 px-4 py-4">
-                {children}
-              </main>
-
-              {/* Footer */}
-              <Footer />
+                {/* Page content */}
+                <main className="flex-1 lg:px-6 lg:py-6 px-4 py-4">
+                  {children}
+                </main>
+              </div>
             </div>
+
+            {/* Footer - full width */}
+            <Footer />
           </div>
         </Providers>
       </body>
