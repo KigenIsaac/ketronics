@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ContactInfo, SiteSetting } from "@/types/product";
+import { ContactInfo } from "@/types/product";
 import { supabase } from "@/lib/supabase";
+import { isSupabaseConfigured } from "@/lib/supabaseConfig";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,7 @@ import {
   Package
 } from "lucide-react";
 import { toast } from "sonner";
+import Link from "next/link";
 
 const iconMap = {
   Mail,
@@ -52,6 +54,11 @@ export default function ContactPage() {
   }, []);
 
   const fetchContactData = async () => {
+    if (!isSupabaseConfigured()) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const [contactRes, settingsRes] = await Promise.all([
         supabase
@@ -98,14 +105,29 @@ export default function ContactPage() {
     setSubmitting(true);
 
     try {
-      // Here you would typically send the form data to your backend
-      // For now, we'll just show a success message
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
 
-      toast.success('Message sent successfully! We\'ll get back to you soon.');
+      const result = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(result?.error || 'Failed to send message. Please try again.');
+      }
+
+      if (result?.acknowledgementSent === false) {
+        toast.warning('Message sent to Ketronics, but we could not send your acknowledgement email.');
+      } else {
+        toast.success('Message sent successfully. We emailed you a confirmation.');
+      }
+
       setFormData({ name: '', email: '', subject: '', message: '' });
     } catch (error) {
-      toast.error('Failed to send message. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to send message. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -153,7 +175,10 @@ export default function ContactPage() {
                     value={formData.name}
                     onChange={handleChange}
                     required
+                    minLength={2}
+                    maxLength={120}
                     placeholder="Your full name"
+                    disabled={submitting}
                   />
                 </div>
                 <div>
@@ -167,7 +192,9 @@ export default function ContactPage() {
                     value={formData.email}
                     onChange={handleChange}
                     required
+                    maxLength={254}
                     placeholder="your.email@example.com"
+                    disabled={submitting}
                   />
                 </div>
               </div>
@@ -181,7 +208,10 @@ export default function ContactPage() {
                   value={formData.subject}
                   onChange={handleChange}
                   required
+                  minLength={3}
+                  maxLength={160}
                   placeholder="What's this about?"
+                  disabled={submitting}
                 />
               </div>
               <div>
@@ -194,8 +224,11 @@ export default function ContactPage() {
                   value={formData.message}
                   onChange={handleChange}
                   required
+                  minLength={10}
+                  maxLength={5000}
                   rows={5}
                   placeholder="Tell us how we can help you..."
+                  disabled={submitting}
                 />
               </div>
               <Button type="submit" disabled={submitting} className="w-full">
@@ -337,22 +370,22 @@ export default function ContactPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/faq">
+                <Link href="/faq">
                   <HelpCircle className="h-4 w-4 mr-2" />
                   Browse FAQ
-                </a>
+                </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/support">
+                <Link href="/support">
                   <MessageSquare className="h-4 w-4 mr-2" />
                   Support Center
-                </a>
+                </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/products">
+                <Link href="/products">
                   <Package className="h-4 w-4 mr-2" />
                   Shop Products
-                </a>
+                </Link>
               </Button>
             </CardContent>
           </Card>
