@@ -167,7 +167,7 @@ export default function PrivacyPolicyPage() {
           <ul className="list-none mt-2">
             <li><strong>Email:</strong> privacy@ketronics.co.ke</li>
             <li><strong>Phone:</strong> +254 700 000 000</li>
-            <li><strong>Address:</strong> Nairobi, Kenya</li>
+            <li><strong>Address:</strong> AA building floor room F6A</li>
             <li><strong>Data Protection Officer:</strong> dpo@ketronics.co.ke</li>
           </ul>
         </section>

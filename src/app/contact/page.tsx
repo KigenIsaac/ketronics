@@ -89,6 +89,10 @@ export default function ContactPage() {
     return contactInfo.filter(info => info.type === type);
   };
 
+  const addressValue = groupContactInfo('address')[0]?.value;
+  const mapQuery = encodeURIComponent(addressValue ?? 'Eldoret, Kenya AA building floor room F6A');
+  const mapSrc = `https://maps.google.com/maps?q=${mapQuery}&output=embed`;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -276,6 +280,26 @@ export default function ContactPage() {
               )}
             </CardContent>
           </Card>
+
+          {addressValue && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Our Location</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="font-medium mb-4">{addressValue}</p>
+                <div className="overflow-hidden rounded-xl border border-border">
+                  <iframe
+                    title="Ketronics LTD location"
+                    src={mapSrc}
+                    className="h-64 w-full border-0"
+                    allowFullScreen
+                    loading="lazy"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Social Media */}
           {groupContactInfo('social').length > 0 && (

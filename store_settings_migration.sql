@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS store_settings (
 
 -- Insert default settings if not exists
 INSERT INTO store_settings (id, store_name, store_description, contact_email, contact_phone, address, currency, timezone, maintenance_mode, allow_guest_checkout, require_email_verification, enable_notifications, payment_methods, shipping_methods, tax_rate, free_shipping_threshold)
-VALUES (1, 'Ketronics LTD', 'Tech Products & Expert Services', 'support@ketronics.co.ke', '+254 XXX XXX XXX', 'Nairobi, Kenya', 'KES', 'Africa/Nairobi', false, true, true, true, ARRAY['mpesa', 'card'], ARRAY['standard', 'express'], 16.00, 5000.00)
+VALUES (1, 'Ketronics LTD', 'Tech Products & Expert Services', 'info@ketronics.co.ke', '+254 XXX XXX XXX', 'AA building floor room F6A', 'KES', 'Africa/Nairobi', false, true, true, true, ARRAY['mpesa', 'card'], ARRAY['standard', 'express'], 16.00, 5000.00)
 ON CONFLICT (id) DO NOTHING;
 
 -- Create trigger to update updated_at timestamp

@@ -68,8 +68,26 @@ export default function FAQPage() {
 
   const groupedFAQs = groupFAQsByCategory(filteredFaqs);
 
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
+    })),
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="text-center mb-8">
         <div className="flex items-center justify-center mb-4">
           <HelpCircle className="h-12 w-12 text-primary mr-3" />
@@ -155,6 +173,7 @@ export default function FAQPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   );
 }

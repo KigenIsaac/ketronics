@@ -1,3 +1,4 @@
+import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabaseServerClient';
 import { Order, OrderItem } from '@/types/product';
@@ -17,7 +18,6 @@ interface OrderPageProps {
 
 async function getOrder(id: string): Promise<Order | null> {
   const supabase = await createSupabaseServerClient();
-
   const { data, error } = await supabase
     .from('orders')
     .select(`
@@ -33,6 +33,16 @@ async function getOrder(id: string): Promise<Order | null> {
   }
 
   return data;
+}
+
+export async function generateMetadata({ params }: OrderPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const order = await getOrder(id);
+
+  return {
+    title: order ? `Order #${order.id} | Ketronics LTD` : 'Order Not Found | Ketronics LTD',
+    robots: { index: false, follow: false },
+  };
 }
 
 function getStatusIcon(status: string) {

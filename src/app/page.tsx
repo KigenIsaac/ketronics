@@ -67,10 +67,10 @@ export default function Home() {
             Welcome to Ketronics LTD
           </div>
           <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6">
-            Your Tech Partner in <span className="text-primary">Kenya</span>
+            Your Trusted Tech Store in <span className="text-primary">Kenya</span>
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-            Discover premium tech products and expert services. From cutting-edge laptops to professional installations, we deliver excellence.
+            Shop laptops, printers, TVs, PCs, CCTV installation, network setup and tech repairs with fast delivery and expert support across Kenya.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button

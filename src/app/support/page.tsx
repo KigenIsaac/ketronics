@@ -78,7 +78,7 @@ export default function SupportPage() {
             <CardDescription>In-person support</CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-            <p className="font-semibold">Eldoret, Kenya</p>
+            <p className="font-semibold">Eldoret, Kenya AA building floor room F6A</p>
             <p className="text-sm text-muted-foreground">Walk-ins welcome</p>
           </CardContent>
         </Card>

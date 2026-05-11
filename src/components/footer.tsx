@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ContactInfo } from "@/types/product";
 import { supabase } from "@/lib/supabase";
+import { isSupabaseConfigured } from "@/lib/supabaseConfig";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -41,6 +42,11 @@ export function Footer() {
   }, []);
 
   const fetchFooterData = async () => {
+    if (!isSupabaseConfigured()) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const [contactRes, settingsRes] = await Promise.all([
         supabase

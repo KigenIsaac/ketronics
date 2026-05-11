@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -51,7 +51,7 @@ export default function AdminSettingsPage() {
     storeDescription: 'Tech Products & Expert Services',
     contactEmail: 'support@ketronics.co.ke',
     contactPhone: '+254 XXX XXX XXX',
-    address: 'Nairobi, Kenya',
+    address: 'AA building floor room F6A',
     currency: 'KES',
     timezone: 'Africa/Nairobi',
     maintenanceMode: false,

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
+import { isSupabaseConfigured } from '@/lib/supabaseConfig';
 
 interface User {
   id: string;
@@ -21,6 +22,11 @@ export const useUserStore = create<UserStore>((set, get) => ({
   loading: true,
   setUser: (user) => set({ user }),
   fetchUser: async () => {
+    if (!isSupabaseConfigured()) {
+      set({ user: null, loading: false });
+      return;
+    }
+
     try {
       const { data: { user: authUser }, error } = await supabase.auth.getUser();
       if (error || !authUser) {

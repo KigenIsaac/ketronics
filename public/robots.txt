@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Sitemap: https://ketronics.co.ke/sitemap.xml
+Host: ketronics.co.ke

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Product } from '@/types/product';
 import { ProductForm } from '@/components/products/ProductForm';
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

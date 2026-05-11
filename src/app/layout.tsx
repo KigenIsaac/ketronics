@@ -18,10 +18,97 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const metadataBase = new URL("https://ketronics.co.ke");
+
 export const metadata: Metadata = {
-  title: "Ketronics LTD - Tech Products & Services",
-  description: "Shop for laptops, printers, TVs, PCs and more. Expert tech services including maintenance, repairs, CCTV installation, and network setup.",
+  title: {
+    default: "Ketronics LTD",
+    template: "%s | Ketronics LTD",
+  },
+  description:
+    "Ketronics LTD offers laptops, printers, TVs, PCs, CCTV installation, network setup, and expert tech services across Kenya.",
+  keywords: [
+    "Ketronics LTD",
+    "electronics store Kenya",
+    "laptops Kenya",
+    "printers Kenya",
+    "TVs Kenya",
+    "PCs Kenya",
+    "CCTV installation",
+    "network setup",
+    "tech repairs",
+    "smart home",
+    "computer services",
+  ],
+  authors: [{ name: "Ketronics LTD" }],
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  openGraph: {
+    title: "Ketronics LTD - Tech Products & Services in Kenya",
+    description:
+      "Shop laptops, printers, TVs, PCs and expert tech services in Kenya with Ketronics LTD.",
+    url: "https://ketronics.co.ke",
+    siteName: "Ketronics LTD",
+    type: "website",
+    locale: "en_KE",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Ketronics LTD - Tech Products & Services",
+    description:
+      "Premium tech products and expert services in Kenya, including laptops, printers, TVs, PCs, CCTV, and network setup.",
+  },
 };
+
+const structuredData = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Store",
+  name: "Ketronics LTD",
+  description:
+    "Ketronics LTD offers laptops, printers, TVs, PCs, CCTV installation, network setup, repairs, and expert tech services across Kenya.",
+  url: "https://ketronics.co.ke",
+  telephone: "+254 700 000 000",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "AA building floor room F6A",
+    addressLocality: "Eldoret",
+    addressRegion: "Kenya",
+    addressCountry: "KE",
+  },
+  openingHoursSpecification: [
+    {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+      ],
+      opens: "08:00",
+      closes: "18:00",
+    },
+    {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Saturday"],
+      opens: "09:00",
+      closes: "16:00",
+    },
+  ],
+  sameAs: [
+    "https://facebook.com/ketronics",
+    "https://twitter.com/ketronics",
+  ],
+});
 
 export default function RootLayout({
   children,
@@ -40,6 +127,10 @@ export default function RootLayout({
             
             {/* Header - full width */}
             <Header />
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: structuredData }}
+            />
 
             <div className="flex flex-1 min-h-0">
               {/* Sidebar - positioned between header and footer on desktop */}

@@ -118,7 +118,7 @@ export default function TermsPage() {
           <ul className="list-none mt-2">
             <li>Email: legal@ketronics.co.ke</li>
             <li>Phone: +254 700 000 000</li>
-            <li>Address: Nairobi, Kenya</li>
+            <li>Address: AA building floor room F6A</li>
           </ul>
         </section>
 

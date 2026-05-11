@@ -1,3 +1,4 @@
+import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabaseServerClient';
 import { Product } from '@/types/product';
@@ -33,6 +34,79 @@ async function getProduct(id: string): Promise<Product | null> {
   return data;
 }
 
+export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const product = await getProduct(id);
+
+  if (!product) {
+    return {
+      title: 'Product Not Found | Ketronics LTD',
+      description: 'The product you are looking for is not available.',
+    };
+  }
+
+  const productImage = product.images?.[0] || '/og-image.png';
+  const productUrl = `https://ketronics.co.ke/products/${id}`;
+
+  return {
+    title: `${product.name} | Buy Online in Kenya | Ketronics LTD`,
+    description: product.description
+      ?.substring(0, 160)
+      .concat('...') || `Quality ${product.name} available at Ketronics LTD. Fast delivery across Kenya.`,
+    keywords: [
+      product.name,
+      'buy ' + product.name,
+      `${product.category?.name || 'electronics'} Kenya`,
+      'Ketronics LTD',
+      product.brand || '',
+    ]
+      .filter(Boolean)
+      .join(', '),
+    openGraph: {
+      title: `${product.name} | Ketronics LTD`,
+      description:
+        product.description?.substring(0, 120) ||
+        `Quality ${product.name} at best prices in Kenya`,
+      type: 'website',
+      url: productUrl,
+      images: [
+        {
+          url: productImage,
+          width: 800,
+          height: 800,
+          alt: product.name,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${product.name} | Ketronics LTD`,
+      description: `Ksh ${product.price.toFixed(2)} - ${product.description?.substring(0, 100) || 'Quality electronics product'}`,
+      images: [productImage],
+    },
+  };
+}
+
+const productSchema = (product: Product, productUrl: string) => ({
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: product.name,
+  description: product.description,
+  image: product.images?.[0] || '/og-image.png',
+  brand: {
+    '@type': 'Brand',
+    name: product.brand || 'Ketronics LTD',
+  },
+  offers: {
+    '@type': 'Offer',
+    url: productUrl,
+    priceCurrency: 'KES',
+    price: product.price.toFixed(2),
+    availability: product.status === 'inactive' || product.status === 'draft' ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
+  },
+  category: product.category?.name || 'Electronics',
+});
+
 export default async function ProductPage({ params }: ProductPageProps) {
   const { id } = await params;
   const product = await getProduct(id);
@@ -41,8 +115,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
+  const productUrl = `https://ketronics.co.ke/products/${id}`;
+  const schema = productSchema(product, productUrl);
+
   return (
-    <div className="container mx-auto p-4 max-w-6xl">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
+      <div className="container mx-auto p-4 max-w-6xl">
       <div className="mb-6">
         <Button asChild variant="outline">
           <Link href="/products">← Back to Products</Link>
@@ -142,6 +224,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

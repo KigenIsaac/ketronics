@@ -187,9 +187,9 @@ INSERT INTO faqs (question, answer, category) VALUES
 ON CONFLICT DO NOTHING;
 
 INSERT INTO contact_info (type, label, value, icon) VALUES
-('email', 'Email Support', 'support@ketronics.co.ke', 'Mail'),
+('email', 'Email Support', 'info@ketronics.co.ke', 'Mail'),
 ('phone', 'Phone Support', '+254 700 000 000', 'Phone'),
-('address', 'Main Office', '123 Tech Street, Nairobi, Kenya', 'MapPin'),
+('address', 'Main Office', 'AA building floor room F6A', 'MapPin'),
 ('social', 'Facebook', 'https://facebook.com/ketronics', 'Facebook'),
 ('social', 'Twitter', 'https://twitter.com/ketronics', 'Twitter')
 ON CONFLICT DO NOTHING;
