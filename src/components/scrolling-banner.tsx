@@ -4,7 +4,7 @@ export function ScrollingBanner() {
   const bannerItems = [
     {
       icon: MapPin,
-      text: "📍 Eldoret, Kenya AA building floor room F6A",
+      text: "📍 Eldoret, Kenya AA building 1st floor room F6A",
       color: "text-blue-600"
     },
     {
