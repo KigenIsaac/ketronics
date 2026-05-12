@@ -259,7 +259,7 @@ For support and questions:
 - **Email**: support@ketronics.co.ke
 - **Phone**: +254 700 000 000
 - **Website**: [ketronics.co.ke](https://ketronics.co.ke)
-- **Address**: AA building floor room F6A
+- **Address**: AA building 1st floor room F6A
 
 ## 🙏 Acknowledgments
 
