@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 import { Sidebar } from "@/components/sidebar";
 import { useMobileSidebar } from "@/components/providers";
+import Image from "next/image";
 
 export function Header() {
   const { user, logout } = useUserStore();
@@ -41,10 +42,18 @@ export function Header() {
           </Button>
         </div>
 
-        {/* Logo/Brand in the center on mobile, left on desktop */}
+        {/* Logo/Brand - Logo on mobile, Logo + Text on desktop */}
         <div className="flex-1 lg:flex-none">
-          <Link href="/" className="flex items-center space-x-2">
-            <span className="font-bold text-lg">Ketronics LTD</span>
+          <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+            <Image
+              src="/ketronics-logo.png"
+              alt="Ketronics LTD Logo"
+              width={32}
+              height={32}
+              className="rounded"
+              priority
+            />
+            <span className="font-bold text-lg hidden sm:inline">Ketronics LTD</span>
           </Link>
         </div>
 
