@@ -52,12 +52,25 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  icons: {
+    icon: "/ketronics-logo.png",
+    shortcut: "/ketronics-logo.png",
+    apple: "/ketronics-logo.png",
+  },
   openGraph: {
     title: "Ketronics LTD - Tech Products & Services in Kenya",
     description:
       "Shop laptops, printers, TVs, PCs and expert tech services in Kenya with Ketronics LTD.",
     url: "https://ketronics.co.ke",
     siteName: "Ketronics LTD",
+    images: [
+      {
+        url: "/ketronics-logo.png",
+        width: 512,
+        height: 512,
+        alt: "Ketronics LTD Logo",
+      },
+    ],
     type: "website",
     locale: "en_KE",
   },
@@ -66,6 +79,7 @@ export const metadata: Metadata = {
     title: "Ketronics LTD - Tech Products & Services",
     description:
       "Premium tech products and expert services in Kenya, including laptops, printers, TVs, PCs, CCTV, and network setup.",
+    images: ["/ketronics-logo.png"],
   },
 };
 
@@ -76,6 +90,7 @@ const structuredData = JSON.stringify({
   description:
     "Ketronics LTD offers laptops, printers, TVs, PCs, CCTV installation, network setup, repairs, and expert tech services across Kenya.",
   url: "https://ketronics.co.ke",
+  logo: "https://ketronics.co.ke/ketronics-logo.png",
   telephone: "+254 700 000 000",
   address: {
     "@type": "PostalAddress",
@@ -117,6 +132,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/ketronics-logo.png" type="image/png" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
@@ -157,5 +175,4 @@ export default function RootLayout({
     </html>
   );
 }
-
 
