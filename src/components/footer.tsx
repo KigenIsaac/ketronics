@@ -20,6 +20,7 @@ import {
   Headphones
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 const iconMap = {
   Mail,
@@ -111,7 +112,16 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">{siteSettings.site_name || 'Ketronics LTD'}</h3>
+            <div className="flex items-center space-x-2">
+              <Image
+                src="/ketronics-logo.png"
+                alt="Ketronics LTD Logo"
+                width={40}
+                height={40}
+                className="rounded"
+              />
+              <h3 className="text-lg font-semibold">{siteSettings.site_name || 'Ketronics LTD'}</h3>
+            </div>
             <p className="text-sm text-muted-foreground">
               Your trusted partner for technology products and services in Kenya.
               We offer expert maintenance, repairs, and installation services.
