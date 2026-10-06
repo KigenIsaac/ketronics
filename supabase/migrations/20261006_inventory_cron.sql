@@ -21,7 +21,22 @@ BEGIN
   PERFORM cron.schedule(
     'ketronics-expire-stale-orders',
     '*/10 * * * *',
-    $$SELECT public.expire_stale_pending_orders(30);$$
+    $SELECT public.expire_stale_pending_orders(30);$
+  );
+
+  SELECT jobid
+    INTO v_job_id
+    FROM cron.job
+    WHERE jobname = 'ketronics-cleanup-rate-limits';
+
+  IF v_job_id IS NOT NULL THEN
+    PERFORM cron.unschedule(v_job_id);
+  END IF;
+
+  PERFORM cron.schedule(
+    'ketronics-cleanup-rate-limits',
+    '17 * * * *',
+    $SELECT public.cleanup_api_rate_limits();$
   );
 END;
 $migration$;
