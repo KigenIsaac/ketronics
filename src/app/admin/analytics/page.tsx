@@ -25,10 +25,10 @@ interface AnalyticsData {
   totalOrders: number;
   totalProducts: number;
   totalUsers: number;
-  recentOrders: any[];
-  topProducts: any[];
-  revenueByDay: any[];
-  userRegistrations: any[];
+  recentOrders: unknown[];
+  topProducts: unknown[];
+  revenueByDay: unknown[];
+  userRegistrations: unknown[];
 }
 
 export default function AdminAnalyticsPage() {
@@ -80,7 +80,7 @@ export default function AdminAnalyticsPage() {
 
       // Calculate analytics
       const totalRevenue = orders?.reduce((sum, order) => {
-        const orderTotal = order.order_items?.reduce((itemSum: number, item: any) =>
+        const orderTotal = order.order_items?.reduce((itemSum: number, item: unknown) =>
           itemSum + (item.quantity * item.price), 0) || 0;
         return sum + orderTotal;
       }, 0) || 0;
@@ -95,7 +95,7 @@ export default function AdminAnalyticsPage() {
       // Calculate top products
       const productSales: { [key: string]: { name: string; sales: number; revenue: number } } = {};
       orders?.forEach(order => {
-        order.order_items?.forEach((item: any) => {
+        order.order_items?.forEach((item: unknown) => {
           const productId = item.products?.id;
           const productName = item.products?.name || 'Unknown Product';
           if (productId) {
@@ -116,7 +116,7 @@ export default function AdminAnalyticsPage() {
       const revenueByDay: { [key: string]: number } = {};
       orders?.forEach(order => {
         const date = format(new Date(order.created_at), 'yyyy-MM-dd');
-        const orderTotal = order.order_items?.reduce((sum: number, item: any) =>
+        const orderTotal = order.order_items?.reduce((sum: number, item: unknown) =>
           sum + (item.quantity * item.price), 0) || 0;
         revenueByDay[date] = (revenueByDay[date] || 0) + orderTotal;
       });
@@ -187,6 +187,7 @@ export default function AdminAnalyticsPage() {
     toast.success('Analytics data exported successfully');
   };
 
+  }, [timeRange]);
   if (loading) {
     return (
       <div className="container mx-auto p-6">
@@ -352,7 +353,7 @@ export default function AdminAnalyticsPage() {
                           {order.status}
                         </Badge>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Ksh. {order.order_items?.reduce((sum: number, item: any) =>
+                          Ksh. {order.order_items?.reduce((sum: number, item: unknown) =>
                             sum + (item.quantity * item.price), 0).toFixed(2) || '0.00'}
                         </p>
                       </div>
