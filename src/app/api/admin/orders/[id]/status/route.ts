@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from '@/lib/supabaseServerClient';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { sendOrderNotification } from '@/lib/mail';
 import { z } from 'zod';
+import { isStaffRole } from "@/lib/roles";
 
 const schema = z.object({
   status: z.enum(['pending', 'confirmed', 'processing', 'paid', 'shipped', 'delivered', 'cancelled', 'refunded', 'returned']),
@@ -21,7 +22,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     if (!user) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
 
     const { data: profile } = await auth.from('profiles').select('role, is_active').eq('id', user.id).maybeSingle();
-    if (!profile?.is_active || !['manager', 'admin'].includes(profile.role)) {
+    if (!profile?.is_active || !isStaffRole(profile.role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
