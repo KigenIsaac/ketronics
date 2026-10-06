@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabaseServerClient';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
     // Create or update user profile
     if (data.user) {
-      const { error: profileError } = await supabase
+      const { error: profileError } = await getSupabaseAdmin()
         .from('profiles')
         .upsert({
           id: data.user.id,
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Redirect to dashboard or appropriate page
-    const redirectTo = state || '/dashboard';
+    const redirectTo = state && state.startsWith('/') && !state.startsWith('//') ? state : '/dashboard';
     return NextResponse.redirect(new URL(redirectTo, request.url));
 
   } catch (err: unknown) {
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { provider, code, state } = body;
+    const { provider, state } = body;
 
     const supabaseClient = await createSupabaseServerClient();
 
