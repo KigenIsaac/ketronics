@@ -15,10 +15,9 @@ import {
   TrendingUp,
   Cpu,
   Monitor,
-  Smartphone,
   Wifi
 } from "lucide-react";
-import Link from "next/link";
+import Link from "next/link";m "next/link";
 
 export const metadata: Metadata = {
   title: "About Us - Ketronics LTD",
