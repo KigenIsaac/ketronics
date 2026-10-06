@@ -38,9 +38,6 @@ export function Footer() {
   const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchFooterData();
-  }, []);
 
   const fetchFooterData = async () => {
     if (!isSupabaseConfigured()) {
@@ -75,6 +72,11 @@ export function Footer() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchFooterData();
+  }, []);
+
 
   const getIcon = (iconName?: string) => {
     if (!iconName) return null;
