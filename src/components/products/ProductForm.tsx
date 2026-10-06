@@ -110,7 +110,7 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
       }
       setImages([...images, ...newImages]);
       toast.success('Images uploaded successfully');
-    } catch (error) {
+    } catch {
       toast.error('Failed to upload images');
     } finally {
       setUploading(false);
@@ -123,7 +123,7 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
       await deleteImage(imageToRemove);
       setImages(images.filter((_, i) => i !== index));
       toast.success('Image removed');
-    } catch (error) {
+    } catch {
       toast.error('Failed to remove image');
     }
   };
@@ -172,7 +172,7 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
         toast.success('Product created successfully');
       }
       onSuccess();
-    } catch (error) {
+    } catch {
       toast.error('Failed to save product');
     } finally {
       setSaving(false);
