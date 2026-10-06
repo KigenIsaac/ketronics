@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Product } from '@/types/product';
 import { ProductCard } from '@/components/products/ProductCard';
@@ -23,7 +23,7 @@ interface Category {
   name: string;
 }
 
-export default function ProductsPage() {
+function ProductsContent() {
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get('category');
 
@@ -257,5 +257,14 @@ export default function ProductsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<LoadingGrid count={8} />}>
+      <ProductsContent />
+    </Suspense>
   );
 }
