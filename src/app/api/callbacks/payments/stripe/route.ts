@@ -1,18 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { headers } from 'next/headers';
+import { verifyStripeWebhookSignature } from '@/lib/payments/stripeWebhook';
 
 // Stripe webhook handler
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
-    const headersList = headers();
-    const signature = (await headersList).get('stripe-signature');
+    const signature = request.headers.get('stripe-signature');
+    const secret = process.env.STRIPE_WEBHOOK_SECRET;
 
-    // Verify Stripe webhook signature (in production)
-    // const event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET);
+    if (!secret) {
+      console.error('Stripe webhook secret is not configured');
+      return NextResponse.json(
+        { error: 'Webhook is not configured' },
+        { status: 503 }
+      );
+    }
 
-    // For development, parse the body directly
+    if (!verifyStripeWebhookSignature(body, signature, secret)) {
+      console.warn('Rejected Stripe webhook with invalid signature');
+      return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 400 });
+    }
+
     const event = JSON.parse(body);
 
     console.log('Stripe webhook received:', {
