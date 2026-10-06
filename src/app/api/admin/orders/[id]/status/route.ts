@@ -12,17 +12,6 @@ const schema = z.object({
   notes: z.string().trim().max(1000).optional(),
 });
 
-const allowedTransitions: Record<string, string[]> = {
-  pending: ['confirmed', 'cancelled'],
-  confirmed: ['processing', 'cancelled'],
-  processing: ['shipped', 'cancelled'],
-  paid: ['processing', 'cancelled', 'refunded'],
-  shipped: ['delivered'],
-  delivered: ['returned'],
-  cancelled: ['refunded'],
-  refunded: [],
-  returned: [],
-};
 
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
@@ -48,30 +37,30 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     if (orderError || !order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
 
     const next = parsed.data.status;
-    if (next !== order.status && !(allowedTransitions[order.status] || []).includes(next)) {
-      return NextResponse.json({ error: `Invalid transition from ${order.status} to ${next}` }, { status: 409 });
+
+    const { data: transition, error: transitionError } = await supabaseAdmin.rpc(
+      'transition_order_status',
+      {
+        p_order_id: id,
+        p_next_status: next,
+        p_tracking_number: parsed.data.trackingNumber || null,
+        p_carrier: parsed.data.carrier || null,
+        p_estimated_delivery: parsed.data.estimatedDelivery || null,
+        p_notes: parsed.data.notes || null,
+      },
+    );
+
+    if (transitionError) {
+      if (transitionError.message.includes('Invalid order transition')) {
+        return NextResponse.json(
+          { error: transitionError.message },
+          { status: 409 },
+        );
+      }
+      throw transitionError;
     }
 
     const now = new Date().toISOString();
-    const updateData: Record<string, unknown> = { status: next, updated_at: now };
-    if (parsed.data.trackingNumber) updateData.tracking_number = parsed.data.trackingNumber;
-    if (parsed.data.carrier) updateData.shipping_carrier = parsed.data.carrier;
-    if (parsed.data.estimatedDelivery) updateData.estimated_delivery = parsed.data.estimatedDelivery;
-    if (parsed.data.notes) updateData.notes = parsed.data.notes;
-    if (next === 'shipped') updateData.shipped_date = now;
-    if (next === 'delivered') updateData.delivered_date = now;
-
-    const { error: updateError } = await supabaseAdmin.from('orders').update(updateData).eq('id', id);
-    if (updateError) throw updateError;
-
-    await supabaseAdmin.from('order_status_history').insert({
-      order_id: id,
-      status: next,
-      tracking_number: parsed.data.trackingNumber || null,
-      carrier: parsed.data.carrier || null,
-      notes: parsed.data.notes || null,
-      created_at: now,
-    });
 
     try {
       await sendOrderNotification({
