@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import {
   Download,
   RefreshCw
 } from 'lucide-react';
-import { format, subDays, startOfDay, endOfDay } from 'date-fns';
+import { format, subDays } from 'date-fns';
 
 type AnalyticsOrderItem = { quantity: number; price: number; products?: { id?: string; name?: string } | null };
 type AnalyticsOrder = { id: string; created_at: string; status: string; order_items?: AnalyticsOrderItem[] };
@@ -42,10 +42,10 @@ export default function AdminAnalyticsPage() {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    fetchAnalytics();
-  }, [timeRange]);
+    void fetchAnalytics();
+  }, [fetchAnalytics]);
 
-  async function fetchAnalytics() {
+  const fetchAnalytics = useCallback(async () => {
     setRefreshing(true);
     try {
       const days = parseInt(timeRange);
