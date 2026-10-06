@@ -31,7 +31,7 @@ export async function POST(req: Request) {
 
     const out = NextResponse.json({ user, profile }, { status: 200 });
     return out;
-  } catch (err: any) {
-    return NextResponse.json({ error: err?.message ?? 'Unexpected error' }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : undefined ?? 'Unexpected error' }, { status: 500 });
   }
 }
