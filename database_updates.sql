@@ -1,3 +1,9 @@
+-- LEGACY / REFERENCE ONLY
+-- Do not execute this file on a production database.
+-- Canonical schema changes live under supabase/migrations/ and should be applied
+-- through the Supabase migration workflow. This file is retained for historical
+-- reference and for recovering schema details from older deployments.
+
 -- Database schema updates for dynamic content management
 -- Run these statements in your Supabase SQL editor
 
