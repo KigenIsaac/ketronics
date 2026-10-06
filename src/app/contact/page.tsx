@@ -51,7 +51,7 @@ export default function ContactPage() {
 
   useEffect(() => {
     void (async () => {
-      if (!isSupabaseConfigured()) return;
+      if (!isSupabaseConfigured()) { setLoading(false); return; }
       try {
         const [contactRes, settingsRes] = await Promise.all([
           supabase.from('contact_info').select('*').eq('is_active', true).order('sort_order'),
@@ -59,20 +59,18 @@ export default function ContactPage() {
         ]);
         if (contactRes.error) throw contactRes.error;
         if (settingsRes.error) throw settingsRes.error;
-        const settingsMap = (settingsRes.data || []).reduce((acc, setting) => {
-          acc[setting.key] = setting.value;
-          return acc;
-        }, {} as Record<string, string>);
-        setContactInfo(contactRes.data || []);
-        setSiteSettings(settingsMap);
-      } catch (error) {
-        console.error('Error fetching contact data:', error);
-      } finally {
-        setLoading(false);
-      }
+        if (contactRes.data) setContactInfo(contactRes.data);
+        if (settingsRes.data) {
+          const settingsMap = settingsRes.data.reduce((acc, setting) => {
+            acc[setting.key] = setting.value;
+            return acc;
+          }, {} as Record<string, string>);
+          setSiteSettings(settingsMap);
+        }
+      } catch (error) { console.error('Error fetching contact data:', error); }
+      finally { setLoading(false); }
     })();
   }, []);
-
 
 
   const handleSubmit = async (e: React.FormEvent) => {
