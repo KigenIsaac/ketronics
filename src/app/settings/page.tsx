@@ -35,34 +35,6 @@ export default function SettingsPage() {
     sms_notifications: false,
   });
 
-  const fetchPreferences = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('preferences')
-        .eq('id', user!.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error;
-
-      if (data?.preferences) {
-        setPreferences((current) => ({ ...current, ...data.preferences }));
-      }
-    } catch (error) {
-      console.error('Error fetching preferences:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (user) {
-      fetchPreferences();
-    }
-  }, [user]);
-
-
-
   const updatePreference = async (key: string, value: boolean) => {
     const newPreferences = { ...preferences, [key]: value };
     setPreferences(newPreferences);
@@ -298,4 +270,25 @@ export default function SettingsPage() {
       </div>
     </div>
   );
+  useEffect(() => {
+    void (async () => {try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('preferences')
+        .eq('id', user!.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+
+      if (data?.preferences) {
+        setPreferences((current) => ({ ...current, ...data.preferences }));
+      }
+    } catch (error) {
+      console.error('Error fetching preferences:', error);
+    } finally {
+      setLoading(false);
+    }
+    })();
+  }, [user]);
+
 }
