@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { isStaffRole } from "@/lib/roles";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +19,7 @@ export default function Home() {
     if (!userLoading && user) {
       toast.info("Redirecting to your dashboard...");
       setTimeout(() => {
-        if (user.role === 'manager') {
+        if (isStaffRole(user.role)) {
           router.push("/admin");
         } else {
           router.push("/dashboard");
