@@ -94,6 +94,7 @@ export async function POST(request: NextRequest) {
         {
           p_payment_id: payment.id,
           p_transaction_id: String(transactionId),
+          p_status: 'success',
           p_amount: Number(amount),
           p_currency: 'KES',
           p_metadata: { ...metadata, phone_number: phoneNumber == null ? null : String(phoneNumber) },
