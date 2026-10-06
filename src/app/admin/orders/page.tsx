@@ -10,33 +10,50 @@ import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { Package, Eye, Users } from 'lucide-react';
 
+async function loadOrders() {
+  const { data, error } = await supabase
+    .from('orders')
+    .select(`
+      *,
+      order_items (count),
+      profiles (email, full_name)
+    `)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
 export default function AdminOrdersPage() {
   const { user } = useUserStore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchOrders = async () => {
-    const { data, error } = await supabase
-      .from('orders')
-      .select(`
-        *,
-        order_items (count),
-        profiles (email, full_name)
-      `)
-      .order('created_at', { ascending: false });
-
-    if (error) {
+    try {
+      setOrders(await loadOrders());
+    } catch (error) {
       console.error('Error fetching orders:', error);
-    } else {
-      setOrders(data || []);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
-    if (user && (user.role === 'manager' || user.role === 'admin')) {
-      fetchOrders();
-    }
+    if (!user || !['manager', 'admin'].includes(user.role)) return;
+
+    let active = true;
+    void loadOrders()
+      .then((data) => {
+        if (active) setOrders(data);
+      })
+      .catch((error) => console.error('Error fetching orders:', error))
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, [user]);
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
