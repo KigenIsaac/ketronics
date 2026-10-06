@@ -64,6 +64,13 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     const { error: updateError } = await supabaseAdmin.from('orders').update(updateData).eq('id', id);
     if (updateError) throw updateError;
 
+    if (next === 'cancelled') {
+      const { error: releaseError } = await supabaseAdmin.rpc('release_order_inventory', {
+        p_order_id: id,
+      });
+      if (releaseError) throw releaseError;
+    }
+
     await supabaseAdmin.from('order_status_history').insert({
       order_id: id,
       status: next,

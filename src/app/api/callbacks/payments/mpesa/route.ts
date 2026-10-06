@@ -62,6 +62,13 @@ export async function POST(request: NextRequest) {
 
     if (updateError) throw updateError;
 
+    if (callback.ResultCode !== 0 && payment.order_id) {
+      const { error: releaseError } = await getSupabaseAdmin().rpc('release_order_inventory', {
+        p_order_id: payment.order_id,
+      });
+      if (releaseError) throw releaseError;
+    }
+
     if (callback.ResultCode === 0 && payment.order_id) {
       const { error: orderError } = await getSupabaseAdmin()
         .from('orders')
