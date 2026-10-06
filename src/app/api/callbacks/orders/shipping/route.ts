@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update order with latest shipping information
-    const orderUpdate: any = {
+    const orderUpdate: Record<string, string> = {
       updated_at: new Date().toISOString()
     };
 
