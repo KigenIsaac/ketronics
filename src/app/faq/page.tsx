@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FAQ } from "@/types/product";
 import { supabase } from "@/lib/supabase";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -17,10 +17,14 @@ async function fetchFAQs() {
 
 export default function FAQPage() {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");  const filteredFaqs = searchTerm.trim() === "" ? faqs : faqs.filter((faq) => {
-    const term = searchTerm.toLowerCase();
-    return faq.question.toLowerCase().includes(term) || faq.answer.toLowerCase().includes(term) || Boolean(faq.category?.toLowerCase().includes(term));
-  });
+  const filteredFaqs = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return faqs;
+    return faqs.filter((faq) =>
+      faq.question.toLowerCase().includes(term) ||
+      faq.answer.toLowerCase().includes(term) ||
+      Boolean(faq.category?.toLowerCase().includes(term)),
+    );
+  }, [faqs, searchTerm]);
 
 }
