@@ -10,7 +10,6 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { ArrowLeft, CreditCard, Truck } from 'lucide-react';
 import Link from 'next/link';
@@ -54,42 +53,33 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      // Create order
-      const { data: orderData, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          user_id: user.id,
-          total,
-          shipping_address: shippingInfo,
-          payment_method: paymentMethod,
-        })
-        .select()
-        .single();
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          items: items.map(item => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            attributes: item.attributes ?? {},
+          })),
+          shippingInfo,
+          paymentMethod,
+        }),
+      });
 
-      if (orderError) throw orderError;
+      const result = await response.json();
 
-      // Create order items
-      const orderItems = items.map(item => ({
-        order_id: orderData.id,
-        product_id: item.productId,
-        product_name: item.name,
-        product_image: item.image,
-        quantity: item.quantity,
-        price: item.price,
-        attributes: item.attributes,
-      }));
+      if (!response.ok) {
+        throw new Error(result?.error || 'Failed to place order');
+      }
 
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
-
-      if (itemsError) throw itemsError;
-
-      // Clear cart
+      // Clear the cart only after the server confirms the order.
       clearCart();
 
       toast.success('Order placed successfully!');
-      router.push(`/orders/${orderData.id}`);
+      router.push(`/orders/${result.order.id}`);
     } catch (error) {
       console.error('Error placing order:', error);
       toast.error('Failed to place order. Please try again.');
