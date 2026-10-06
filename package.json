@@ -9,7 +9,8 @@
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "verify": "node scripts/quality-check.mjs",
-    "test": "npm run verify"
+    "test": "node --test --experimental-strip-types",
+    "test:all": "npm run test && npm run verify"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
