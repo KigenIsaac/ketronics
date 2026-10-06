@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { sendOrderNotification } from '@/lib/mail';
+import { consumeRateLimit, getClientIp } from '@/lib/rateLimit';
 
 const itemSchema = z.object({
   productId: z.string().uuid(),
@@ -27,6 +28,21 @@ export async function POST(request: NextRequest) {
     const parsed = schema.safeParse(await request.json());
     if (!parsed.success) {
       return NextResponse.json({ error: 'Invalid order data', details: parsed.error.flatten() }, { status: 400 });
+    }
+
+    const ip = getClientIp(request);
+    const email = parsed.data.shippingInfo.email.toLowerCase();
+
+    const [ipAllowed, emailAllowed] = await Promise.all([
+      consumeRateLimit(`guest-order:ip:${ip}`, 10, 600),
+      consumeRateLimit(`guest-order:email:${email}`, 5, 600),
+    ]);
+
+    if (!ipAllowed || !emailAllowed) {
+      return NextResponse.json(
+        { error: 'Too many order attempts. Please try again later.' },
+        { status: 429 },
+      );
     }
 
     const { data, error } = await supabaseAdmin.rpc('create_guest_order_atomic', {
