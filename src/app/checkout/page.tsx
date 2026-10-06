@@ -42,7 +42,7 @@ export default function CheckoutPage() {
       'Hello Ketronics LTD, I would like to place an order.', '', 'ORDER DETAILS',
       ...items.flatMap((item, index) => {
         const attributes = item.attributes && Object.keys(item.attributes).length > 0
-          ? '\\n   Options: ' + Object.entries(item.attributes).map(([key, value]) => key + ': ' + value).join(', ')
+          ? '\n   Options: ' + Object.entries(item.attributes).map(([key, value]) => key + ': ' + value).join(', ')
           : '';
         return [
           (index + 1) + '. ' + item.name,
@@ -56,7 +56,7 @@ export default function CheckoutPage() {
       'Address: ' + shippingInfo.address, 'City: ' + shippingInfo.city, 'Country: ' + shippingInfo.country,
       '', 'PAYMENT: M-Pesa', 'Please confirm the order and payment instructions on WhatsApp.',
     ];
-    const message = encodeURIComponent(lines.join('\\n'));
+    const message = encodeURIComponent(lines.join('\n'));
     window.open('https://wa.me/254721142723?text=' + message, '_blank', 'noopener,noreferrer');
     clearCart();
     setLoading(false);
