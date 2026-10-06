@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,11 +14,8 @@ import Link from "next/link";
 export default function Home() {
   const { user, loading: userLoading } = useUserStore();
   const router = useRouter();
-  const [redirecting, setRedirecting] = useState(false);
-
   useEffect(() => {
     if (!userLoading && user) {
-      setRedirecting(true);
       toast.info("Redirecting to your dashboard...");
       setTimeout(() => {
         if (user.role === 'manager') {
@@ -34,7 +31,7 @@ export default function Home() {
     return <LoadingPage message="Loading your experience..." />;
   }
 
-  if (user && redirecting) {
+  if (user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
