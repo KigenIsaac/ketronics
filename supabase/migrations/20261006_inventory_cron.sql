@@ -5,7 +5,7 @@
 
 CREATE EXTENSION IF NOT EXISTS pg_cron WITH SCHEMA extensions;
 
-DO $$
+DO $migration$
 DECLARE
   v_job_id BIGINT;
 BEGIN
@@ -24,4 +24,4 @@ BEGIN
     $$SELECT public.expire_stale_pending_orders(30);$$
   );
 END;
-$$;
+$migration$;
