@@ -24,6 +24,7 @@ const checkoutSchema = z.object({
     country: z.string().trim().min(2).max(100),
   }),
   paymentMethod: z.enum(['cash_on_delivery', 'mpesa', 'card']),
+  idempotencyKey: z.string().uuid(),
 });
 
 export async function POST(request: NextRequest) {
@@ -57,6 +58,7 @@ export async function POST(request: NextRequest) {
         p_items: items,
         p_shipping_address: shippingInfo,
         p_payment_method: paymentMethod,
+        p_idempotency_key: parsed.data.idempotencyKey,
       }
     );
 
