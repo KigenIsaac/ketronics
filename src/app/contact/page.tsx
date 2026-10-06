@@ -26,8 +26,6 @@ import {
 import { toast } from "sonner";
 import Link from "next/link";
 
-
-
 const iconMap = {
   Mail,
   Phone,
@@ -38,25 +36,6 @@ const iconMap = {
   Instagram,
   Youtube,
 };
-
-async function fetchContactData() {
-  if (!isSupabaseConfigured()) return null;
-
-  const [contactRes, settingsRes] = await Promise.all([
-    supabase.from('contact_info').select('*').eq('is_active', true).order('sort_order'),
-    supabase.from('site_settings').select('key, value').in('key', ['contact_email', 'contact_phone', 'business_hours']),
-  ]);
-
-  if (contactRes.error) throw contactRes.error;
-  if (settingsRes.error) throw settingsRes.error;
-
-  const siteSettings = (settingsRes.data || []).reduce((acc, setting) => {
-    acc[setting.key] = setting.value;
-    return acc;
-  }, {} as Record<string, string>);
-
-  return { contactInfo: contactRes.data || [], siteSettings };
-}
 
 export default function ContactPage() {
   const [contactInfo, setContactInfo] = useState<ContactInfo[]>([]);
@@ -70,19 +49,57 @@ export default function ContactPage() {
   });
   const [submitting, setSubmitting] = useState(false);
 
+async function fetchContactData() {
+    if (!isSupabaseConfigured()) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const [contactRes, settingsRes] = await Promise.all([
+        supabase
+          .from('contact_info')
+          .select('*')
+          .eq('is_active', true)
+          .order('sort_order'),
+        supabase
+          .from('site_settings')
+          .select('key, value')
+          .in('key', ['contact_email', 'contact_phone', 'business_hours'])
+      ]);
+
+      if (contactRes.data) setContactInfo(contactRes.data);
+      if (settingsRes.data) {
+        const settingsMap = settingsRes.data.reduce((acc, setting) => {
+          acc[setting.key] = setting.value;
+          return acc;
+        }, {} as Record<string, string>);
+        setSiteSettings(settingsMap);
+      }
+    } catch (error) {
+      console.error('Error fetching contact data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     let active = true;
-    void fetchContactData()
-      .then((result) => {
-        if (!active || !result) return;
-        setContactInfo(result.contactInfo);
-        setSiteSettings(result.siteSettings);
-      })
-      .catch((error) => console.error('Error fetching contact data:', error))
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
+    void Promise.all([
+      supabase.from('contact_info').select('*').eq('is_active', true).order('sort_order'),
+      supabase.from('site_settings').select('key, value').in('key', ['contact_email', 'contact_phone', 'business_hours']),
+    ]).then(([contactRes, settingsRes]) => {
+      if (!active) return;
+      if (contactRes.error) throw contactRes.error;
+      if (settingsRes.error) throw settingsRes.error;
+      const settingsMap = (settingsRes.data || []).reduce((acc, setting) => {
+        acc[setting.key] = setting.value;
+        return acc;
+      }, {} as Record<string, string>);
+      setContactInfo(contactRes.data || []);
+      setSiteSettings(settingsMap);
+    }).catch((error) => console.error('Error fetching contact data:', error)).finally(() => {
+      if (active) setLoading(false);
+    });
+    return () => { active = false; };
   }, []);
