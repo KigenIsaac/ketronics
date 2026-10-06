@@ -21,7 +21,7 @@ export function PageContent({ slug }: PageContentProps) {
     fetchPageContent();
   }, [slug]);
 
-  const fetchPageContent = async () => {
+  async function fetchPageContent() {
     try {
       // Fetch page
       const { data: pageData, error: pageError } = await supabase
