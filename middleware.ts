@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server';
 import { getSupabaseConfig } from '@/lib/supabaseConfig';
 
 export async function middleware(req: NextRequest) {
-  let response = NextResponse.next({ request: { headers: req.headers } });
+  const response = NextResponse.next({ request: { headers: req.headers } });
   const { supabaseUrl, supabaseAnonKey } = getSupabaseConfig();
 
   const supabase = createServerClient(
