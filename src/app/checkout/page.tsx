@@ -227,8 +227,8 @@ export default function CheckoutPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="cash_on_delivery">Cash on Delivery</SelectItem>
-                    <SelectItem value="mpesa">M-Pesa</SelectItem>
-                    <SelectItem value="card">Credit/Debit Card</SelectItem>
+                    <SelectItem value="mpesa" disabled>M-Pesa (coming soon)</SelectItem>
+                    <SelectItem value="card" disabled>Credit/Debit Card (coming soon)</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-sm text-muted-foreground mt-2">
