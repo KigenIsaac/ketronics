@@ -23,50 +23,21 @@ export default function ProfilePage() {
     email: user?.email || '',
   });
 
-async function fetchProfile() {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user!.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error;
-
-      if (data) {
-        setFormData({
-          full_name: data.full_name || '',
-          phone: data.phone || '',
-          email: data.email || user!.email || '',
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+async function fetchProfile(userId: string) {
+  const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+  if (error && error.code !== 'PGRST116') throw error;
+  return data;
+}
 
   useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
+    if (!user) return;
     let active = true;
     void fetchProfile(user.id)
       .then((data) => {
         if (!active || !data) return;
-        setFormData({
-          full_name: data.full_name || '',
-          phone: data.phone || '',
-          email: data.email || user.email || '',
-        });
+        setFormData({ full_name: data.full_name || '', phone: data.phone || '', email: data.email || user.email || '' });
       })
       .catch((error) => console.error('Error fetching profile:', error))
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [user]);}
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [user]);
