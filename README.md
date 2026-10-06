@@ -1,273 +1,240 @@
-# Ketronics LTD - E-Commerce Platform
+# Ketronics LTD — E-Commerce Platform
 
-![Ketronics LTD](https://img.shields.io/badge/Ketronics-LTD-blue?style=for-the-badge&logo=shopify)
-![Next.js](https://img.shields.io/badge/Next.js-16.1.5-black?style=flat-square&logo=next.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)
-![Supabase](https://img.shields.io/badge/Supabase-2.93.1-green?style=flat-square&logo=supabase)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-cyan?style=flat-square&logo=tailwind-css)
+Ketronics is a production-oriented Next.js e-commerce application for technology products and services in Kenya and East Africa.
 
-A modern, full-featured e-commerce platform built with Next.js 16, designed for technology products and services in Kenya and East Africa.
+## Stack
 
-## 🌟 Features
+- **Next.js 16.3.8** + App Router
+- **React 19.3**
+- **TypeScript 5**
+- **Tailwind CSS 4** + Radix/shadcn-style components
+- **Supabase** Auth, PostgreSQL, RLS and Storage
+- **Zustand** for client cart/session state
+- **Zod** for API/input validation
+- **M-Pesa Daraja** STK Push + provider-side verification
+- **Stripe** webhook handling
+- **Nodemailer** for server-side email
+- **Vercel** / compatible Node hosting
 
-### 🛒 E-Commerce Core
-- **Product Catalog**: Browse laptops, printers, TVs, monitors, and electronics
-- **Shopping Cart**: Persistent cart with real-time updates
-- **Order Management**: Complete order lifecycle from placement to delivery
-- **User Authentication**: Secure login/signup with role-based access
-- **Payment Integration**: Ready for payment gateway integration
+## Core capabilities
 
-### 👥 User Management
-- **Customer Dashboard**: Order history, profile management, settings
-- **Admin Panel**: Product management, order processing, user administration
-- **Role-Based Access**: Different experiences for customers and managers
-- **User Profiles**: Account management and preferences
+- Product catalog, categories and inventory
+- Persistent shopping cart
+- Guest and authenticated checkout
+- Atomic order creation with database-authoritative pricing
+- Inventory reservation and stale-order release
+- M-Pesa STK Push and callback processing
+- Stripe webhook signature verification
+- Customer accounts and order history
+- Manager/admin administration
+- Dynamic CMS pages, FAQs and contact information
+- Supabase Storage product images
+- Server-side authorization and database RLS
+- Health endpoint and CI checks
 
-### 🛠️ Services & Support
-- **CCTV Installation**: Professional security system setup
-- **Network Solutions**: IT infrastructure and connectivity services
-- **Technical Support**: 24/7 emergency support and maintenance
-- **Service Scheduling**: Book appointments for installations and repairs
+## Architecture
 
-### 🎨 User Experience
-- **Responsive Design**: Mobile-first approach with adaptive layouts
-- **Dark/Light Themes**: Theme switching capability
-- **Toast Notifications**: Real-time feedback for all user actions
-- **Loading States**: Smooth loading experiences throughout
-- **Accessibility**: WCAG compliant components and navigation
+Business-critical operations follow this pattern:
 
-### 📱 Modern UI/UX
-- **Shadcn/UI Components**: Beautiful, accessible component library
-- **Infinite Scrolling Banner**: Important contact information display
-- **Mobile Navigation**: Hamburger menu with smooth animations
-- **Product Cards**: Optimized layouts for different screen sizes
-- **Interactive Elements**: Hover effects and micro-interactions
+`Browser → Next.js server/API → Supabase/PostgreSQL`
 
-## 🚀 Tech Stack
+Public catalogue reads may use Supabase directly where appropriate. Financial operations, administration, authentication-sensitive actions and provider callbacks are handled server-side.
 
-### Frontend
-- **Framework**: Next.js 16.1.5 with App Router
-- **Language**: TypeScript 5
-- **Styling**: Tailwind CSS 4 + CSS Variables
-- **UI Library**: Shadcn/UI (Radix UI primitives)
-- **Icons**: Lucide React
-- **State Management**: Zustand 5
-- **Forms**: React Hook Form + Zod validation
+The database is authoritative for:
 
-### Backend & Database
-- **Backend-as-a-Service**: Supabase
-- **Authentication**: Supabase Auth with RLS policies
-- **Database**: PostgreSQL with real-time subscriptions
-- **File Storage**: Supabase Storage
-- **API**: RESTful APIs with TypeScript types
+- product prices
+- inventory availability
+- order totals
+- payment state
+- role authorization
 
-### Development Tools
-- **Build Tool**: Turbopack (Next.js built-in)
-- **Linting**: ESLint 9
-- **Package Manager**: npm
-- **Deployment**: Vercel/Netlify ready
+Client-side cart values are never trusted for final order pricing.
 
-## 📁 Project Structure
+## Repository layout
 
 ```
-ketronics/
-├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── (auth)/            # Authentication pages
-│   │   ├── (dashboard)/       # Protected user pages
-│   │   ├── admin/             # Admin panel pages
-│   │   ├── api/               # API routes
-│   │   └── globals.css        # Global styles
-│   ├── components/            # Reusable components
-│   │   ├── ui/                # Shadcn/UI components
-│   │   ├── forms/             # Form components
-│   │   └── layout/            # Layout components
-│   ├── lib/                   # Utilities and configurations
-│   │   ├── stores/            # Zustand stores
-│   │   ├── utils/             # Helper functions
-│   │   └── validations/       # Zod schemas│   ├── templates/             # Email templates
-│   │   ├── email-confirmation.html    # HTML email template
-│   │   ├── email-confirmation.txt     # Plain text fallback
-│   │   └── README.md          # Template documentation│   └── hooks/                 # Custom React hooks
-├── database_updates.sql       # Database schema
-├── components.json           # Shadcn/UI configuration
-├── tailwind.config.js        # Tailwind configuration
-└── package.json              # Dependencies and scripts
+src/
+├── app/
+│   ├── admin/                  # manager/admin UI
+│   ├── api/                    # authenticated/server endpoints
+│   ├── auth/                   # authentication pages
+│   ├── dashboard/              # customer dashboard
+│   ├── orders/                 # order views
+│   └── products/               # catalogue
+├── components/                 # reusable UI
+├── lib/
+│   ├── stores/                 # Zustand state
+│   ├── utils/                  # shared utilities
+│   ├── mpesa.ts                # Daraja integration
+│   ├── mail.ts                 # server-side email
+│   ├── roles.ts                # centralized role checks
+│   └── storage.ts              # hardened image storage
+└── templates/                  # email templates
+
+supabase/migrations/             # canonical database migrations
+scripts/quality-check.mjs        # dependency-free regression checks
+.github/workflows/ci.yml         # lint, checks and production build
 ```
 
-## 🛠️ Installation & Setup
+## Database migrations
 
-### Prerequisites
-- Node.js 18+ and npm
-- Supabase account and project
-- Git
+**Canonical migrations live in `supabase/migrations/`.**
 
-### 1. Clone the Repository
-```bash
-git clone https://github.com/yourusername/ketronics.git
-cd ketronics
-```
+Apply them in order with the Supabase CLI or your normal migration pipeline. Do not treat standalone SQL files as the source of truth for a new deployment.
 
-### 2. Install Dependencies
-```bash
-npm install
-```
+Legacy SQL files are retained only for compatibility with older installations.
 
-### 3. Environment Setup
-Create a `.env.local` file in the root directory:
+After migrations, verify:
+
+1. RLS is enabled on sensitive tables.
+2. Manager/admin policies are active.
+3. Privileged functions are restricted to `service_role`.
+4. Payment uniqueness constraints exist.
+5. Storage policies restrict product image operations.
+
+## Environment variables
+
+### Required Supabase
 
 ```env
-# Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-
-# Optional: For production deployment
-NEXT_PUBLIC_APP_URL=https://yourdomain.com
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
 ```
 
-### 4. Database Setup
-1. Create a new Supabase project
-2. Run the SQL commands from `database_updates.sql` in your Supabase SQL editor
-3. Configure Row Level Security (RLS) policies as needed
+`SUPABASE_SERVICE_ROLE_KEY` is server-only and must never be exposed as a `NEXT_PUBLIC_*` variable.
 
-### 5. Run Development Server
+### M-Pesa
+
+```env
+MPESA_CONSUMER_KEY=
+MPESA_CONSUMER_SECRET=
+MPESA_SHORTCODE=
+MPESA_PASSKEY=
+MPESA_CALLBACK_URL=
+MPESA_ENVIRONMENT=sandbox
+```
+
+Use `production` only after completing real Daraja verification and callback testing.
+
+### Email
+
+SMTP credentials are **not stored in the database**.
+
+```env
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASSWORD=
+SMTP_SECURE=false
+SMTP_FROM=
+CONTACT_RECIPIENT_EMAIL=
+```
+
+### Webhooks / operations
+
+```env
+STRIPE_WEBHOOK_SECRET=
+GENERAL_WEBHOOK_SECRET=
+SHIPPING_CALLBACK_SECRET=
+ORDER_STATUS_CALLBACK_SECRET=
+CRON_SECRET=
+```
+
+Only define callback secrets for endpoints that are enabled.
+
+## Local development
+
+Prerequisites:
+
+- Node.js 20.9+ recommended for the current Next.js release
+- npm
+- Supabase project
+
+Install and run:
+
 ```bash
+npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the application.
+Then open `http://localhost:3000`.
 
-## 📊 Database Schema
+## Quality checks
 
-The application uses a comprehensive database schema including:
-
-- **Users**: Authentication and profile management
-- **Products**: Catalog with categories, pricing, and inventory
-- **Orders**: Complete order lifecycle management
-- **Categories**: Product organization
-- **Pages**: Dynamic content management for CMS
-- **FAQs**: Frequently asked questions system
-- **Contact Info**: Business contact information
-
-## 🎯 Key Features Implementation
-
-### Authentication Flow
-- Secure login/signup with email verification
-- Password reset functionality
-- Role-based redirects (customers → dashboard, managers → admin)
-- Persistent sessions with automatic token refresh
-
-### Shopping Experience
-- Product filtering and search
-- Real-time cart updates with local storage persistence
-- Secure checkout process (payment integration ready)
-- Order tracking and history
-
-### Admin Panel
-- Product CRUD operations
-- Order management and status updates
-- User administration
-- Analytics and reporting (charts with Recharts)
-
-### Content Management
-- Dynamic pages for About Us, Support, Terms, etc.
-- FAQ management system
-- Contact information management
-- SEO-friendly meta tags
-
-## 🚀 Deployment
-
-### Vercel (Recommended)
-1. Connect your GitHub repository to Vercel
-2. Add environment variables in Vercel dashboard
-3. Deploy automatically on push to main branch
-
-### Manual Deployment
 ```bash
-# Build for production
+npm run lint
+npm run verify
 npm run build
-
-# Start production server
-npm start
+npm test
 ```
 
-## 🤝 Contributing
+`npm run verify` contains dependency-free regression checks for critical security invariants. CI runs lint, verification checks and the production build.
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature`
-3. Commit changes: `git commit -m 'Add your feature'`
-4. Push to branch: `git push origin feature/your-feature`
-5. Open a Pull Request
+The repository should eventually add full unit, integration and browser E2E coverage for checkout, authorization and payment flows; the current invariant checks are a safety net, not a replacement for those tests.
 
-### Development Guidelines
-- Use TypeScript for all new code
-- Follow the existing component patterns
-- Add proper error handling and loading states
-- Test on multiple screen sizes
-- Use semantic commit messages
+## Security model
 
-## 📝 Scripts
+### Authentication and authorization
 
-```bash
-# Development
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run start        # Start production server
-npm run lint         # Run ESLint
+- Supabase Auth provides identity.
+- Active `manager` and `admin` accounts are treated consistently as staff.
+- Role changes are protected by database logic.
+- Customer self-promotion is rejected.
+- Admin APIs perform server-side authorization.
+- RLS provides a second authorization boundary.
 
-# Database
-# Run database_updates.sql in Supabase dashboard
-```
+### Payments
 
-## 🔧 Configuration
+M-Pesa callbacks are not trusted solely because they arrive at the callback URL. Successful callbacks trigger an authenticated provider-side STK query before financial state is changed.
 
-### Tailwind CSS
-The project uses Tailwind CSS 4 with custom CSS variables for theming. Configuration is in `src/app/globals.css`.
+Payment provider identifiers are protected by database uniqueness constraints, and successful payment/order changes are applied atomically.
 
-### Shadcn/UI
-Components are configured in `components.json`. Add new components using:
-```bash
-npx shadcn@latest add [component-name]
-```
+Stripe webhook signatures are verified against the raw request body.
 
-### Supabase
-- Authentication configured in `src/lib/supabase/`
-- Database types generated automatically
-- RLS policies ensure data security
+### Inventory
 
-## 🐛 Troubleshooting
+Order creation reserves inventory atomically. Stale unpaid orders are eligible for automatic expiration and inventory release through the protected expiration endpoint.
 
-### Common Issues
-1. **Build Errors**: Ensure all environment variables are set
-2. **Database Connection**: Verify Supabase credentials and network access
-3. **Type Errors**: Run `npm run build` to check for TypeScript issues
-4. **Styling Issues**: Clear browser cache and check Tailwind configuration
+### File uploads
 
-### Performance Optimization
-- Images are optimized automatically by Next.js
-- Components use React.memo where appropriate
-- Database queries are optimized with proper indexing
+Product images are limited to JPEG, PNG and WebP and to 5 MB. Object names use UUIDs rather than client-provided filenames.
 
-## 📄 License
+## Production deployment
+
+Before production:
+
+1. Apply database migrations.
+2. Configure all server-only secrets in the hosting provider.
+3. Configure the M-Pesa callback URL with HTTPS.
+4. Configure Stripe webhook signing.
+5. Configure a scheduler to call:
+   `GET /api/cron/expire-orders`
+   with `Authorization: Bearer $CRON_SECRET`.
+6. Verify RLS and storage policies.
+7. Run lint, verification checks and a production build.
+8. Test customer, manager and admin authorization.
+9. Test duplicate checkout/payment callbacks.
+10. Test failed, cancelled, paid and delivered order transitions.
+11. Confirm monitoring and backups are available.
+
+The expiration endpoint is intentionally protected by `CRON_SECRET`; do not make it publicly callable.
+
+## Important production rule
+
+Never put:
+
+- Supabase service-role keys
+- M-Pesa consumer secrets/passkeys
+- SMTP passwords
+- webhook signing secrets
+
+in client-side code, public environment variables, database settings or source control.
+
+## License
 
 This project is proprietary software owned by Ketronics LTD.
 
-## 📞 Support
-
-For support and questions:
-- **Email**: support@ketronics.co.ke
-- **Phone**: +254 700 000 000
-- **Website**: [ketronics.co.ke](https://ketronics.co.ke)
-- **Address**: AA building 1st floor room F6A
-
-## 🙏 Acknowledgments
-
-- **Next.js Team** for the amazing framework
-- **Supabase Team** for the excellent backend platform
-- **Shadcn** for the beautiful component library
-- **Vercel** for hosting and deployment platform
-
 ---
 
-**Built with ❤️ in Nairobi, Kenya**
+**Built with care in Nairobi, Kenya.**
