@@ -8,6 +8,8 @@ const files = {
   mpesa: "src/lib/mpesa.ts",
   roles: "src/lib/roles.ts",
   storage: "src/lib/storage.ts",
+  commerceRls: "supabase/migrations/20261006_commerce_rls_hardening.sql",
+  webhook: "src/app/api/callbacks/webhooks/route.ts",
 };
 
 const source = {};
@@ -27,5 +29,8 @@ assert.equal(source.mpesa.includes("/mpesa/stkpushquery/v1/query"), true);
 assert.equal(source.roles.includes('role === "manager" || role === "admin"'), true);
 assert.equal(source.storage.includes("crypto.randomUUID()"), true);
 assert.equal(source.storage.includes("5 MB"), true);
+assert.equal(source.commerceRls.includes("ENABLE ROW LEVEL SECURITY"), true);
+assert.equal(source.commerceRls.includes('REVOKE ALL ON TABLE public.payments'), true);
+assert.equal(source.webhook.includes("export async function GET"), false);
 
 console.log("Ketronics security/architecture invariants: PASS");
