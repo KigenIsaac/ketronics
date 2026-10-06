@@ -1,11 +1,19 @@
--- Atomic order creation for checkout.
+-- Atomic and idempotent order creation for checkout.
+
+ALTER TABLE orders
+  ADD COLUMN IF NOT EXISTS idempotency_key UUID;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_user_idempotency_key
+  ON orders(user_id, idempotency_key)
+  WHERE idempotency_key IS NOT NULL;
 -- Run this migration in the production Supabase database before deploying
 -- the corresponding application endpoint.
 
 CREATE OR REPLACE FUNCTION create_order_atomic(
   p_items JSONB,
   p_shipping_address JSONB,
-  p_payment_method TEXT
+  p_payment_method TEXT,
+  p_idempotency_key UUID
 )
 RETURNS TABLE (
   id UUID,
@@ -36,6 +44,21 @@ BEGIN
 
   IF p_payment_method NOT IN ('cash_on_delivery', 'mpesa', 'card') THEN
     RAISE EXCEPTION 'Invalid payment method';
+  END IF;
+
+  IF p_idempotency_key IS NULL THEN
+    RAISE EXCEPTION 'Idempotency key is required';
+  END IF;
+
+  SELECT o.id, o.total, o.status, o.created_at
+    INTO id, total, status, created_at
+    FROM orders o
+   WHERE o.user_id = v_user_id
+     AND o.idempotency_key = p_idempotency_key;
+
+  IF FOUND THEN
+    RETURN NEXT;
+    RETURN;
   END IF;
 
   FOR v_item IN SELECT value FROM jsonb_array_elements(p_items)
@@ -72,14 +95,16 @@ BEGIN
     total,
     status,
     shipping_address,
-    payment_method
+    payment_method,
+    idempotency_key
   )
   VALUES (
     v_user_id,
     v_total,
     'pending',
     p_shipping_address,
-    p_payment_method
+    p_payment_method,
+    p_idempotency_key
   )
   RETURNING orders.id INTO v_order_id;
 
@@ -122,5 +147,5 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION create_order_atomic(JSONB, JSONB, TEXT) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION create_order_atomic(JSONB, JSONB, TEXT) TO authenticated;
+REVOKE ALL ON FUNCTION create_order_atomic(JSONB, JSONB, TEXT, UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION create_order_atomic(JSONB, JSONB, TEXT, UUID) TO authenticated;
