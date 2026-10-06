@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
     const redirectTo = state || '/dashboard';
     return NextResponse.redirect(new URL(redirectTo, request.url));
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('OAuth callback error:', err);
     return NextResponse.redirect(
       new URL('/auth/login?error=Authentication failed', request.url)
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: data.url });
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('OAuth POST error:', err);
     return NextResponse.json({ error: 'OAuth initialization failed' }, { status: 500 });
   }
