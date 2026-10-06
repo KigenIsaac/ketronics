@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FAQ } from "@/types/product";
 import { supabase } from "@/lib/supabase";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -17,7 +17,7 @@ const fetchFAQs = async () => {
 
 export default function FAQPage() {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
-  const [filteredFaqs, setFilteredFaqs] = useState<FAQ[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -25,7 +25,17 @@ export default function FAQPage() {
     void fetchFAQs().then(setFaqs).catch(console.error).finally(() => setLoading(false));
   }, []);
 
-  
+  const filteredFaqs = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    if (!query) return faqs;
+
+    return faqs.filter((faq) =>
+      [faq.question, faq.answer, faq.category || ""].some((value) =>
+        value.toLowerCase().includes(query),
+      ),
+    );
+  }, [faqs, searchTerm]);
+
   const groupFAQsByCategory = (faqs: FAQ[]) => {
     const grouped: Record<string, FAQ[]> = {};
     faqs.forEach((faq) => {
