@@ -2,51 +2,76 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { headers } from 'next/headers';
 
-// SMS delivery status callback (from Twilio, Africa's Talking, etc.)
+type TwilioCallback = {
+  MessageSid?: string;
+  MessageStatus?: string;
+  To?: string;
+  From?: string;
+  ErrorCode?: string;
+  ErrorMessage?: string;
+  user_id?: string;
+  order_id?: string;
+};
+
+type AfricasTalkingCallback = {
+  id?: string;
+  status?: string;
+  phoneNumber?: string;
+  networkCode?: string;
+  failureReason?: string;
+  retryCount?: number;
+  user_id?: string;
+  order_id?: string;
+};
+
+type GenericSmsEvent = {
+  phone?: string;
+  status?: string;
+  messageId?: string;
+  error?: string;
+  user_id?: string;
+  order_id?: string;
+};
+
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body: unknown = await request.json();
     const headersList = await headers();
 
     console.log('SMS callback received:', {
       body,
       userAgent: headersList.get('user-agent'),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
-    // Handle different SMS providers
     const userAgent = headersList.get('user-agent') || '';
 
     if (userAgent.includes('Twilio')) {
-      await handleTwilioCallback(body);
-    } else if (userAgent.includes('Africa\'s Talking') || userAgent.includes('AfricasTalking')) {
-      await handleAfricasTalkingCallback(body);
+      await handleTwilioCallback(body as TwilioCallback);
+    } else if (userAgent.includes("Africa's Talking") || userAgent.includes('AfricasTalking')) {
+      await handleAfricasTalkingCallback(body as AfricasTalkingCallback);
     } else {
-      // Generic SMS callback processing
-      await handleGenericSMSCallback(body);
+      await handleGenericSMSCallback(body as GenericSmsEvent | GenericSmsEvent[]);
     }
 
     return NextResponse.json({ success: true });
-
   } catch (err: unknown) {
     console.error('SMS callback error:', err);
     return NextResponse.json({ error: 'Callback processing failed' }, { status: 500 });
   }
 }
 
-async function handleTwilioCallback(body: any) {
+async function handleTwilioCallback(body: TwilioCallback) {
   const {
     MessageSid,
     MessageStatus,
     To,
-    From,
     ErrorCode,
     ErrorMessage,
     user_id,
-    order_id
+    order_id,
   } = body;
 
-  // Log SMS event
   const { error } = await supabase
     .from('sms_events')
     .insert({
@@ -58,39 +83,35 @@ async function handleTwilioCallback(body: any) {
       error_message: ErrorMessage,
       user_id,
       order_id,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     });
 
-  if (error) {
-    console.error('Twilio SMS event logging error:', error);
-  }
+  if (error) console.error('Twilio SMS event logging error:', error);
 
-  // Handle delivery failures
-  if (MessageStatus === 'failed' || MessageStatus === 'undelivered') {
+  if (To && (MessageStatus === 'failed' || MessageStatus === 'undelivered')) {
     await handleSMSDeliveryFailure(To, ErrorMessage || 'Delivery failed');
   }
 
   console.log('Twilio SMS status:', { MessageSid, MessageStatus, To });
 }
 
-async function handleAfricasTalkingCallback(body: any) {
+async function handleAfricasTalkingCallback(body: AfricasTalkingCallback) {
   const {
-    id, // Africa's Talking message ID
-    status, // Sent, Delivered, Failed, Rejected
+    id,
+    status,
     phoneNumber,
     networkCode,
     failureReason,
     retryCount,
     user_id,
-    order_id
+    order_id,
   } = body;
 
-  // Log SMS event
   const { error } = await supabase
     .from('sms_events')
     .insert({
       phone_number: phoneNumber,
-      status: status.toLowerCase(),
+      status: status?.toLowerCase(),
       provider: 'africas_talking',
       provider_message_id: id,
       network_code: networkCode,
@@ -98,22 +119,19 @@ async function handleAfricasTalkingCallback(body: any) {
       retry_count: retryCount,
       user_id,
       order_id,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     });
 
-  if (error) {
-    console.error('Africa\'s Talking SMS event logging error:', error);
-  }
+  if (error) console.error("Africa's Talking SMS event logging error:", error);
 
-  // Handle delivery failures
-  if (status === 'Failed' || status === 'Rejected') {
+  if (phoneNumber && (status === 'Failed' || status === 'Rejected')) {
     await handleSMSDeliveryFailure(phoneNumber, failureReason || 'Delivery failed');
   }
 
-  console.log('Africa\'s Talking SMS status:', { id, status, phoneNumber });
+  console.log("Africa's Talking SMS status:", { id, status, phoneNumber });
 }
 
-async function handleGenericSMSCallback(body: any) {
+async function handleGenericSMSCallback(body: GenericSmsEvent | GenericSmsEvent[]) {
   const events = Array.isArray(body) ? body : [body];
 
   for (const event of events) {
@@ -123,7 +141,7 @@ async function handleGenericSMSCallback(body: any) {
       messageId,
       error,
       user_id,
-      order_id
+      order_id,
     } = event;
 
     const { error: insertError } = await supabase
@@ -136,15 +154,12 @@ async function handleGenericSMSCallback(body: any) {
         error_message: error,
         user_id,
         order_id,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       });
 
-    if (insertError) {
-      console.error('Generic SMS event logging error:', insertError);
-    }
+    if (insertError) console.error('Generic SMS event logging error:', insertError);
 
-    // Handle delivery failures
-    if (status === 'failed' || status === 'undelivered') {
+    if (phone && (status === 'failed' || status === 'undelivered')) {
       await handleSMSDeliveryFailure(phone, error || 'Delivery failed');
     }
   }
@@ -153,25 +168,18 @@ async function handleGenericSMSCallback(body: any) {
 async function handleSMSDeliveryFailure(phoneNumber: string, reason: string) {
   console.log('SMS delivery failed:', { phoneNumber, reason });
 
-  // Update user profile to track SMS delivery issues
   const { error } = await supabase
     .from('profiles')
     .update({
       sms_delivery_failed: true,
       sms_failure_reason: reason,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     })
     .eq('phone', phoneNumber);
 
-  if (error) {
-    console.error('SMS failure update error:', error);
-  }
-
-  // Optionally send alternative notification (email) if SMS fails
-  // This would require finding the user by phone number and sending email
+  if (error) console.error('SMS failure update error:', error);
 }
 
-// GET method for SMS status checks
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -201,7 +209,6 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ events });
-
   } catch (err: unknown) {
     console.error('SMS status GET error:', err);
     return NextResponse.json({ error: 'Status check failed' }, { status: 500 });
