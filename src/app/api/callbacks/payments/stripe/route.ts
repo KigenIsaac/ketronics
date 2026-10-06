@@ -99,17 +99,6 @@ function amountsMatch(expected: unknown, receivedCents: unknown) {
   return Number.isFinite(received) && Math.abs(Number(expected) - received) < 0.01;
 }
 
-async function markOrderPaid(orderId: string) {
-  const now = new Date().toISOString();
-  const { error } = await getSupabaseAdmin()
-    .from('orders')
-    .update({ status: 'paid', payment_date: now, updated_at: now })
-    .eq('id', orderId)
-    .neq('status', 'paid');
-
-  if (error) throw error;
-}
-
 async function handlePaymentIntentSucceeded(intent: StripePaymentIntent, eventId: string) {
   const payment = await findPayment('payment_intent_id', intent.id);
   if (!payment) throw new Error('Stripe payment intent is not linked to an existing payment');
@@ -120,18 +109,20 @@ async function handlePaymentIntentSucceeded(intent: StripePaymentIntent, eventId
 
   if (payment.status === 'completed' || payment.status === 'success') return;
 
-  const now = new Date().toISOString();
-  const { error } = await getSupabaseAdmin().from('payments').update({
-    status: 'completed',
-    transaction_id: intent.id,
-    amount: Number(intent.amount) / 100,
-    currency: intent.currency,
-    metadata: { event_id: eventId, provider: 'stripe' },
-    updated_at: now,
-  }).eq('id', payment.id);
+  const { data: applied, error } = await getSupabaseAdmin().rpc(
+    'apply_payment_success',
+    {
+      p_payment_id: payment.id,
+      p_transaction_id: intent.id,
+      p_status: 'completed',
+      p_amount: Number(intent.amount) / 100,
+      p_currency: intent.currency || payment.currency,
+      p_metadata: { event_id: eventId, provider: 'stripe' },
+    },
+  );
 
   if (error) throw error;
-  if (payment.order_id) await markOrderPaid(payment.order_id);
+  if (!applied) return;
 }
 
 async function handlePaymentIntentFailed(intent: StripePaymentIntent, eventId: string) {
@@ -168,14 +159,18 @@ async function handleCheckoutCompleted(session: StripeCheckoutSession, eventId: 
 
   if (payment.status === 'completed' || payment.status === 'success') return;
 
-  const now = new Date().toISOString();
-  const { error } = await getSupabaseAdmin().from('payments').update({
-    status: 'completed',
-    transaction_id: session.id,
-    metadata: { event_id: eventId, provider: 'stripe' },
-    updated_at: now,
-  }).eq('id', payment.id);
+  const { data: applied, error } = await getSupabaseAdmin().rpc(
+    'apply_payment_success',
+    {
+      p_payment_id: payment.id,
+      p_transaction_id: session.id,
+      p_status: 'completed',
+      p_amount: Number(session.amount_total) / 100,
+      p_currency: payment.currency,
+      p_metadata: { event_id: eventId, provider: 'stripe' },
+    },
+  );
 
   if (error) throw error;
-  if (payment.order_id) await markOrderPaid(payment.order_id);
+  if (!applied) return;
 }
