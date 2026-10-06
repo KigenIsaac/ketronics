@@ -37,11 +37,7 @@ export default function AdminAnalyticsPage() {
   const [timeRange, setTimeRange] = useState('30');
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    void fetchAnalytics();
-  }, [fetchAnalytics]);
-
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     setRefreshing(true);
     try {
       const days = parseInt(timeRange);
