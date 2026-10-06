@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { LoadingPage } from "@/components/loading";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 import Link from "next/link";
 
 interface PageContentProps {
