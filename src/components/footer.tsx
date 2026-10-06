@@ -38,46 +38,6 @@ export function Footer() {
   const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
-
-  const fetchFooterData = async () => {
-    if (!isSupabaseConfigured()) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const [contactRes, settingsRes] = await Promise.all([
-        supabase
-          .from('contact_info')
-          .select('*')
-          .eq('is_active', true)
-          .order('sort_order'),
-        supabase
-          .from('site_settings')
-          .select('key, value')
-          .in('key', ['site_name', 'contact_email', 'contact_phone', 'business_hours'])
-      ]);
-
-      if (contactRes.data) setContactInfo(contactRes.data);
-      if (settingsRes.data) {
-        const settingsMap = settingsRes.data.reduce((acc, setting) => {
-          acc[setting.key] = setting.value;
-          return acc;
-        }, {} as Record<string, string>);
-        setSiteSettings(settingsMap);
-      }
-    } catch (error) {
-      console.error('Error fetching footer data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchFooterData();
-  }, []);
-
-
   const getIcon = (iconName?: string) => {
     if (!iconName) return null;
     return iconMap[iconName as keyof typeof iconMap] || null;
@@ -251,4 +211,39 @@ export function Footer() {
       </div>
     </footer>
   );
-}
+}  useEffect(() => {
+    void (async () => {if (!isSupabaseConfigured()) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const [contactRes, settingsRes] = await Promise.all([
+        supabase
+          .from('contact_info')
+          .select('*')
+          .eq('is_active', true)
+          .order('sort_order'),
+        supabase
+          .from('site_settings')
+          .select('key, value')
+          .in('key', ['site_name', 'contact_email', 'contact_phone', 'business_hours'])
+      ]);
+
+      if (contactRes.data) setContactInfo(contactRes.data);
+      if (settingsRes.data) {
+        const settingsMap = settingsRes.data.reduce((acc, setting) => {
+          acc[setting.key] = setting.value;
+          return acc;
+        }, {} as Record<string, string>);
+        setSiteSettings(settingsMap);
+      }
+    } catch (error) {
+      console.error('Error fetching footer data:', error);
+    } finally {
+      setLoading(false);
+    }
+    })();
+  }, []);
+
+
