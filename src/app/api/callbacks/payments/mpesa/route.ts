@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseAdmin } from '@/lib/getSupabaseAdmin()';
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 
 function extractCallback(body: any) {
   return body?.Body?.stkCallback ?? null;
