@@ -19,14 +19,7 @@ export async function POST(request: NextRequest) {
       photos
     } = body;
 
-    console.log('Shipping callback received:', {
-      trackingNumber,
-      status,
-      location,
-      orderId,
-      carrier,
-      timestamp: new Date().toISOString()
-    });
+    console.info('Shipping callback received', { status, carrier, hasTrackingNumber: Boolean(trackingNumber) });
 
     if (!trackingNumber || !status) {
       return NextResponse.json(
