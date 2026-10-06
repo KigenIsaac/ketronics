@@ -27,6 +27,9 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
   const [brand, setBrand] = useState(product?.brand || '');
   const [buyingPrice, setBuyingPrice] = useState(product?.buying_price?.toString() || '');
   const [discount, setDiscount] = useState(product?.discount?.toString() || '0');
+  const [trackInventory, setTrackInventory] = useState(product?.track_inventory ?? false);
+  const [stockQuantity, setStockQuantity] = useState(product?.stock_quantity?.toString() || '0');
+  const [lowStockThreshold, setLowStockThreshold] = useState(product?.low_stock_threshold?.toString() || '5');
   const [categoryId, setCategoryId] = useState(product?.category_id || '');
   const [subcategoryId, setSubcategoryId] = useState(product?.subcategory_id || '');
   const [attributes, setAttributes] = useState<Record<string, any>>(product?.attributes || {});
@@ -147,6 +150,9 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
       brand: brand || null,
       buying_price: buyingPrice ? parseFloat(buyingPrice) : null,
       discount: parseFloat(discount) || 0,
+      track_inventory: trackInventory,
+      stock_quantity: Math.max(0, parseInt(stockQuantity, 10) || 0),
+      low_stock_threshold: Math.max(0, parseInt(lowStockThreshold, 10) || 0),
       category_id: categoryId || null,
       subcategory_id: subcategoryId || null,
       attributes,
@@ -260,6 +266,23 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
                 className="mt-1"
               />
             </div>
+          </div>
+
+          {/* Inventory */}
+          <div className="rounded-lg border p-4 space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <Label htmlFor="trackInventory">Track inventory</Label>
+                <p className="text-sm text-muted-foreground">When enabled, checkout reserves/decrements this stock atomically.</p>
+              </div>
+              <input id="trackInventory" type="checkbox" checked={trackInventory} onChange={(e) => setTrackInventory(e.target.checked)} className="h-4 w-4" />
+            </div>
+            {trackInventory && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div><Label htmlFor="stockQuantity">Stock quantity</Label><Input id="stockQuantity" type="number" min="0" value={stockQuantity} onChange={(e) => setStockQuantity(e.target.value)} className="mt-1" /></div>
+                <div><Label htmlFor="lowStockThreshold">Low-stock alert threshold</Label><Input id="lowStockThreshold" type="number" min="0" value={lowStockThreshold} onChange={(e) => setLowStockThreshold(e.target.value)} className="mt-1" /></div>
+              </div>
+            )}
           </div>
 
           {/* Category & Subcategory */}
