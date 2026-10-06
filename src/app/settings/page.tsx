@@ -46,26 +46,7 @@ export default function SettingsPage() {
     void fetchPreferences(user.id).then((data) => { if (data) setPreferences((current) => ({ ...current, ...data })); }).catch(console.error).finally(() => setLoading(false));
   }, [user]);
 
-  const fetchPreferences = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('preferences')
-        .eq('id', user!.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error;
-
-      if (data?.preferences) {
-        setPreferences({ ...preferences, ...data.preferences });
-      }
-    } catch (error) {
-      console.error('Error fetching preferences:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  
   const updatePreference = async (key: string, value: boolean) => {
     const newPreferences = { ...preferences, [key]: value };
     setPreferences(newPreferences);
