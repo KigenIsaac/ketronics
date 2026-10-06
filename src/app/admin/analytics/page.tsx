@@ -356,7 +356,7 @@ export default function AdminAnalyticsPage() {
                           {order.status}
                         </Badge>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Ksh. {order.order_items?.reduce((sum: number, item: unknown) =>
+                          Ksh. {order.order_items?.reduce((sum: number, item: AnalyticsOrderItem) =>
                             sum + (item.quantity * item.price), 0).toFixed(2) || '0.00'}
                         </p>
                       </div>
