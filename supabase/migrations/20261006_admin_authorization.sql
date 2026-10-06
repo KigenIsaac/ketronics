@@ -78,8 +78,13 @@ SET search_path = public
 AS $$
 BEGIN
   IF NEW.role IS DISTINCT FROM OLD.role THEN
-    IF NOT public.is_manager_or_admin() THEN
-      RAISE EXCEPTION 'Only managers or admins can change user roles';
+    IF NOT EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid()
+        AND role = 'admin'
+        AND is_active = true
+    ) THEN
+      RAISE EXCEPTION 'Only active admins can change user roles';
     END IF;
 
     IF NEW.id = auth.uid() THEN
