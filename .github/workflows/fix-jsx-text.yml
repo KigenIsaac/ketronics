@@ -1,0 +1,75 @@
+name: Fix JSX text
+
+on:
+  push:
+    branches: [fix/lint-and-modernize]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Escape JSX text entities
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+          const parser = require('@typescript-eslint/parser');
+
+          function walk(node, visit) {
+            if (!node || typeof node !== 'object') return;
+            visit(node);
+            for (const value of Object.values(node)) {
+              if (Array.isArray(value)) value.forEach((child) => walk(child, visit));
+              else if (value && typeof value === 'object') walk(value, visit);
+            }
+          }
+
+          function files(dir) {
+            const out = [];
+            for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+              if (entry.name === 'node_modules' || entry.name === '.next' || entry.name.startsWith('.')) continue;
+              const full = path.join(dir, entry.name);
+              if (entry.isDirectory()) out.push(...files(full));
+              else if (full.endsWith('.tsx')) out.push(full);
+            }
+            return out;
+          }
+
+          for (const file of files('src')) {
+            const source = fs.readFileSync(file, 'utf8');
+            const ast = parser.parse(source, {
+              filePath: file,
+              ecmaVersion: 'latest',
+              sourceType: 'module',
+              ecmaFeatures: { jsx: true },
+            });
+            const ranges = [];
+            walk(ast, (node) => {
+              if (node.type === 'JSXText' && /['"]/.test(node.raw)) {
+                ranges.push([node.range[0], node.range[1], node.raw.replaceAll("'", '&apos;').replaceAll('"', '&quot;')]);
+              }
+            });
+            let next = source;
+            for (const [start, end, replacement] of ranges.sort((a,b) => b[0]-a[0])) {
+              next = next.slice(0, start) + replacement + next.slice(end);
+            }
+            if (next !== source) fs.writeFileSync(file, next);
+          }
+          NODE
+      - name: Commit fixes
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src
+          git commit -m "fix: escape JSX text entities"
+          git push origin HEAD
