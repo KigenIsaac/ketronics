@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { isStaffRole } from "@/lib/roles";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useUserStore } from "@/lib/stores/userStore";
@@ -41,7 +42,7 @@ export default function SignupPage() {
 
       await fetchUser();
       const user = useUserStore.getState().user;
-      if (data?.profile?.role === 'manager' || user?.role === 'manager') {
+      if (isStaffRole(data?.profile?.role) || isStaffRole(user?.role)) {
         router.push('/admin');
       } else {
         router.push('/dashboard');
