@@ -7,8 +7,6 @@ export async function POST(req: Request) {
     const parsed = z.object({ email: z.string().email().max(254), password: z.string().min(8).max(128) }).safeParse(await req.json());
     if (!parsed.success) return NextResponse.json({ error: 'Invalid email or password' }, { status: 400 });
     const { email, password } = parsed.data;
-    const setCookies: Array<any> = [];
-
     const supabase = await createSupabaseServerClient()
 
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -28,20 +26,8 @@ export async function POST(req: Request) {
 
     const out = NextResponse.json({ user, profile }, { status: 200 });
 
-    // Attach any cookies the supabase client asked to set
-    for (const c of setCookies) {
-      const { name, value, options } = c;
-      if (value) {
-        // @ts-ignore
-        out.cookies.set(name, value, options ?? {});
-      } else {
-        // @ts-ignore
-        out.cookies.delete(name, options ?? {});
-      }
-    }
-
     return out;
   } catch (err: unknown) {
-    return NextResponse.json({ error: err instanceof Error ? err.message : undefined ?? 'Unexpected error' }, { status: 500 });
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Unexpected error' }, { status: 500 });
   }
 }
