@@ -131,26 +131,3 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
-  const transactionId = new URL(request.url).searchParams.get('transaction_id');
-
-  if (!transactionId) {
-    return NextResponse.json({ error: 'transaction_id is required' }, { status: 400 });
-  }
-
-  const { data, error } = await getSupabaseAdmin()
-    .from('payments')
-    .select('status, transaction_id')
-    .eq('transaction_id', transactionId)
-    .maybeSingle();
-
-  if (error) {
-    console.error('M-Pesa status lookup error:', error);
-    return NextResponse.json({ error: 'Status lookup failed' }, { status: 500 });
-  }
-
-  return NextResponse.json({
-    status: data?.status ?? 'unknown',
-    transaction_id: data?.transaction_id ?? transactionId,
-  });
-}
