@@ -29,7 +29,7 @@ export default function ProfilePage() {
     }
   }, [user]);
 
-  const fetchProfile = async () => {
+  async function fetchProfile() {
     try {
       const { data, error } = await supabase
         .from('profiles')
