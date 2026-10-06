@@ -22,7 +22,7 @@ export default async function DashboardPage() {
     .eq('id', user.id)
     .single();
 
-  const displayName = (profile as any)?.full_name || user.email;
+  const displayName = profile?.full_name || user.email;
 
   return (
     <div className="container mx-auto px-4 py-8 lg:pl-0">
