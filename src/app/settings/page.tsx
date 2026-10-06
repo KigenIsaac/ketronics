@@ -35,12 +35,6 @@ export default function SettingsPage() {
     sms_notifications: false,
   });
 
-  useEffect(() => {
-    if (user) {
-      fetchPreferences();
-    }
-  }, [user]);
-
   const fetchPreferences = async () => {
     try {
       const { data, error } = await supabase
@@ -60,6 +54,14 @@ export default function SettingsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (user) {
+      fetchPreferences();
+    }
+  }, [user]);
+
+
 
   const updatePreference = async (key: string, value: boolean) => {
     const newPreferences = { ...preferences, [key]: value };
