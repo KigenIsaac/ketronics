@@ -42,7 +42,7 @@ export default function SettingsPage() {
         const { data, error } = await supabase.from('profiles').select('preferences').eq('id', user.id).single();
         if (error && error.code !== 'PGRST116') throw error;
         if (data?.preferences) setPreferences((current) => ({ ...current, ...data.preferences }));
-      } catch (error) { console.error('Error fetching preferences:', error); }
+      } catch { console.error('Error fetching preferences:', error); }
       finally { setLoading(false); }
     })();
   }, [user]);
@@ -64,7 +64,7 @@ export default function SettingsPage() {
       if (error) throw error;
 
       toast.success('Preference updated successfully!');
-    } catch (error) {
+    } catch {
       console.error('Error updating preference:', error);
       toast.error('Failed to update preference. Please try again.');
       // Revert the change
@@ -81,7 +81,7 @@ export default function SettingsPage() {
       // Note: In a real app, you'd want to handle this more carefully
       // This is just a placeholder for the concept
       toast.error('Account deletion is not implemented yet. Please contact support.');
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete account. Please contact support.');
     }
   };
@@ -90,7 +90,7 @@ export default function SettingsPage() {
     try {
       // This would typically call an API to export user data
       toast.info('Data export feature coming soon!');
-    } catch (error) {
+    } catch {
       toast.error('Failed to export data. Please try again.');
     }
   };
