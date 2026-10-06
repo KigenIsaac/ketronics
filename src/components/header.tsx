@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import {  } from "react";
 import { useUserStore } from "@/lib/stores/userStore";
 import { useCartStore } from "@/lib/stores/cartStore";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/bads/ui/badge";
 import { User, LogOut, Settings, ShoppingCart, Menu, X } from "lucide-react";
 import {
   DropdownMenu,
