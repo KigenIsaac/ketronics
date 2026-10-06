@@ -90,12 +90,13 @@ export async function POST(request: NextRequest) {
 
     if (callback.ResultCode === 0) {
       const { data: applied, error: applyError } = await getSupabaseAdmin().rpc(
-        'apply_mpesa_success',
+        'apply_payment_success',
         {
           p_payment_id: payment.id,
           p_transaction_id: String(transactionId),
-          p_phone_number: phoneNumber == null ? null : String(phoneNumber),
-          p_metadata: metadata,
+          p_amount: Number(amount),
+          p_currency: 'KES',
+          p_metadata: { ...metadata, phone_number: phoneNumber == null ? null : String(phoneNumber) },
         },
       );
 
