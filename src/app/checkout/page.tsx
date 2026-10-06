@@ -26,8 +26,7 @@ export default function CheckoutPage() {
 
   const total = getTotal();
 
-  if (items.length === 0) {
-    const handleStkPush = async () => {
+  const handleStkPush = async () => {
     setLoading(true);
     try {
       const orderResponse = await fetch('/api/orders/whatsapp', {
@@ -59,7 +58,8 @@ export default function CheckoutPage() {
     }
   };
 
-  return (
+  if (items.length === 0) {
+    return (
       <div className="container mx-auto p-6 text-center">
         <h1 className="text-2xl font-bold mb-4">Your cart is empty</h1>
         <Button asChild>
