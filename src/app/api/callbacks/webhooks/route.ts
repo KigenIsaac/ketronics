@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { headers } from 'next/headers';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 
 // Webhook signature verification utility
 export function verifyWebhookSignature(
@@ -9,9 +10,12 @@ export function verifyWebhookSignature(
   secret: string,
   algorithm: 'sha256' | 'sha1' = 'sha256'
 ): boolean {
-  // In production, use proper crypto verification
-  // For now, return true for development
-  return true;
+  if (!payload || !signature || !secret) return false;
+  const normalized = signature.startsWith('sha256=') ? signature.slice(7) : signature;
+  const expected = createHmac(algorithm, secret).update(payload, 'utf8').digest('hex');
+  const received = Buffer.from(normalized, 'utf8');
+  const actual = Buffer.from(expected, 'utf8');
+  return received.length === actual.length && timingSafeEqual(received, actual);
 }
 
 // General webhook handler for custom integrations
@@ -20,6 +24,8 @@ export async function POST(request: NextRequest) {
     const body = await request.text();
     const headersList = await headers();
     const signature = headersList.get('x-signature') || headersList.get('x-hub-signature');
+    const secret = process.env.GENERAL_WEBHOOK_SECRET;
+    if (!verifyWebhookSignature(body, signature || '', secret || '')) return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 401 });
     const eventType = headersList.get('x-event-type') || headersList.get('x-github-event');
     const userAgent = headersList.get('user-agent') || '';
 
@@ -41,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log webhook event
-    const { error: logError } = await supabase
+    const { data: loggedEvent, error: logError } = await supabase
       .from('webhook_events')
       .insert({
         event_type: eventType || 'unknown',
@@ -71,8 +77,7 @@ export async function POST(request: NextRequest) {
       await supabase
         .from('webhook_events')
         .update({ processed: true, processed_at: new Date().toISOString() })
-        .eq('event_type', eventType || 'unknown')
-        .eq('created_at', new Date().toISOString());
+        .eq('id', loggedEvent?.id);
     }
 
     return NextResponse.json({
