@@ -1,7 +1,8 @@
 name: Refresh lockfile
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [fix/lint-and-modernize]
 
 permissions:
   contents: write
