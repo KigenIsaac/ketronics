@@ -36,7 +36,7 @@ export default function AdminProductsPage() {
     filterAndSortProducts();
   }, [products, searchTerm, statusFilter, sortBy, sortOrder]);
 
-  const fetchProducts = async () => {
+  async function fetchProducts() {
     const { data, error } = await supabase
       .from('products')
       .select('*')
@@ -51,7 +51,7 @@ export default function AdminProductsPage() {
     setLoading(false);
   };
 
-  const filterAndSortProducts = () => {
+  function filterAndSortProducts() {
     const filtered = products.filter(product => {
       const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           product.description?.toLowerCase().includes(searchTerm.toLowerCase());
