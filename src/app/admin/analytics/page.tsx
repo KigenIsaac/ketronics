@@ -20,15 +20,18 @@ import {
 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 
+interface AnalyticsOrderItem { quantity: number; price: number; products?: { id?: string; name?: string } | null }
+interface AnalyticsOrder { created_at: string; order_items?: AnalyticsOrderItem[] | null }
+interface AnalyticsUser { created_at: string }
 interface AnalyticsData {
   totalRevenue: number;
   totalOrders: number;
   totalProducts: number;
   totalUsers: number;
-  recentOrders: unknown[];
-  topProducts: unknown[];
-  revenueByDay: unknown[];
-  userRegistrations: unknown[];
+  recentOrders: AnalyticsOrder[];
+  topProducts: { name: string; sales: number; revenue: number }[];
+  revenueByDay: { date: string; revenue: number }[];
+  userRegistrations: { date: string; count: number }[];
 }
 
 export default function AdminAnalyticsPage() {
@@ -44,7 +47,7 @@ export default function AdminAnalyticsPage() {
       const startDate = subDays(new Date(), days);
 
       // Fetch orders within time range
-      const { data: orders, error: ordersError } = await supabase
+      const { data: ordersRaw, error: ordersError } = await supabase
         .from('orders')
         .select(`
           *,
@@ -64,19 +67,23 @@ export default function AdminAnalyticsPage() {
       }
 
       // Fetch products
-      const { data: products, error: productsError } = await supabase
+      const { data: productsRaw, error: productsError } = await supabase
         .from('products')
         .select('*');
 
       // Fetch users
-      const { data: users, error: usersError } = await supabase
+      const { data: usersRaw, error: usersError } = await supabase
         .from('profiles')
         .select('*')
         .gte('created_at', startDate.toISOString());
 
+      const orders = (ordersRaw || []) as AnalyticsOrder[];
+      const products = productsRaw || [];
+      const users = (usersRaw || []) as AnalyticsUser[];
+
       // Calculate analytics
       const totalRevenue = orders?.reduce((sum, order) => {
-        const orderTotal = order.order_items?.reduce((itemSum: number, item: unknown) =>
+        const orderTotal = order.order_items?.reduce((itemSum: number, item: AnalyticsOrderItem) =>
           itemSum + (item.quantity * item.price), 0) || 0;
         return sum + orderTotal;
       }, 0) || 0;
@@ -91,7 +98,7 @@ export default function AdminAnalyticsPage() {
       // Calculate top products
       const productSales: { [key: string]: { name: string; sales: number; revenue: number } } = {};
       orders?.forEach(order => {
-        order.order_items?.forEach((item: unknown) => {
+        order.order_items?.forEach((item: AnalyticsOrderItem) => {
           const productId = item.products?.id;
           const productName = item.products?.name || 'Unknown Product';
           if (productId) {
