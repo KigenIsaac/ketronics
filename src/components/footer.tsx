@@ -38,11 +38,7 @@ export function Footer() {
   const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchFooterData();
-  }, []);
-
-  async function fetchFooterData() {
+async function fetchFooterData() {
     if (!isSupabaseConfigured()) {
       setLoading(false);
       return;
@@ -76,7 +72,11 @@ export function Footer() {
     }
   };
 
-  const getIcon = (iconName?: string) => {
+  useEffect(() => {
+    fetchFooterData();
+  }, []);
+
+    const getIcon = (iconName?: string) => {
     if (!iconName) return null;
     return iconMap[iconName as keyof typeof iconMap] || null;
   };
