@@ -35,43 +35,18 @@ export default function SettingsPage() {
     sms_notifications: false,
   });
 
-async function fetchPreferences() {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('preferences')
-        .eq('id', user!.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error;
-
-      if (data?.preferences) {
-        setPreferences({ ...preferences, ...data.preferences });
-      }
-    } catch (error) {
-      console.error('Error fetching preferences:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+async function fetchPreferences(userId: string) {
+  const { data, error } = await supabase.from('profiles').select('preferences').eq('id', userId).single();
+  if (error && error.code !== 'PGRST116') throw error;
+  return data?.preferences;
+}
 
   useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
+    if (!user) return;
     let active = true;
     void fetchPreferences(user.id)
-      .then((data) => {
-        if (active && data) {
-          setPreferences((current) => ({ ...current, ...data }));
-        }
-      })
+      .then((data) => { if (active && data) setPreferences((current) => ({ ...current, ...data })); })
       .catch((error) => console.error('Error fetching preferences:', error))
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [user]);}
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [user]);
