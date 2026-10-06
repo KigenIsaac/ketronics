@@ -35,15 +35,9 @@ const iconMap = {
   Clock,
 };
 
-export function Footer() {
-  const [contactInfo, setContactInfo] = useState<ContactInfo[]>([]);
-  const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(true);
-
 async function fetchFooterData() {
     if (!isSupabaseConfigured()) {
-      setLoading(false);
-      return;
+      return null;
     }
 
     try {
@@ -59,20 +53,21 @@ async function fetchFooterData() {
           .in('key', ['site_name', 'contact_email', 'contact_phone', 'business_hours'])
       ]);
 
-      if (contactRes.data) setContactInfo(contactRes.data);
       if (settingsRes.data) {
         const settingsMap = settingsRes.data.reduce((acc, setting) => {
           acc[setting.key] = setting.value;
           return acc;
-        }, {} as Record<string, string>);
-        setSiteSettings(settingsMap);
-      }
-    } catch (error) {
-      console.error('Error fetching footer data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      }, {} as Record<string, string>);
+        }
+    return { contactInfo: contactRes.data || [], siteSettings: settingsMap };
+}
+
+
+
+export function Footer() {
+  const [contactInfo, setContactInfo] = useState<ContactInfo[]>([]);
+  const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
