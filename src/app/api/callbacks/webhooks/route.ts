@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log webhook event
-    const { error: logError } = await supabase
+    const { data: loggedEvent, error: logError } = await supabase
       .from('webhook_events')
       .insert({
         event_type: eventType || 'unknown',
@@ -71,10 +71,7 @@ export async function POST(request: NextRequest) {
       await supabase
         .from('webhook_events')
         .update({ processed: true, processed_at: new Date().toISOString() })
-        .eq('event_type', eventType || 'unknown')
-        .eq('processed', false)
-        .order('created_at', { ascending: false })
-        .limit(1);
+        .eq('id', loggedEvent?.id);
     }
 
     return NextResponse.json({
