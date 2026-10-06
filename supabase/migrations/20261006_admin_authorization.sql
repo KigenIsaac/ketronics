@@ -56,6 +56,12 @@ CREATE POLICY "Managers can view all profiles" ON public.profiles
   FOR SELECT TO authenticated
   USING (public.is_manager_or_admin());
 
+DROP POLICY IF EXISTS "Managers can update profiles" ON public.profiles;
+CREATE POLICY "Managers can update profiles" ON public.profiles
+  FOR UPDATE TO authenticated
+  USING (public.is_manager_or_admin())
+  WITH CHECK (public.is_manager_or_admin());
+
 -- A customer may edit their own profile, but cannot use this policy to
 -- grant themselves manager/admin privileges.
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
