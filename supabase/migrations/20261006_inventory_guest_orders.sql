@@ -187,4 +187,4 @@ END;
 $$;
 
 REVOKE ALL ON FUNCTION create_guest_order_atomic(JSONB, JSONB, TEXT, UUID) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION create_guest_order_atomic(JSONB, JSONB, TEXT, UUID) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION create_guest_order_atomic(JSONB, JSONB, TEXT, UUID) TO service_role;
