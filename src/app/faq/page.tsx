@@ -15,16 +15,29 @@ export default function FAQPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
 async function fetchFAQs() {
-  const { data, error } = await supabase.from('faqs').select('*').eq('is_published', true).order('sort_order');
-  if (error) throw error;
-  return data || [];
-}
+    try {
+      const { data, error } = await supabase
+        .from('faqs')
+        .select('*')
+        .eq('is_published', true)
+        .order('sort_order');
+
+      if (error) throw error;
+      setFaqs(data || []);
+    } catch (error) {
+      console.error('Error fetching FAQs:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     let active = true;
-    void fetchFAQs()
-      .then((data) => { if (active) setFaqs(data); })
-      .catch((error) => console.error('Error fetching FAQs:', error))
+    void supabase.from('faqs').select('*').eq('is_published', true).order('sort_order')
+      .then(({ data, error }) => {
+        if (error) throw error;
+        if (active) setFaqs(data || []);
+      }).catch((error) => console.error('Error fetching FAQs:', error))
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
