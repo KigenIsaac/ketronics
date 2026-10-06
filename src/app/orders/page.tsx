@@ -27,17 +27,6 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchOrders = async () => {
-    if (!user) return;
-    try {
-      setOrders(await loadOrders(user.id));
-    } catch (error) {
-      console.error('Error fetching orders:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
     if (!user) return;
 
