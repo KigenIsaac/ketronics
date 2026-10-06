@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { headers } from 'next/headers';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 
 // Webhook signature verification utility
 export function verifyWebhookSignature(
@@ -9,9 +10,12 @@ export function verifyWebhookSignature(
   secret: string,
   algorithm: 'sha256' | 'sha1' = 'sha256'
 ): boolean {
-  // In production, use proper crypto verification
-  // For now, return true for development
-  return true;
+  if (!payload || !signature || !secret) return false;
+  const normalized = signature.startsWith('sha256=') ? signature.slice(7) : signature;
+  const expected = createHmac(algorithm, secret).update(payload, 'utf8').digest('hex');
+  const received = Buffer.from(normalized, 'utf8');
+  const actual = Buffer.from(expected, 'utf8');
+  return received.length === actual.length && timingSafeEqual(received, actual);
 }
 
 // General webhook handler for custom integrations
