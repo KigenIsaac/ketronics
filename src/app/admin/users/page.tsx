@@ -42,7 +42,7 @@ export default function AdminUsersPage() {
     filterUsers();
   }, [users, searchTerm, roleFilter]);
 
-  const fetchUsers = async () => {
+  async function fetchUsers() {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -63,7 +63,7 @@ export default function AdminUsersPage() {
     }
   };
 
-  const filterUsers = () => {
+  function filterUsers() {
     const filtered = users.filter(user => {
       const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           user.full_name?.toLowerCase().includes(searchTerm.toLowerCase());
