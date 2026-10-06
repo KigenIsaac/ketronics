@@ -14,31 +14,6 @@ export default function FAQPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-
-
-
-  const fetchFAQs = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('faqs')
-        .select('*')
-        .eq('is_published', true)
-        .order('sort_order');
-
-      if (error) throw error;
-      setFaqs(data || []);
-    } catch (error) {
-      console.error('Error fetching FAQs:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchFAQs();
-  }, []);
-
-
   const filteredFaqs = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     if (!term) return faqs;
@@ -175,4 +150,22 @@ export default function FAQPage() {
       </div>
     </>
   );
+  useEffect(() => {
+    void (async () => {try {
+      const { data, error } = await supabase
+        .from('faqs')
+        .select('*')
+        .eq('is_published', true)
+        .order('sort_order');
+
+      if (error) throw error;
+      setFaqs(data || []);
+    } catch (error) {
+      console.error('Error fetching FAQs:', error);
+    } finally {
+      setLoading(false);
+    }
+    })();
+  }, []);
+
 }
