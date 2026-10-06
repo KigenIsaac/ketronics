@@ -1,0 +1,31 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+
+const files = {
+  settingsMigration: "supabase/migrations/20261006_store_settings_hardening.sql",
+  settingsPage: "src/app/admin/settings/page.tsx",
+  mpesaCallback: "src/app/api/callbacks/payments/mpesa/route.ts",
+  mpesa: "src/lib/mpesa.ts",
+  roles: "src/lib/roles.ts",
+  storage: "src/lib/storage.ts",
+};
+
+const source = {};
+for (const [name, path] of Object.entries(files)) {
+  source[name] = await readFile(path, "utf8");
+}
+
+assert.equal(source.settingsMigration.includes("smtp_password"), false);
+assert.equal(source.settingsMigration.includes("ENABLE ROW LEVEL SECURITY"), true);
+assert.equal(source.settingsPage.includes("smtpPassword"), false);
+assert.equal(source.settingsPage.includes("/api/admin/settings"), true);
+
+assert.equal(source.mpesaCallback.includes("queryStkPush"), true);
+assert.equal(source.mpesaCallback.includes("apply_mpesa_success"), true);
+assert.equal(source.mpesa.includes("/mpesa/stkpushquery/v1/query"), true);
+
+assert.equal(source.roles.includes('role === "manager" || role === "admin"'), true);
+assert.equal(source.storage.includes("crypto.randomUUID()"), true);
+assert.equal(source.storage.includes("5 MB"), true);
+
+console.log("Ketronics security/architecture invariants: PASS");
