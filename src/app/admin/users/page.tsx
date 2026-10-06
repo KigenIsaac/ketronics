@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -26,7 +26,6 @@ interface UserProfile {
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserProfile[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
@@ -38,9 +37,7 @@ export default function AdminUsersPage() {
     fetchUsers();
   }, []);
 
-  useEffect(() => {
-    filterUsers();
-  }, [users, searchTerm, roleFilter]);
+
 
   async function fetchUsers() {
     try {
@@ -63,7 +60,7 @@ export default function AdminUsersPage() {
     }
   };
 
-  function filterUsers() {
+  const filteredUsers = useMemo(() => {
     const filtered = users.filter(user => {
       const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           user.full_name?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -71,8 +68,8 @@ export default function AdminUsersPage() {
       return matchesSearch && matchesRole;
     });
 
-    setFilteredUsers(filtered);
-  };
+    return filtered;
+  }, [users, searchTerm, roleFilter]);
 
   const handleEditUser = (user: UserProfile) => {
     setSelectedUser(user);
