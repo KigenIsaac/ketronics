@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { getSupabaseAdmin } from '@/lib/getSupabaseAdmin()';
 
 function extractCallback(body: any) {
   return body?.Body?.stkCallback ?? null;
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid M-Pesa callback' }, { status: 400 });
     }
 
-    const { data: payment, error: lookupError } = await supabaseAdmin
+    const { data: payment, error: lookupError } = await getSupabaseAdmin()
       .from('payments')
       .select('id, order_id, status, amount')
       .eq('merchant_request_id', callback.MerchantRequestID)
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     const now = new Date().toISOString();
     const status = callback.ResultCode === 0 ? 'success' : 'failed';
 
-    const { error: updateError } = await supabaseAdmin.from('payments').update({
+    const { error: updateError } = await getSupabaseAdmin().from('payments').update({
       status,
       transaction_id: transactionId,
       phone_number: phoneNumber,
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     if (updateError) throw updateError;
 
     if (callback.ResultCode === 0 && payment.order_id) {
-      const { error: orderError } = await supabaseAdmin
+      const { error: orderError } = await getSupabaseAdmin()
         .from('orders')
         .update({ status: 'paid', payment_date: now, updated_at: now })
         .eq('id', payment.order_id)
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'transaction_id is required' }, { status: 400 });
   }
 
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await getSupabaseAdmin()
     .from('payments')
     .select('status, transaction_id')
     .eq('transaction_id', transactionId)
