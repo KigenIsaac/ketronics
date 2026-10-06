@@ -10,6 +10,9 @@ const files = {
   storage: "src/lib/storage.ts",
   commerceRls: "supabase/migrations/20261006_commerce_rls_hardening.sql",
   webhook: "src/app/api/callbacks/webhooks/route.ts",
+  rateLimit: "src/lib/rateLimit.ts",
+  guestOrder: "src/app/api/orders/whatsapp/route.ts",
+  contact: "src/app/api/contact/route.ts",
 };
 
 const source = {};
@@ -32,5 +35,8 @@ assert.equal(source.storage.includes("5 MB"), true);
 assert.equal(source.commerceRls.includes("ENABLE ROW LEVEL SECURITY"), true);
 assert.equal(source.commerceRls.includes('REVOKE ALL ON TABLE public.payments'), true);
 assert.equal(source.webhook.includes("export async function GET"), false);
+assert.equal(source.rateLimit.includes("consume_api_rate_limit"), true);
+assert.equal(source.guestOrder.includes("consumeRateLimit"), true);
+assert.equal(source.contact.includes("consumeRateLimit"), true);
 
 console.log("Ketronics security/architecture invariants: PASS");
