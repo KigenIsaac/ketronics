@@ -93,13 +93,8 @@ CREATE POLICY "Users can view own order items"
     )
   );
 
+-- Order items are created by the atomic order functions and are read-only from the browser.
 DROP POLICY IF EXISTS "Managers can manage order items" ON public.order_items;
-CREATE POLICY "Managers can manage order items"
-  ON public.order_items
-  FOR ALL
-  TO authenticated
-  USING (public.is_manager_or_admin())
-  WITH CHECK (public.is_manager_or_admin());
 
 -- Payment records contain provider identifiers and must never be exposed to the browser.
 REVOKE ALL ON TABLE public.payments FROM PUBLIC;
