@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/lib/stores/cartStore';
 import { useUserStore } from '@/lib/stores/userStore';
@@ -19,6 +19,7 @@ export default function CheckoutPage() {
   const { user } = useUserStore();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const idempotencyKeyRef = useRef(crypto.randomUUID());
 
   const [shippingInfo, setShippingInfo] = useState({
     name: '',
@@ -66,6 +67,7 @@ export default function CheckoutPage() {
           })),
           shippingInfo,
           paymentMethod,
+          idempotencyKey: idempotencyKeyRef.current,
         }),
       });
 
