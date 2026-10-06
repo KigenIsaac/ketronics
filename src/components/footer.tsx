@@ -40,7 +40,7 @@ export function Footer() {
 
   useEffect(() => {
     void (async () => {
-      if (!isSupabaseConfigured()) return;
+      if (!isSupabaseConfigured()) { setLoading(false); return; }
       try {
         const [contactRes, settingsRes] = await Promise.all([
           supabase.from('contact_info').select('*').eq('is_active', true).order('sort_order'),
@@ -48,21 +48,40 @@ export function Footer() {
         ]);
         if (contactRes.error) throw contactRes.error;
         if (settingsRes.error) throw settingsRes.error;
-        const settingsMap = (settingsRes.data || []).reduce((acc, setting) => {
-          acc[setting.key] = setting.value;
-          return acc;
-        }, {} as Record<string, string>);
-        setContactInfo(contactRes.data || []);
-        setSiteSettings(settingsMap);
-      } catch (error) {
-        console.error('Error fetching footer data:', error);
-      } finally {
-        setLoading(false);
-      }
+        if (contactRes.data) setContactInfo(contactRes.data);
+        if (settingsRes.data) {
+          const settingsMap = settingsRes.data.reduce((acc, setting) => {
+            acc[setting.key] = setting.value;
+            return acc;
+          }, {} as Record<string, string>);
+          setSiteSettings(settingsMap);
+        }
+      } catch (error) { console.error('Error fetching footer data:', error); }
+      finally { setLoading(false); }
     })();
   }, []);
 
 
+  if (loading) {
+    return (
+      <footer className="bg-muted/50 border-t w-full">
+        <div className="mx-auto px-4 py-8 max-w-screen-2xl">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="space-y-4">
+                <div className="h-6 bg-muted animate-pulse rounded" />
+                <div className="space-y-2">
+                  <div className="h-4 bg-muted animate-pulse rounded" />
+                  <div className="h-4 bg-muted animate-pulse rounded" />
+                  <div className="h-4 bg-muted animate-pulse rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </footer>
+    );
+  }
 
   return (
     <footer className="bg-muted/50 border-t w-full">
