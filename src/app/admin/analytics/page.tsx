@@ -9,30 +9,26 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import {
   BarChart3,
+  TrendingUp,
   Users,
   Package,
   ShoppingCart,
   DollarSign,
+  Calendar,
   Download,
   RefreshCw
 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
-
-type AnalyticsOrderItem = { quantity: number; price: number; products?: { id?: string; name?: string } | null };
-type AnalyticsOrder = { id: string; created_at: string; status: string; order_items?: AnalyticsOrderItem[] };
-type AnalyticsTopProduct = { name: string; sales: number; revenue: number };
-type AnalyticsDay = { date: string; revenue: number };
-type UserRegistrationDay = { date: string; count: number };
 
 interface AnalyticsData {
   totalRevenue: number;
   totalOrders: number;
   totalProducts: number;
   totalUsers: number;
-  recentOrders: AnalyticsOrder[];
-  topProducts: AnalyticsTopProduct[];
-  revenueByDay: AnalyticsDay[];
-  userRegistrations: UserRegistrationDay[];
+  recentOrders: any[];
+  topProducts: any[];
+  revenueByDay: any[];
+  userRegistrations: any[];
 }
 
 export default function AdminAnalyticsPage() {
@@ -45,7 +41,7 @@ export default function AdminAnalyticsPage() {
     void fetchAnalytics();
   }, [fetchAnalytics]);
 
-  const fetchAnalytics = useCallback(async () => {
+  const fetchAnalytics = async () => {
     setRefreshing(true);
     try {
       const days = parseInt(timeRange);
@@ -59,7 +55,7 @@ export default function AdminAnalyticsPage() {
           order_items (
             quantity,
             price,
-            products (id, name)
+            products (name)
           )
         `)
         .gte('created_at', startDate.toISOString())
@@ -72,19 +68,19 @@ export default function AdminAnalyticsPage() {
       }
 
       // Fetch products
-      const { data: products } = await supabase
+      const { data: products, error: productsError } = await supabase
         .from('products')
         .select('*');
 
       // Fetch users
-      const { data: users } = await supabase
+      const { data: users, error: usersError } = await supabase
         .from('profiles')
         .select('*')
         .gte('created_at', startDate.toISOString());
 
       // Calculate analytics
       const totalRevenue = orders?.reduce((sum, order) => {
-        const orderTotal = order.order_items?.reduce((itemSum: number, item: AnalyticsOrderItem) =>
+        const orderTotal = order.order_items?.reduce((itemSum: number, item: any) =>
           itemSum + (item.quantity * item.price), 0) || 0;
         return sum + orderTotal;
       }, 0) || 0;
@@ -99,7 +95,7 @@ export default function AdminAnalyticsPage() {
       // Calculate top products
       const productSales: { [key: string]: { name: string; sales: number; revenue: number } } = {};
       orders?.forEach(order => {
-        order.order_items?.forEach((item: AnalyticsOrderItem) => {
+        order.order_items?.forEach((item: any) => {
           const productId = item.products?.id;
           const productName = item.products?.name || 'Unknown Product';
           if (productId) {
@@ -120,7 +116,7 @@ export default function AdminAnalyticsPage() {
       const revenueByDay: { [key: string]: number } = {};
       orders?.forEach(order => {
         const date = format(new Date(order.created_at), 'yyyy-MM-dd');
-        const orderTotal = order.order_items?.reduce((sum: number, item: AnalyticsOrderItem) =>
+        const orderTotal = order.order_items?.reduce((sum: number, item: any) =>
           sum + (item.quantity * item.price), 0) || 0;
         revenueByDay[date] = (revenueByDay[date] || 0) + orderTotal;
       });
@@ -356,7 +352,7 @@ export default function AdminAnalyticsPage() {
                           {order.status}
                         </Badge>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Ksh. {order.order_items?.reduce((sum: number, item: AnalyticsOrderItem) =>
+                          Ksh. {order.order_items?.reduce((sum: number, item: any) =>
                             sum + (item.quantity * item.price), 0).toFixed(2) || '0.00'}
                         </p>
                       </div>
