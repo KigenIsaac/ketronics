@@ -13,6 +13,12 @@ import { LoadingPage } from "@/components/loading";
 import { User, Mail, Phone, MapPin, Camera, Save } from "lucide-react";
 import { toast } from "sonner";
 
+async function fetchProfile(userId: string) {
+  const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+  if (error && error.code !== 'PGRST116') throw error;
+  return data;
+}
+
 export default function ProfilePage() {
   const { user, fetchUser } = useUserStore();
   const [loading, setLoading] = useState(true);
@@ -25,17 +31,11 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user) {
-      fetchProfile();
+      void fetchProfile(user.id).then((data) => { if (data) setFormData({ full_name: data.full_name || '', phone: data.phone || '', email: data.email || user.email || '' }); }).catch(console.error).finally(() => setLoading(false));
     }
   }, [user]);
 
-  const fetchProfile = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user!.id)
-        .single();
+
 
       if (error && error.code !== 'PGRST116') throw error;
 
