@@ -24,20 +24,16 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) { setLoading(false); return; }
     void (async () => {
       try {
         const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
         if (error && error.code !== 'PGRST116') throw error;
         if (data) setFormData({ full_name: data.full_name || '', phone: data.phone || '', email: data.email || user.email || '' });
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-      } finally {
-        setLoading(false);
-      }
+      } catch (error) { console.error('Error fetching profile:', error); }
+      finally { setLoading(false); }
     })();
   }, [user]);
-
 
 
   const handleSubmit = async (e: React.FormEvent) => {
