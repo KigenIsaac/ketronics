@@ -38,7 +38,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
 
     const next = parsed.data.status;
 
-    const { data: transition, error: transitionError } = await supabaseAdmin.rpc(
+    const { error: transitionError } = await supabaseAdmin.rpc(
       'transition_order_status',
       {
         p_order_id: id,
