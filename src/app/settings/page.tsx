@@ -36,7 +36,7 @@ export default function SettingsPage() {
   });
 
   useEffect(() => {
-    if (!user) { setLoading(false); return; }
+    if (!user) return;
     void (async () => {
       try {
         const { data, error } = await supabase.from('profiles').select('preferences').eq('id', user.id).single();
@@ -106,7 +106,7 @@ export default function SettingsPage() {
     );
   }
 
-  if (loading) {
+  if (user && loading) {
     return <LoadingPage message="Loading settings..." />;
   }
 
