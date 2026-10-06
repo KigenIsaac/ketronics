@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
       message: 'Webhook processed successfully'
     });
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('General webhook error:', err);
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
@@ -244,7 +244,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ events });
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Webhook status GET error:', err);
     return NextResponse.json({ error: 'Status check failed' }, { status: 500 });
   }
