@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { attributesEqual } from "@/lib/utils/attributes";
+import { attributesEqual, type ProductAttributes } from "@/lib/utils/attributes";
 import { persist } from 'zustand/middleware';
 
 export interface CartItem {
@@ -9,7 +9,7 @@ export interface CartItem {
   price: number;
   image: string;
   quantity: number;
-  attributes?: Record<string, unknown>;
+  attributes?: ProductAttributes;
 }
 
 interface CartStore {
