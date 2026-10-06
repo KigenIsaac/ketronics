@@ -5,7 +5,7 @@ import { isSupabaseConfigured } from '@/lib/supabaseConfig';
 interface User {
   id: string;
   email: string;
-  role: 'customer' | 'manager';
+  role: 'customer' | 'manager' | 'admin';
   full_name?: string;
 }
 
