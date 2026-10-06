@@ -1,4 +1,6 @@
-import { isStaffRole } from "@/lib/roles";\n"use client";
+"use client";
+
+import { isStaffRole } from "@/lib/roles";
 
 import { useState } from "react";
 import { useUserStore } from "@/lib/stores/userStore";
