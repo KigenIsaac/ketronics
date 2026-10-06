@@ -1,9 +1,7 @@
+/**
+ * Authentication is handled by Supabase sessions.
+ * Kept as a compatibility shim for old imports; it does not store credentials.
+ */
 export function signOut() {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.removeItem("authToken");
-  } catch {
-    /* ignore */
-  }
-  window.location.href = "/login";
+  if (typeof window !== 'undefined') window.location.href = '/auth/login';
 }
