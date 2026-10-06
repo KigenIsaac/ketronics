@@ -70,3 +70,9 @@ REVOKE ALL ON FUNCTION public.claim_stripe_webhook_event(TEXT, TEXT) FROM PUBLIC
 REVOKE ALL ON FUNCTION public.complete_stripe_webhook_event(TEXT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.claim_stripe_webhook_event(TEXT, TEXT) TO service_role;
 GRANT EXECUTE ON FUNCTION public.complete_stripe_webhook_event(TEXT) TO service_role;
+
+
+ALTER TABLE public.stripe_webhook_events ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON TABLE public.stripe_webhook_events FROM PUBLIC;
+REVOKE ALL ON TABLE public.stripe_webhook_events FROM anon;
+REVOKE ALL ON TABLE public.stripe_webhook_events FROM authenticated;
