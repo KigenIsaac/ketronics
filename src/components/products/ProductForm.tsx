@@ -12,7 +12,7 @@ import { uploadImage, deleteImage } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import Image from 'next/image';
-import { X, Plus } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface ProductFormProps {
   product?: Product;
