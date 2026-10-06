@@ -49,11 +49,7 @@ export default function ContactPage() {
   });
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchContactData();
-  }, []);
-
-  const fetchContactData = async () => {
+async function fetchContactData() {
     if (!isSupabaseConfigured()) {
       setLoading(false);
       return;
@@ -87,7 +83,11 @@ export default function ContactPage() {
     }
   };
 
-  const getIcon = (iconName?: string) => {
+  useEffect(() => {
+    fetchContactData();
+  }, []);
+
+    const getIcon = (iconName?: string) => {
     if (!iconName) return null;
     return iconMap[iconName as keyof typeof iconMap] || null;
   };
