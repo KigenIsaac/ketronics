@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabaseServerClient';
+import { z } from 'zod';
 
 export async function POST(req: Request) {
   try {
-    const { email, password, full_name } = await req.json();
+    const parsed = z.object({ email: z.string().email().max(254), password: z.string().min(8).max(128), full_name: z.string().trim().min(1).max(100).optional() }).safeParse(await req.json());
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid signup details' }, { status: 400 });
+    const { email, password, full_name } = parsed.data;
     const response = NextResponse.json({ ok: true });
     
     const supabase = await createSupabaseServerClient()
