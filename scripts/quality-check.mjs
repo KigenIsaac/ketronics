@@ -26,7 +26,7 @@ assert.equal(source.settingsPage.includes("smtpPassword"), false);
 assert.equal(source.settingsPage.includes("/api/admin/settings"), true);
 
 assert.equal(source.mpesaCallback.includes("queryStkPush"), true);
-assert.equal(source.mpesaCallback.includes("apply_mpesa_success"), true);
+assert.equal(source.mpesaCallback.includes("apply_payment_success"), true);
 assert.equal(source.mpesa.includes("/mpesa/stkpushquery/v1/query"), true);
 
 assert.equal(source.roles.includes('role === "manager" || role === "admin"'), true);
