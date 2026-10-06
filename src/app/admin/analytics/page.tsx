@@ -150,7 +150,7 @@ export default function AdminAnalyticsPage() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [timeRange]);
 
   const handleExport = () => {
     // Simple CSV export
