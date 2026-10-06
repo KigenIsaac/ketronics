@@ -12,9 +12,8 @@ import {
   Settings,
   Tag,
   Truck,
-  FileText,
-  Shield,
-  MessageSquare,
+  Plus
+} from 'lucide-react';geSquare,
   CreditCard,
   Plus
 } from 'lucide-react';
