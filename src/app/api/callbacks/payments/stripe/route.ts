@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { getSupabaseAdmin } from '@/lib/getSupabaseAdmin()';
 import { verifyStripeWebhookSignature } from '@/lib/payments/stripeWebhook';
 
 export async function POST(request: NextRequest) {
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 }
 
 async function findPayment(column: string, value: string) {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await getSupabaseAdmin()
     .from('payments')
     .select('id, order_id, status, amount, currency')
     .eq(column, value)
@@ -58,7 +58,7 @@ function amountsMatch(expected: unknown, receivedCents: unknown) {
 
 async function markOrderPaid(orderId: string) {
   const now = new Date().toISOString();
-  const { error } = await supabaseAdmin
+  const { error } = await getSupabaseAdmin()
     .from('orders')
     .update({ status: 'paid', payment_date: now, updated_at: now })
     .eq('id', orderId)
@@ -80,7 +80,7 @@ async function handlePaymentIntentSucceeded(intent: any) {
   }
 
   const now = new Date().toISOString();
-  const { error } = await supabaseAdmin.from('payments').update({
+  const { error } = await getSupabaseAdmin().from('payments').update({
     status: 'completed',
     transaction_id: intent.id,
     amount: Number(intent.amount) / 100,
@@ -101,7 +101,7 @@ async function handlePaymentIntentFailed(intent: any) {
     return;
   }
 
-  const { error } = await supabaseAdmin.from('payments').update({
+  const { error } = await getSupabaseAdmin().from('payments').update({
     status: 'failed',
     metadata: { event_id: intent.id, provider: 'stripe', error: intent.last_payment_error ?? null },
     updated_at: new Date().toISOString(),
@@ -126,7 +126,7 @@ async function handleCheckoutCompleted(session: any) {
   if (payment.status === 'completed' || payment.status === 'success') return;
 
   const now = new Date().toISOString();
-  const { error } = await supabaseAdmin.from('payments').update({
+  const { error } = await getSupabaseAdmin().from('payments').update({
     status: 'completed',
     transaction_id: session.id,
     metadata: { event_id: session.id, provider: 'stripe' },
