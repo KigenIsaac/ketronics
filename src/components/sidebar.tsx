@@ -1,4 +1,4 @@
-"use client";
+import { isStaffRole } from "@/lib/roles";\n"use client";
 
 import { useState } from "react";
 import { useUserStore } from "@/lib/stores/userStore";
@@ -66,7 +66,7 @@ export function Sidebar({ className, isOpen = false, onToggle }: SidebarProps) {
         { label: "Settings", url: "/settings", icon: "Settings" },
       ];
 
-      if (user.role === 'manager') {
+      if (isStaffRole(user.role)) {
         // Manager/Admin navigation - only show admin-specific items
         const adminItems: NavigationItem[] = [
           { label: "Dashboard", url: "/admin", icon: "User" },
