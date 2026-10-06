@@ -50,7 +50,7 @@ export interface Order {
   id: string;
   user_id: string;
   total: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  status: 'pending' | 'processing' | 'paid' | 'shipped' | 'delivered' | 'cancelled' | 'refunded' | 'returned';
   shipping_address?: {
     name: string;
     phone: string;
