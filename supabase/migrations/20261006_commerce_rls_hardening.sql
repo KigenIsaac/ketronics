@@ -76,13 +76,8 @@ CREATE POLICY "Users can view own orders"
   TO authenticated
   USING (user_id = auth.uid() OR public.is_manager_or_admin());
 
+-- Orders are read-only from the browser. Status/payment changes use server APIs and RPCs.
 DROP POLICY IF EXISTS "Managers can manage orders" ON public.orders;
-CREATE POLICY "Managers can manage orders"
-  ON public.orders
-  FOR UPDATE
-  TO authenticated
-  USING (public.is_manager_or_admin())
-  WITH CHECK (public.is_manager_or_admin());
 
 DROP POLICY IF EXISTS "Users can view own order items" ON public.order_items;
 CREATE POLICY "Users can view own order items"
