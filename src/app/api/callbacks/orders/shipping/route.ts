@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
       message: 'Shipping update processed successfully'
     });
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Shipping callback error:', err);
     return NextResponse.json({ error: 'Callback processing failed' }, { status: 500 });
   }
@@ -150,7 +150,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ updates });
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Shipping tracking GET error:', err);
     return NextResponse.json({ error: 'Tracking lookup failed' }, { status: 500 });
   }
@@ -204,7 +204,7 @@ async function sendDeliveryNotification(
     // Here you would integrate with notification services
     // SMS, email, push notifications, etc.
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Delivery notification error:', err);
   }
 }
