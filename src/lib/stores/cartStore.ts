@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { attributesEqual } from "@/lib/utils/attributes";
 import { persist } from 'zustand/middleware';
 
 export interface CartItem {
@@ -29,7 +30,7 @@ export const useCartStore = create<CartStore>()(
         const { items } = get();
         const existingItem = items.find(
           (item) => item.productId === newItem.productId &&
-                   JSON.stringify(item.attributes) === JSON.stringify(newItem.attributes)
+                   attributesEqual(item.attributes, newItem.attributes)
         );
 
         if (existingItem) {
@@ -43,7 +44,7 @@ export const useCartStore = create<CartStore>()(
         } else {
           const cartItem: CartItem = {
             ...newItem,
-            id: `${newItem.productId}-${Date.now()}`,
+            id: `${newItem.productId}-${crypto.randomUUID()}`,
             quantity: 1,
           };
           set({ items: [...items, cartItem] });
