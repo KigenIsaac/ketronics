@@ -13,12 +13,6 @@ import { LoadingPage } from "@/components/loading";
 import { User, Mail, Phone, MapPin, Camera, Save } from "lucide-react";
 import { toast } from "sonner";
 
-async function fetchProfile(userId: string) {
-  const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
-  if (error && error.code !== 'PGRST116') throw error;
-  return data;
-}
-
 export default function ProfilePage() {
   const { user, fetchUser } = useUserStore();
   const [loading, setLoading] = useState(true);
@@ -30,28 +24,21 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    if (user) {
-      void fetchProfile(user.id).then((data) => { if (data) setFormData({ full_name: data.full_name || '', phone: data.phone || '', email: data.email || user.email || '' }); }).catch(console.error).finally(() => setLoading(false));
-    }
+    if (!user) return;
+    void (async () => {
+      try {
+        const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+        if (error && error.code !== 'PGRST116') throw error;
+        if (data) setFormData({ full_name: data.full_name || '', phone: data.phone || '', email: data.email || user.email || '' });
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [user]);
 
 
-
-      if (error && error.code !== 'PGRST116') throw error;
-
-      if (data) {
-        setFormData({
-          full_name: data.full_name || '',
-          phone: data.phone || '',
-          email: data.email || user!.email || '',
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
