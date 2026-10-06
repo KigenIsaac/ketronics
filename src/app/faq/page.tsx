@@ -15,6 +15,23 @@ export default function FAQPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
+async function fetchFAQs() {
+    try {
+      const { data, error } = await supabase
+        .from('faqs')
+        .select('*')
+        .eq('is_published', true)
+        .order('sort_order');
+
+      if (error) throw error;
+      setFaqs(data || []);
+    } catch (error) {
+      console.error('Error fetching FAQs:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchFAQs();
   }, []);
@@ -33,24 +50,7 @@ export default function FAQPage() {
     }
   }, [faqs, searchTerm]);
 
-  const fetchFAQs = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('faqs')
-        .select('*')
-        .eq('is_published', true)
-        .order('sort_order');
-
-      if (error) throw error;
-      setFaqs(data || []);
-    } catch (error) {
-      console.error('Error fetching FAQs:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const groupFAQsByCategory = (faqs: FAQ[]) => {
+    const groupFAQsByCategory = (faqs: FAQ[]) => {
     const grouped: Record<string, FAQ[]> = {};
     faqs.forEach((faq) => {
       const category = faq.category || 'General';
