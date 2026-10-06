@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseAdmin } from '@/lib/getSupabaseAdmin()';
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 import { verifyStripeWebhookSignature } from '@/lib/payments/stripeWebhook';
 
 export async function POST(request: NextRequest) {
