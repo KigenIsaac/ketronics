@@ -60,14 +60,19 @@ export default function AdminProductsPage() {
     });
 
     filtered.sort((a, b) => {
-      let aValue: any = a[sortBy as keyof Product];
-      let bValue: any = b[sortBy as keyof Product];
+      const aRaw = a[sortBy as keyof Product];
+      const bRaw = b[sortBy as keyof Product];
 
       if (sortBy === 'price') {
-        aValue = parseFloat(aValue);
-        bValue = parseFloat(bValue);
+        const aValue = Number(aRaw ?? 0);
+        const bValue = Number(bRaw ?? 0);
+        if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+        return 0;
       }
 
+      const aValue = String(aRaw ?? '');
+      const bValue = String(bRaw ?? '');
       if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
       if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
       return 0;
