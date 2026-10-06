@@ -14,9 +14,6 @@ export default function FAQPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  useEffect(() => {
-    fetchFAQs();
-  }, []);
 
 
 
@@ -36,6 +33,11 @@ export default function FAQPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchFAQs();
+  }, []);
+
 
   const filteredFaqs = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
@@ -152,7 +154,7 @@ export default function FAQPage() {
           <HelpCircle className="h-12 w-12 text-primary mx-auto mb-4" />
           <h3 className="text-xl font-semibold mb-2">Still need help?</h3>
           <p className="text-muted-foreground mb-4">
-            Can't find the answer you're looking for? Our support team is here to help.
+            Can&apos;t find the answer you're looking for? Our support team is here to help.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
