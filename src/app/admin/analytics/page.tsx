@@ -21,7 +21,7 @@ import {
 import { format, subDays } from 'date-fns';
 
 interface AnalyticsOrderItem { quantity: number; price: number; products?: { id?: string; name?: string } | null }
-interface AnalyticsOrder { created_at: string; order_items?: AnalyticsOrderItem[] | null }
+interface AnalyticsOrder { id: string; status: string; created_at: string; order_items?: AnalyticsOrderItem[] | null }
 interface AnalyticsUser { created_at: string }
 interface AnalyticsData {
   totalRevenue: number;
@@ -119,7 +119,7 @@ export default function AdminAnalyticsPage() {
       const revenueByDay: { [key: string]: number } = {};
       orders?.forEach(order => {
         const date = format(new Date(order.created_at), 'yyyy-MM-dd');
-        const orderTotal = order.order_items?.reduce((sum: number, item: unknown) =>
+        const orderTotal = order.order_items?.reduce((sum: number, item: AnalyticsOrderItem) =>
           sum + (item.quantity * item.price), 0) || 0;
         revenueByDay[date] = (revenueByDay[date] || 0) + orderTotal;
       });
