@@ -88,9 +88,9 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
     void loadSubcategoryAttributes(subcategoryId)
       .then((data) => {
         setSubcategoryAttributes(data);
-        const initialAttrs: Record<string, unknown> = {};
+        const initialAttrs: Record<string, string> = {};
         data.forEach((attr) => {
-          initialAttrs[attr.name] = product?.attributes?.[attr.name] ?? '';
+          initialAttrs[attr.name] = String(product?.attributes?.[attr.name] ?? '');
         });
         setAttributes(initialAttrs);
       })
