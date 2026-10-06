@@ -52,7 +52,7 @@ export async function middleware(req: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    if (error || !profile || (profile as any).role !== 'manager') {
+    if (error || !profile || !['manager', 'admin'].includes((profile as any).role)) {
       return NextResponse.redirect(new URL('/', req.url));
     }
   }
