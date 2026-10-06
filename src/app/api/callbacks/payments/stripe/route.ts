@@ -94,17 +94,22 @@ async function findPayment(column: string, value: string) {
 }
 
 function amountsMatch(expected: unknown, receivedCents: unknown) {
-  if (expected == null || receivedCents == null) return true;
+  if (expected == null || receivedCents == null) return false;
   const received = Number(receivedCents) / 100;
   return Number.isFinite(received) && Math.abs(Number(expected) - received) < 0.01;
+}
+
+function currenciesMatch(expected: unknown, received: unknown) {
+  if (typeof expected !== 'string' || typeof received !== 'string') return false;
+  return expected.toLowerCase() === received.toLowerCase();
 }
 
 async function handlePaymentIntentSucceeded(intent: StripePaymentIntent, eventId: string) {
   const payment = await findPayment('payment_intent_id', intent.id);
   if (!payment) throw new Error('Stripe payment intent is not linked to an existing payment');
 
-  if (!amountsMatch(payment.amount, intent.amount)) {
-    throw new Error('Stripe payment amount does not match the recorded payment');
+  if (!amountsMatch(payment.amount, intent.amount) || !currenciesMatch(payment.currency, intent.currency)) {
+    throw new Error('Stripe payment amount or currency does not match the recorded payment');
   }
 
   if (payment.status === 'completed' || payment.status === 'success') return;
