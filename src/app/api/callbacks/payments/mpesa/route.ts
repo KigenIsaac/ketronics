@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
+import { queryStkPush } from '@/lib/mpesa';
 
 type MpesaMetadataItem = {
   Name?: string;
@@ -63,6 +64,16 @@ export async function POST(request: NextRequest) {
     const phoneNumber = callback.ResultCode === 0 ? getMetadataValue(items, 'PhoneNumber') : null;
 
     if (callback.ResultCode === 0) {
+      // Daraja callbacks are not treated as cryptographically authenticated.
+      // Independently query the provider before changing financial state.
+      const verification = await queryStkPush(callback.CheckoutRequestID);
+      if (verification.resultCode !== '0') {
+        return NextResponse.json(
+          { error: 'Payment provider verification did not confirm success' },
+          { status: 409 },
+        );
+      }
+
       if (amount == null || transactionId == null) {
         return NextResponse.json({ error: 'Successful callback is missing payment metadata' }, { status: 400 });
       }
