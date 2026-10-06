@@ -13,9 +13,6 @@ import {
   Tag,
   Truck,
   Plus
-} from 'lucide-react';geSquare,
-  CreditCard,
-  Plus
 } from 'lucide-react';
 
 export default async function AdminPage() {
