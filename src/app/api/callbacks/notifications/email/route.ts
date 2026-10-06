@@ -2,39 +2,64 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { headers } from 'next/headers';
 
-// Email delivery status callback (from SendGrid, Mailgun, etc.)
+type SendGridEvent = {
+  email?: string;
+  event?: string;
+  reason?: string;
+  sg_event_id?: string;
+  sg_message_id?: string;
+  timestamp?: number;
+  user_id?: string;
+  order_id?: string;
+};
+
+type MailgunEvent = {
+  event?: string;
+  recipient?: string;
+  reason?: string;
+  'message-id'?: string;
+  timestamp?: number;
+  user_id?: string;
+  order_id?: string;
+};
+
+type GenericEmailEvent = {
+  email?: string;
+  event?: string;
+  reason?: string;
+  user_id?: string;
+  order_id?: string;
+};
+
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body: unknown = await request.json();
     const headersList = await headers();
 
     console.log('Email callback received:', {
       body,
       userAgent: headersList.get('user-agent'),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
-    // Handle different email providers
     const userAgent = headersList.get('user-agent') || '';
 
     if (userAgent.includes('SendGrid')) {
-      await handleSendGridCallback(body);
+      await handleSendGridCallback(body as SendGridEvent[]);
     } else if (userAgent.includes('Mailgun')) {
-      await handleMailgunCallback(body);
+      await handleMailgunCallback(body as MailgunEvent);
     } else {
-      // Generic email callback processing
-      await handleGenericEmailCallback(body);
+      await handleGenericEmailCallback(body as GenericEmailEvent | GenericEmailEvent[]);
     }
 
     return NextResponse.json({ success: true });
-
   } catch (err: unknown) {
     console.error('Email callback error:', err);
     return NextResponse.json({ error: 'Callback processing failed' }, { status: 500 });
   }
 }
 
-async function handleSendGridCallback(events: any[]) {
+async function handleSendGridCallback(events: SendGridEvent[]) {
   for (const event of events) {
     const {
       email,
@@ -44,10 +69,9 @@ async function handleSendGridCallback(events: any[]) {
       sg_message_id,
       timestamp,
       user_id,
-      order_id
+      order_id,
     } = event;
 
-    // Log email event
     const { error } = await supabase
       .from('email_events')
       .insert({
@@ -59,31 +83,30 @@ async function handleSendGridCallback(events: any[]) {
         provider_message_id: sg_message_id,
         user_id,
         order_id,
-        timestamp: new Date(timestamp * 1000).toISOString(), // Convert Unix timestamp
-        created_at: new Date().toISOString()
+        timestamp: new Date((timestamp ?? Date.now() / 1000) * 1000).toISOString(),
+        created_at: new Date().toISOString(),
       });
 
     if (error) {
       console.error('SendGrid event logging error:', error);
     }
 
-    // Handle specific events
     switch (eventType) {
       case 'bounce':
       case 'dropped':
-        await handleEmailBounce(email, reason);
+        if (email) await handleEmailBounce(email, reason ?? 'Delivery failed');
         break;
       case 'complaint':
-        await handleEmailComplaint(email);
+        if (email) await handleEmailComplaint(email);
         break;
       case 'unsubscribe':
-        await handleEmailUnsubscribe(email);
+        if (email) await handleEmailUnsubscribe(email);
         break;
     }
   }
 }
 
-async function handleMailgunCallback(body: any) {
+async function handleMailgunCallback(body: MailgunEvent) {
   const {
     event: eventType,
     recipient,
@@ -91,10 +114,9 @@ async function handleMailgunCallback(body: any) {
     'message-id': messageId,
     timestamp,
     user_id,
-    order_id
+    order_id,
   } = body;
 
-  // Log email event
   const { error } = await supabase
     .from('email_events')
     .insert({
@@ -105,31 +127,29 @@ async function handleMailgunCallback(body: any) {
       provider_message_id: messageId,
       user_id,
       order_id,
-      timestamp: new Date(timestamp * 1000).toISOString(),
-      created_at: new Date().toISOString()
+      timestamp: new Date((timestamp ?? Date.now() / 1000) * 1000).toISOString(),
+      created_at: new Date().toISOString(),
     });
 
   if (error) {
     console.error('Mailgun event logging error:', error);
   }
 
-  // Handle specific events similar to SendGrid
   switch (eventType) {
     case 'bounced':
     case 'dropped':
-      await handleEmailBounce(recipient, reason);
+      if (recipient) await handleEmailBounce(recipient, reason ?? 'Delivery failed');
       break;
     case 'complained':
-      await handleEmailComplaint(recipient);
+      if (recipient) await handleEmailComplaint(recipient);
       break;
     case 'unsubscribed':
-      await handleEmailUnsubscribe(recipient);
+      if (recipient) await handleEmailUnsubscribe(recipient);
       break;
   }
 }
 
-async function handleGenericEmailCallback(body: any) {
-  // Handle generic email callbacks
+async function handleGenericEmailCallback(body: GenericEmailEvent | GenericEmailEvent[]) {
   const events = Array.isArray(body) ? body : [body];
 
   for (const event of events) {
@@ -145,7 +165,7 @@ async function handleGenericEmailCallback(body: any) {
         user_id,
         order_id,
         timestamp: new Date().toISOString(),
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       });
 
     if (error) {
@@ -156,52 +176,40 @@ async function handleGenericEmailCallback(body: any) {
 
 async function handleEmailBounce(email: string, reason: string) {
   console.log('Email bounced:', { email, reason });
-
-  // Update user profile to mark email as bounced
   const { error } = await supabase
     .from('profiles')
     .update({
       email_bounced: true,
       email_bounce_reason: reason,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     })
     .eq('email', email);
 
-  if (error) {
-    console.error('Email bounce update error:', error);
-  }
+  if (error) console.error('Email bounce update error:', error);
 }
 
 async function handleEmailComplaint(email: string) {
   console.log('Email complaint received:', email);
-
-  // Mark user as having complained about emails
   const { error } = await supabase
     .from('profiles')
     .update({
       email_complaint: true,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     })
     .eq('email', email);
 
-  if (error) {
-    console.error('Email complaint update error:', error);
-  }
+  if (error) console.error('Email complaint update error:', error);
 }
 
 async function handleEmailUnsubscribe(email: string) {
   console.log('Email unsubscribe:', email);
-
-  // Update user preferences to not receive marketing emails
   const { error } = await supabase
     .from('profiles')
     .update({
       marketing_emails: false,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     })
     .eq('email', email);
 
-  if (error) {
-    console.error('Email unsubscribe update error:', error);
-  }
+  if (error) console.error('Email unsubscribe update error:', error);
 }
