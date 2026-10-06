@@ -1,27 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
-import {
-  Settings,
-  Store,
-  Mail,
-  CreditCard,
-  Truck,
-  Shield,
-  Bell,
-  Save,
-  RefreshCw
-} from 'lucide-react';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
+import { Settings, Store, CreditCard, Truck, Shield, Save, RefreshCw } from "lucide-react";
 
 interface StoreSettings {
   storeName: string;
@@ -29,114 +18,102 @@ interface StoreSettings {
   contactEmail: string;
   contactPhone: string;
   address: string;
-  currency: string;
+  currency: "KES" | "USD" | "EUR";
   timezone: string;
   maintenanceMode: boolean;
   allowGuestCheckout: boolean;
   requireEmailVerification: boolean;
   enableNotifications: boolean;
-  smtpHost?: string;
-  smtpPort?: string;
-  smtpUser?: string;
-  smtpPassword?: string;
   paymentMethods: string[];
   shippingMethods: string[];
   taxRate: number;
   freeShippingThreshold: number;
 }
 
-export default function AdminSettingsPage() {
-  const [settings, setSettings] = useState<StoreSettings>({
-    storeName: 'Ketronics LTD',
-    storeDescription: 'Tech Products & Expert Services',
-    contactEmail: 'support@ketronics.co.ke',
-    contactPhone: '+254 XXX XXX XXX',
-    address: 'AA building floor room F6A',
-    currency: 'KES',
-    timezone: 'Africa/Nairobi',
-    maintenanceMode: false,
-    allowGuestCheckout: true,
-    requireEmailVerification: true,
-    enableNotifications: true,
-    paymentMethods: ['mpesa', 'card'],
-    shippingMethods: ['standard', 'express'],
-    taxRate: 16,
-    freeShippingThreshold: 5000
-  });
+const DEFAULT_SETTINGS: StoreSettings = {
+  storeName: "Ketronics LTD",
+  storeDescription: "Tech Products & Expert Services",
+  contactEmail: "support@ketronics.co.ke",
+  contactPhone: "",
+  address: "",
+  currency: "KES",
+  timezone: "Africa/Nairobi",
+  maintenanceMode: false,
+  allowGuestCheckout: true,
+  requireEmailVerification: true,
+  enableNotifications: true,
+  paymentMethods: ["mpesa", "card"],
+  shippingMethods: ["standard", "express"],
+  taxRate: 16,
+  freeShippingThreshold: 5000,
+};
 
-  const [loading, setLoading] = useState(false);
+export default function AdminSettingsPage() {
+  const [settings, setSettings] = useState<StoreSettings>(DEFAULT_SETTINGS);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
-  async function loadSettings() {
+  const loadSettings = async () => {
     setLoading(true);
     try {
-      // In a real app, you'd fetch settings from the database
-      // For now, we'll use default values
-      const { data, error } = await supabase
-        .from('store_settings')
-        .select('*')
-        .single();
-
-      if (data && !error) {
-        setSettings(prev => ({ ...prev, ...data }));
-      }
+      const response = await fetch("/api/admin/settings", { cache: "no-store" });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "Failed to load settings");
+      setSettings({ ...DEFAULT_SETTINGS, ...body.settings });
     } catch (error) {
-      console.error('Error loading settings:', error);
+      console.error("Failed to load settings:", error);
+      toast.error("Could not load store settings");
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    void loadSettings();
+  }, []);
+
+  const update = <K extends keyof StoreSettings>(field: K, value: StoreSettings[K]) => {
+    setSettings((current) => ({ ...current, [field]: value }));
+  };
+
+  const toggleArrayValue = (field: "paymentMethods" | "shippingMethods", value: string) => {
+    setSettings((current) => {
+      const values = current[field];
+      return {
+        ...current,
+        [field]: values.includes(value)
+          ? values.filter((item) => item !== value)
+          : [...values, value],
+      };
+    });
+  };
+
   const saveSettings = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('store_settings')
-        .upsert({
-          id: 1, // Assuming single row for settings
-          ...settings,
-          updated_at: new Date().toISOString()
-        });
-
-      if (error) {
-        console.error('Error saving settings:', error);
-        toast.error('Failed to save settings');
-      } else {
-        toast.success('Settings saved successfully');
-      }
+      const response = await fetch("/api/admin/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(settings),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "Failed to save settings");
+      setSettings({ ...DEFAULT_SETTINGS, ...body.settings });
+      toast.success("Settings saved successfully");
     } catch (error) {
-      console.error('Error:', error);
-      toast.error('Failed to save settings');
+      console.error("Failed to save settings:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to save settings");
     } finally {
       setSaving(false);
     }
   };
 
-  const handleInputChange = (field: keyof StoreSettings, value: StoreSettings[keyof StoreSettings]) => {
-    setSettings(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleArrayToggle = (field: 'paymentMethods' | 'shippingMethods', value: string) => {
-    setSettings(prev => ({
-      ...prev,
-      [field]: prev[field].includes(value)
-        ? prev[field].filter(item => item !== value)
-        : [...prev[field], value]
-    }));
-  };
-
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading settings...</p>
-          </div>
+      <div className="container mx-auto flex min-h-64 items-center justify-center p-6">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
+          <p className="text-muted-foreground">Loading settings...</p>
         </div>
       </div>
     );
@@ -145,382 +122,122 @@ export default function AdminSettingsPage() {
   return (
     <div className="container mx-auto p-6">
       <div className="flex flex-col gap-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold">Store Settings</h1>
-            <p className="text-muted-foreground">Configure your store preferences and settings</p>
+            <p className="text-muted-foreground">Configure store behavior and preferences.</p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={loadSettings} disabled={loading}>
-              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => void loadSettings()} disabled={saving}>
+              <RefreshCw className="mr-2 h-4 w-4" /> Refresh
             </Button>
-            <Button onClick={saveSettings} disabled={saving}>
-              <Save className="h-4 w-4 mr-2" />
-              {saving ? 'Saving...' : 'Save Changes'}
+            <Button onClick={() => void saveSettings()} disabled={saving}>
+              <Save className="mr-2 h-4 w-4" /> {saving ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </div>
 
         <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="payment">Payment</TabsTrigger>
             <TabsTrigger value="shipping">Shipping</TabsTrigger>
-            <TabsTrigger value="email">Email</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
           </TabsList>
 
-          {/* General Settings */}
           <TabsContent value="general">
             <div className="grid gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Store className="h-5 w-5" />
-                    Store Information
-                  </CardTitle>
-                  <CardDescription>Basic information about your store</CardDescription>
+                  <CardTitle className="flex items-center gap-2"><Store className="h-5 w-5" /> Store Information</CardTitle>
+                  <CardDescription>Public information displayed across the store.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="storeName">Store Name</Label>
-                      <Input
-                        id="storeName"
-                        value={settings.storeName}
-                        onChange={(e) => handleInputChange('storeName', e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="contactEmail">Contact Email</Label>
-                      <Input
-                        id="contactEmail"
-                        type="email"
-                        value={settings.contactEmail}
-                        onChange={(e) => handleInputChange('contactEmail', e.target.value)}
-                      />
-                    </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div><Label htmlFor="storeName">Store Name</Label><Input id="storeName" value={settings.storeName} onChange={(e) => update("storeName", e.target.value)} /></div>
+                    <div><Label htmlFor="contactEmail">Contact Email</Label><Input id="contactEmail" type="email" value={settings.contactEmail} onChange={(e) => update("contactEmail", e.target.value)} /></div>
                   </div>
-                  <div>
-                    <Label htmlFor="storeDescription">Store Description</Label>
-                    <Textarea
-                      id="storeDescription"
-                      value={settings.storeDescription}
-                      onChange={(e) => handleInputChange('storeDescription', e.target.value)}
-                      rows={3}
-                    />
+                  <div><Label htmlFor="storeDescription">Store Description</Label><Textarea id="storeDescription" value={settings.storeDescription} onChange={(e) => update("storeDescription", e.target.value)} rows={3} /></div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div><Label htmlFor="contactPhone">Contact Phone</Label><Input id="contactPhone" value={settings.contactPhone} onChange={(e) => update("contactPhone", e.target.value)} /></div>
+                    <div><Label htmlFor="currency">Currency</Label><Select value={settings.currency} onValueChange={(value) => update("currency", value as StoreSettings["currency"])}><SelectTrigger id="currency"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="KES">Kenyan Shilling (KES)</SelectItem><SelectItem value="USD">US Dollar (USD)</SelectItem><SelectItem value="EUR">Euro (EUR)</SelectItem></SelectContent></Select></div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="contactPhone">Contact Phone</Label>
-                      <Input
-                        id="contactPhone"
-                        value={settings.contactPhone}
-                        onChange={(e) => handleInputChange('contactPhone', e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="currency">Currency</Label>
-                      <Select value={settings.currency} onValueChange={(value) => handleInputChange('currency', value)}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="KES">Kenyan Shilling (KES)</SelectItem>
-                          <SelectItem value="USD">US Dollar (USD)</SelectItem>
-                          <SelectItem value="EUR">Euro (EUR)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="address">Store Address</Label>
-                    <Textarea
-                      id="address"
-                      value={settings.address}
-                      onChange={(e) => handleInputChange('address', e.target.value)}
-                      rows={2}
-                    />
-                  </div>
+                  <div><Label htmlFor="address">Store Address</Label><Textarea id="address" value={settings.address} onChange={(e) => update("address", e.target.value)} rows={2} /></div>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Settings className="h-5 w-5" />
-                    Store Preferences
-                  </CardTitle>
-                  <CardDescription>Configure store behavior and features</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="maintenanceMode">Maintenance Mode</Label>
-                      <p className="text-sm text-muted-foreground">Put the store in maintenance mode</p>
+                <CardHeader><CardTitle className="flex items-center gap-2"><Settings className="h-5 w-5" /> Store Preferences</CardTitle></CardHeader>
+                <CardContent className="space-y-5">
+                  {([
+                    ["maintenanceMode", "Maintenance Mode", "Restrict normal store access while maintenance is in progress."],
+                    ["allowGuestCheckout", "Allow Guest Checkout", "Allow customers to place orders without creating an account."],
+                    ["requireEmailVerification", "Require Email Verification", "Require verification for newly created accounts."],
+                    ["enableNotifications", "Enable Notifications", "Send configured order and customer notifications."],
+                  ] as const).map(([field, label, description]) => (
+                    <div key={field} className="flex items-center justify-between gap-4">
+                      <div><Label>{label}</Label><p className="text-sm text-muted-foreground">{description}</p></div>
+                      <Switch checked={settings[field]} onCheckedChange={(checked) => update(field, checked)} />
                     </div>
-                    <Switch
-                      id="maintenanceMode"
-                      checked={settings.maintenanceMode}
-                      onCheckedChange={(checked) => handleInputChange('maintenanceMode', checked)}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="guestCheckout">Allow Guest Checkout</Label>
-                      <p className="text-sm text-muted-foreground">Allow customers to checkout without an account</p>
-                    </div>
-                    <Switch
-                      id="guestCheckout"
-                      checked={settings.allowGuestCheckout}
-                      onCheckedChange={(checked) => handleInputChange('allowGuestCheckout', checked)}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="emailVerification">Require Email Verification</Label>
-                      <p className="text-sm text-muted-foreground">Require email verification for new accounts</p>
-                    </div>
-                    <Switch
-                      id="emailVerification"
-                      checked={settings.requireEmailVerification}
-                      onCheckedChange={(checked) => handleInputChange('requireEmailVerification', checked)}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="notifications">Enable Notifications</Label>
-                      <p className="text-sm text-muted-foreground">Send email notifications for orders</p>
-                    </div>
-                    <Switch
-                      id="notifications"
-                      checked={settings.enableNotifications}
-                      onCheckedChange={(checked) => handleInputChange('enableNotifications', checked)}
-                    />
-                  </div>
+                  ))}
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
 
-          {/* Payment Settings */}
           <TabsContent value="payment">
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="h-5 w-5" />
-                  Payment Methods
-                </CardTitle>
-                <CardDescription>Configure available payment options</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <h4 className="font-medium">M-Pesa</h4>
-                      <p className="text-sm text-muted-foreground">Mobile money payments</p>
-                    </div>
-                    <Switch
-                      checked={settings.paymentMethods.includes('mpesa')}
-                      onCheckedChange={() => handleArrayToggle('paymentMethods', 'mpesa')}
-                    />
+              <CardHeader><CardTitle className="flex items-center gap-2"><CreditCard className="h-5 w-5" /> Payment Methods</CardTitle><CardDescription>Enable only payment methods that are actually configured.</CardDescription></CardHeader>
+              <CardContent className="grid gap-4 md:grid-cols-2">
+                {[
+                  ["mpesa", "M-Pesa", "Mobile money payments"],
+                  ["card", "Credit/Debit Card", "Stripe card payments"],
+                  ["bank", "Bank Transfer", "Direct bank transfers"],
+                  ["cod", "Cash on Delivery", "Pay when the order is delivered"],
+                ].map(([value, label, description]) => (
+                  <div key={value} className="flex items-center justify-between rounded-lg border p-4">
+                    <div><h4 className="font-medium">{label}</h4><p className="text-sm text-muted-foreground">{description}</p></div>
+                    <Switch checked={settings.paymentMethods.includes(value)} onCheckedChange={() => toggleArrayValue("paymentMethods", value)} />
                   </div>
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <h4 className="font-medium">Credit/Debit Card</h4>
-                      <p className="text-sm text-muted-foreground">Stripe payment processing</p>
-                    </div>
-                    <Switch
-                      checked={settings.paymentMethods.includes('card')}
-                      onCheckedChange={() => handleArrayToggle('paymentMethods', 'card')}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <h4 className="font-medium">Bank Transfer</h4>
-                      <p className="text-sm text-muted-foreground">Direct bank transfers</p>
-                    </div>
-                    <Switch
-                      checked={settings.paymentMethods.includes('bank')}
-                      onCheckedChange={() => handleArrayToggle('paymentMethods', 'bank')}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <h4 className="font-medium">Cash on Delivery</h4>
-                      <p className="text-sm text-muted-foreground">Pay when you receive</p>
-                    </div>
-                    <Switch
-                      checked={settings.paymentMethods.includes('cod')}
-                      onCheckedChange={() => handleArrayToggle('paymentMethods', 'cod')}
-                    />
-                  </div>
-                </div>
+                ))}
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Shipping Settings */}
           <TabsContent value="shipping">
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Truck className="h-5 w-5" />
-                  Shipping Configuration
-                </CardTitle>
-                <CardDescription>Configure shipping options and rates</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="taxRate">Tax Rate (%)</Label>
-                    <Input
-                      id="taxRate"
-                      type="number"
-                      value={settings.taxRate}
-                      onChange={(e) => handleInputChange('taxRate', parseFloat(e.target.value) || 0)}
-                      min="0"
-                      max="100"
-                      step="0.1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="freeShipping">Free Shipping Threshold (KES)</Label>
-                    <Input
-                      id="freeShipping"
-                      type="number"
-                      value={settings.freeShippingThreshold}
-                      onChange={(e) => handleInputChange('freeShippingThreshold', parseFloat(e.target.value) || 0)}
-                      min="0"
-                    />
-                  </div>
+              <CardHeader><CardTitle className="flex items-center gap-2"><Truck className="h-5 w-5" /> Shipping</CardTitle><CardDescription>Configure tax and shipping availability.</CardDescription></CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div><Label htmlFor="taxRate">Tax Rate (%)</Label><Input id="taxRate" type="number" min="0" max="100" step="0.1" value={settings.taxRate} onChange={(e) => update("taxRate", Number(e.target.value) || 0)} /></div>
+                  <div><Label htmlFor="freeShipping">Free Shipping Threshold</Label><Input id="freeShipping" type="number" min="0" step="0.01" value={settings.freeShippingThreshold} onChange={(e) => update("freeShippingThreshold", Number(e.target.value) || 0)} /></div>
                 </div>
-
-                <div className="space-y-3">
+                <div>
                   <Label>Shipping Methods</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <h4 className="font-medium">Standard Shipping</h4>
-                        <p className="text-sm text-muted-foreground">3-5 business days</p>
+                  <div className="mt-3 grid gap-4 md:grid-cols-2">
+                    {[["standard", "Standard Shipping", "3–5 business days"], ["express", "Express Shipping", "1–2 business days"]].map(([value, label, description]) => (
+                      <div key={value} className="flex items-center justify-between rounded-lg border p-4">
+                        <div><h4 className="font-medium">{label}</h4><p className="text-sm text-muted-foreground">{description}</p></div>
+                        <Switch checked={settings.shippingMethods.includes(value)} onCheckedChange={() => toggleArrayValue("shippingMethods", value)} />
                       </div>
-                      <Switch
-                        checked={settings.shippingMethods.includes('standard')}
-                        onCheckedChange={() => handleArrayToggle('shippingMethods', 'standard')}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <h4 className="font-medium">Express Shipping</h4>
-                        <p className="text-sm text-muted-foreground">1-2 business days</p>
-                      </div>
-                      <Switch
-                        checked={settings.shippingMethods.includes('express')}
-                        onCheckedChange={() => handleArrayToggle('shippingMethods', 'express')}
-                      />
-                    </div>
+                    ))}
                   </div>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Email Settings */}
-          <TabsContent value="email">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Mail className="h-5 w-5" />
-                  Email Configuration
-                </CardTitle>
-                <CardDescription>Configure email settings for notifications</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="smtpHost">SMTP Host</Label>
-                    <Input
-                      id="smtpHost"
-                      value={settings.smtpHost || ''}
-                      onChange={(e) => handleInputChange('smtpHost', e.target.value)}
-                      placeholder="smtp.gmail.com"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="smtpPort">SMTP Port</Label>
-                    <Input
-                      id="smtpPort"
-                      value={settings.smtpPort || ''}
-                      onChange={(e) => handleInputChange('smtpPort', e.target.value)}
-                      placeholder="587"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="smtpUser">SMTP Username</Label>
-                    <Input
-                      id="smtpUser"
-                      value={settings.smtpUser || ''}
-                      onChange={(e) => handleInputChange('smtpUser', e.target.value)}
-                      placeholder="your-email@gmail.com"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="smtpPassword">SMTP Password</Label>
-                    <Input
-                      id="smtpPassword"
-                      type="password"
-                      value={settings.smtpPassword || ''}
-                      onChange={(e) => handleInputChange('smtpPassword', e.target.value)}
-                      placeholder="App password"
-                    />
-                  </div>
-                </div>
-                <div className="p-4 bg-muted rounded-lg">
-                  <p className="text-sm text-muted-foreground">
-                    <strong>Note:</strong> For Gmail, use an App Password instead of your regular password.
-                    Enable 2-factor authentication first, then generate an App Password.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Security Settings */}
           <TabsContent value="security">
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
-                  Security Settings
-                </CardTitle>
-                <CardDescription>Configure security and access controls</CardDescription>
-              </CardHeader>
+              <CardHeader><CardTitle className="flex items-center gap-2"><Shield className="h-5 w-5" /> Security</CardTitle><CardDescription>Security-sensitive credentials are intentionally not stored here.</CardDescription></CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="maintenanceMode">Maintenance Mode</Label>
-                    <p className="text-sm text-muted-foreground">Restrict access to the store</p>
-                  </div>
-                  <Switch
-                    id="maintenanceMode"
-                    checked={settings.maintenanceMode}
-                    onCheckedChange={(checked) => handleInputChange('maintenanceMode', checked)}
-                  />
+                <div className="rounded-lg border p-4">
+                  <h4 className="font-medium">Server-side secrets</h4>
+                  <p className="mt-1 text-sm text-muted-foreground">SMTP, payment provider credentials, signing secrets, and API keys must be configured as server environment variables. They are never returned to the browser or persisted in store settings.</p>
                 </div>
-
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-medium mb-2">Security Recommendations</h4>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• Regularly update your passwords</li>
-                    <li>• Enable two-factor authentication</li>
-                    <li>• Monitor login attempts and suspicious activity</li>
-                    <li>• Keep your software and plugins updated</li>
-                    <li>• Use HTTPS for secure connections</li>
-                  </ul>
+                <div className="rounded-lg border p-4">
+                  <h4 className="font-medium">Access control</h4>
+                  <p className="mt-1 text-sm text-muted-foreground">This page and its API are restricted to active manager/admin accounts, with database RLS providing a second authorization boundary.</p>
                 </div>
               </CardContent>
             </Card>
