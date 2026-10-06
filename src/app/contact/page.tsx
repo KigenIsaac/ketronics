@@ -37,6 +37,21 @@ const iconMap = {
   Youtube,
 };
 
+async function fetchContactData() {
+  if (!isSupabaseConfigured()) return null;
+  const [contactRes, settingsRes] = await Promise.all([
+    supabase.from('contact_info').select('*').eq('is_active', true).order('sort_order'),
+    supabase.from('site_settings').select('key, value').in('key', ['contact_email', 'contact_phone', 'business_hours']),
+  ]);
+  if (contactRes.error) throw contactRes.error;
+  if (settingsRes.error) throw settingsRes.error;
+  const siteSettings = (settingsRes.data || []).reduce((acc, setting) => {
+    acc[setting.key] = setting.value;
+    return acc;
+  }, {} as Record<string, string>);
+  return { contactInfo: contactRes.data || [], siteSettings };
+}
+
 export default function ContactPage() {
   const [contactInfo, setContactInfo] = useState<ContactInfo[]>([]);
   const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
@@ -50,14 +65,10 @@ export default function ContactPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    fetchContactData();
+    void fetchContactData().then((result) => { if (result) { setContactInfo(result.contactInfo); setSiteSettings(result.siteSettings); } }).catch(console.error).finally(() => setLoading(false));
   }, []);
 
-  const fetchContactData = async () => {
-    if (!isSupabaseConfigured()) {
-      setLoading(false);
-      return;
-    }
+
 
     try {
       const [contactRes, settingsRes] = await Promise.all([
