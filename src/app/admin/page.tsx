@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from '@/lib/supabaseServerClient';
 import { redirect } from 'next/navigation';
+import { isStaffRole } from '@/lib/roles';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,11 +30,11 @@ export default async function AdminPage() {
 
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('role')
+    .select('role, is_active')
     .eq('id', user.id)
     .single();
 
-  if (error || !profile || !['manager', 'admin'].includes(profile.role)) {
+  if (error || !profile?.is_active || !isStaffRole(profile.role)) {
     return redirect('/');
   }
 
@@ -60,7 +61,7 @@ export default async function AdminPage() {
             <p className="text-muted-foreground mt-1">Manage your store and monitor performance</p>
           </div>
           <Badge variant="secondary" className="w-fit">
-            Manager Access
+            {profile.role === 'admin' ? 'Admin Access' : 'Manager Access'}
           </Badge>
         </div>
 
