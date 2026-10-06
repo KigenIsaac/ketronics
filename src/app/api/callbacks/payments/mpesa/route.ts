@@ -55,9 +55,8 @@ export async function POST(request: NextRequest) {
     const { error: updateError } = await supabaseAdmin.from('payments').update({
       status,
       transaction_id: transactionId,
-      amount: amount,
       phone_number: phoneNumber,
-      metadata: { merchant_request_id: callback.MerchantRequestID, checkout_request_id: callback.CheckoutRequestID, result_code: callback.ResultCode },
+      metadata: { merchant_request_id: callback.MerchantRequestID, checkout_request_id: callback.CheckoutRequestID, result_code: callback.ResultCode, result_desc: callback.ResultDesc ?? null },
       updated_at: now,
     }).eq('id', payment.id);
 
