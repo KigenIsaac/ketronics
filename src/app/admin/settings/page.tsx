@@ -69,7 +69,28 @@ export default function AdminSettingsPage() {
   };
 
   useEffect(() => {
-    void loadSettings();
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const response = await fetch("/api/admin/settings", { cache: "no-store" });
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.error || "Failed to load settings");
+
+        if (!cancelled) {
+          setSettings({ ...DEFAULT_SETTINGS, ...body.settings });
+        }
+      } catch (error) {
+        console.error("Failed to load settings:", error);
+        if (!cancelled) toast.error("Could not load store settings");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const update = <K extends keyof StoreSettings>(field: K, value: StoreSettings[K]) => {
