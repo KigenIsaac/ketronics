@@ -1,14 +1,14 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabaseServerClient';
-import { Order, OrderItem } from '@/types/product';
+import { Order } from '@/types/product';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, Package, Truck, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, Package, Truck, CheckCircle, XCircle } from 'lucide-react';ide-react';
 
 interface OrderPageProps {
   params: {
