@@ -79,8 +79,8 @@ export async function POST(request: NextRequest) {
       console.error('Webhook logging error:', logError);
     }
 
-    if (userAgent.includes('GitHub')) {
-      await handleGitHubWebhook(payload, eventType);
+    if (eventType?.startsWith('github:') || eventType === 'push' || eventType === 'pull_request' || eventType === 'release') {
+      await handleGitHubWebhook(payload, eventType.replace(/^github:/, ''));
     } else if (eventType?.includes('order') || eventType?.includes('payment')) {
       await handleCommerceWebhook(payload, eventType);
     } else {
@@ -226,38 +226,3 @@ async function handleSubscriptionEvent(payload: Json) {
   if (error) console.error('Subscription event error:', error);
 }
 
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const eventId = searchParams.get('event_id');
-
-    if (eventId) {
-      const { data: event, error } = await supabase
-        .from('webhook_events')
-        .select('*')
-        .eq('id', eventId)
-        .single();
-
-      if (error) {
-        return NextResponse.json({ error: 'Webhook event not found' }, { status: 404 });
-      }
-
-      return NextResponse.json({ event });
-    }
-
-    const { data: events, error } = await supabase
-      .from('webhook_events')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(20);
-
-    if (error) {
-      return NextResponse.json({ error: 'Failed to fetch webhook events' }, { status: 500 });
-    }
-
-    return NextResponse.json({ events });
-  } catch (err: unknown) {
-    console.error('Webhook status GET error:', err);
-    return NextResponse.json({ error: 'Status check failed' }, { status: 500 });
-  }
-}
