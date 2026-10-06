@@ -56,16 +56,24 @@ function normalizePhone(phone: string): string {
 }
 
 function mpesaTimestamp(date = new Date()): string {
-  const parts = [
-    date.getUTCFullYear(),
-    String(date.getUTCMonth() + 1).padStart(2, '0'),
-    String(date.getUTCDate()).padStart(2, '0'),
-    String(date.getUTCHours()).padStart(2, '0'),
-    String(date.getUTCMinutes()).padStart(2, '0'),
-    String(date.getUTCSeconds()).padStart(2, '0'),
-  ];
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Africa/Nairobi',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(date);
 
-  return parts.join('');
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== 'literal')
+      .map((part) => [part.type, part.value]),
+  );
+
+  return `${values.year}${values.month}${values.day}${values.hour}${values.minute}${values.second}`;
 }
 
 async function getAccessToken(config: MpesaConfig): Promise<string> {
