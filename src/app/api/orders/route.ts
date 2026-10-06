@@ -24,6 +24,7 @@ const checkoutSchema = z.object({
     country: z.string().trim().min(2).max(100),
   }),
   paymentMethod: z.enum(['cash_on_delivery', 'mpesa', 'card']),
+  idempotencyKey: z.string().uuid(),
 });
 
 export async function POST(request: NextRequest) {
@@ -51,107 +52,32 @@ export async function POST(request: NextRequest) {
 
     const { items, shippingInfo, paymentMethod } = parsed.data;
 
-    const productIds = [...new Set(items.map((item) => item.productId))];
-
-    const { data: products, error: productsError } = await supabase
-      .from('products')
-      .select('id, name, price, images, status')
-      .in('id', productIds)
-      .eq('status', 'active');
-
-    if (productsError) {
-      console.error('Checkout product lookup failed:', productsError);
-      return NextResponse.json(
-        { error: 'Unable to validate products' },
-        { status: 500 }
-      );
-    }
-
-    const productMap = new Map((products ?? []).map((product) => [product.id, product]));
-
-    if (productMap.size !== productIds.length) {
-      const missingProductIds = productIds.filter((id) => !productMap.has(id));
-      return NextResponse.json(
-        {
-          error: 'One or more products are unavailable',
-          productIds: missingProductIds,
-        },
-        { status: 409 }
-      );
-    }
-
-    const pricedItems = items.map((item) => {
-      const product = productMap.get(item.productId)!;
-      const unitPrice = Number(product.price);
-
-      if (!Number.isFinite(unitPrice) || unitPrice < 0) {
-        throw new Error(`Invalid price configured for product ${product.id}`);
+    const { data: orders, error: orderError } = await supabase.rpc(
+      'create_order_atomic',
+      {
+        p_items: items,
+        p_shipping_address: shippingInfo,
+        p_payment_method: paymentMethod,
+        p_idempotency_key: parsed.data.idempotencyKey,
       }
+    );
 
-      return {
-        order_id: '',
-        product_id: product.id,
-        product_name: product.name,
-        product_image:
-          Array.isArray(product.images) && product.images.length > 0
-            ? product.images[0]
-            : null,
-        quantity: item.quantity,
-        price: unitPrice,
-        attributes: item.attributes,
-        lineTotal: unitPrice * item.quantity,
-      };
-    });
+    if (orderError || !orders?.[0]) {
+      console.error('Atomic checkout failed:', orderError);
+      const message =
+        orderError?.message?.includes('Product is unavailable')
+          ? 'One or more products are unavailable'
+          : orderError?.message?.includes('Invalid quantity')
+            ? 'One or more quantities are invalid'
+            : 'Failed to create order';
 
-    const total = Math.round(
-      pricedItems.reduce((sum, item) => sum + item.lineTotal, 0) * 100
-    ) / 100;
-
-    if (!Number.isFinite(total) || total < 0) {
-      return NextResponse.json({ error: 'Invalid order total' }, { status: 400 });
-    }
-
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
-      .insert({
-        user_id: user.id,
-        total,
-        shipping_address: shippingInfo,
-        payment_method: paymentMethod,
-      })
-      .select('id, total, status, created_at')
-      .single();
-
-    if (orderError || !order) {
-      console.error('Checkout order creation failed:', orderError);
       return NextResponse.json(
-        { error: 'Failed to create order' },
-        { status: 500 }
+        { error: message },
+        { status: message === 'Failed to create order' ? 500 : 409 }
       );
     }
 
-    const orderItems = pricedItems.map(({ lineTotal: _lineTotal, ...item }) => ({
-      ...item,
-      order_id: order.id,
-    }));
-
-    const { error: orderItemsError } = await supabase
-      .from('order_items')
-      .insert(orderItems);
-
-    if (orderItemsError) {
-      console.error('Checkout order item creation failed:', orderItemsError);
-
-      // Best-effort compensation until order creation is moved into a
-      // database transaction/RPC in a later hardening step.
-      await supabase.from('orders').delete().eq('id', order.id);
-
-      return NextResponse.json(
-        { error: 'Failed to create order items' },
-        { status: 500 }
-      );
-    }
-
+    const order = orders[0];
     return NextResponse.json(
       {
         success: true,
