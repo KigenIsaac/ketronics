@@ -187,7 +187,7 @@ export default function AdminAnalyticsPage() {
     toast.success('Analytics data exported successfully');
   };
 
-  }, [timeRange]);
+
   if (loading) {
     return (
       <div className="container mx-auto p-6">
