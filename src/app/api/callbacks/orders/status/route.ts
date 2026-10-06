@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
       message: 'Order status updated successfully'
     });
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Order status callback error:', err);
     return NextResponse.json({ error: 'Callback processing failed' }, { status: 500 });
   }
@@ -127,7 +127,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ order });
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Order status GET error:', err);
     return NextResponse.json({ error: 'Status check failed' }, { status: 500 });
   }
@@ -198,7 +198,7 @@ async function sendOrderStatusNotification(
     });
     */
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Notification sending error:', err);
   }
 }
