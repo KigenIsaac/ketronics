@@ -208,9 +208,7 @@ Before production:
 2. Configure all server-only secrets in the hosting provider.
 3. Configure the M-Pesa callback URL with HTTPS.
 4. Configure Stripe webhook signing.
-5. Configure a scheduler to call:
-   `GET /api/cron/expire-orders`
-   with `Authorization: Bearer $CRON_SECRET`.
+5. Confirm Supabase `pg_cron` has scheduled stale-order and rate-limit cleanup jobs.
 6. Verify RLS and storage policies.
 7. Run lint, verification checks and a production build.
 8. Test customer, manager and admin authorization.
@@ -219,6 +217,10 @@ Before production:
 11. Confirm monitoring and backups are available.
 
 The expiration endpoint is intentionally protected by `CRON_SECRET`; do not make it publicly callable.
+
+## Abuse protection
+
+Public contact and guest-order endpoints use database-backed IP/email rate limits. Rate limiting fails closed if the limiter cannot be reached.
 
 ## Important production rule
 
