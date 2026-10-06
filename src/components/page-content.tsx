@@ -26,14 +26,10 @@ export function PageContent({ slug }: PageContentProps) {
         if (sectionsError) throw sectionsError;
         setPage(pageData);
         setSections(sectionsData || []);
-      } catch (error) {
-        console.error('Error fetching page content:', error);
-      } finally {
-        setLoading(false);
-      }
+      } catch (error) { console.error('Error fetching page content:', error); }
+      finally { setLoading(false); }
     })();
   }, [slug]);
-
 
 
   if (loading) {
