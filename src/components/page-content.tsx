@@ -12,46 +12,29 @@ interface PageContentProps {
   slug: string;
 }
 
-async function fetchPageContent(slug: string) {
-  const { data: pageData, error: pageError } = await supabase.from('pages').select('*').eq('slug', slug).eq('is_published', true).single();
-  if (pageError) throw pageError;
-  const { data: sectionsData, error: sectionsError } = await supabase.from('page_sections').select('*').eq('page_id', pageData.id).eq('is_active', true).order('sort_order');
-  if (sectionsError) throw sectionsError;
-  return { page: pageData, sections: sectionsData || [] };
-}
-
 export function PageContent({ slug }: PageContentProps) {
   const [page, setPage] = useState<Page | null>(null);
   const [sections, setSections] = useState<PageSection[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    void fetchPageContent(slug).then((result) => { setPage(result.page); setSections(result.sections); }).catch(console.error).finally(() => setLoading(false));
+    void (async () => {
+      try {
+        const { data: pageData, error: pageError } = await supabase.from('pages').select('*').eq('slug', slug).eq('is_published', true).single();
+        if (pageError) throw pageError;
+        const { data: sectionsData, error: sectionsError } = await supabase.from('page_sections').select('*').eq('page_id', pageData.id).eq('is_active', true).order('sort_order');
+        if (sectionsError) throw sectionsError;
+        setPage(pageData);
+        setSections(sectionsData || []);
+      } catch (error) {
+        console.error('Error fetching page content:', error);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [slug]);
 
 
-
-      if (pageError) throw pageError;
-
-      setPage(pageData);
-
-      // Fetch page sections
-      const { data: sectionsData, error: sectionsError } = await supabase
-        .from('page_sections')
-        .select('*')
-        .eq('page_id', pageData.id)
-        .eq('is_active', true)
-        .order('sort_order');
-
-      if (sectionsError) throw sectionsError;
-
-      setSections(sectionsData || []);
-    } catch (error) {
-      console.error('Error fetching page content:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return <LoadingPage message="Loading page content..." />;
