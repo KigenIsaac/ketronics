@@ -12,7 +12,8 @@ export async function POST(req: Request) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error || !data) {
-      return NextResponse.json({ error: error?.message ?? 'Failed to sign in' }, { status: 400 });
+      console.error('Login failed:', error);
+      return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
     }
 
     const { data: { user } } = await supabase.auth.getUser();
@@ -28,6 +29,7 @@ export async function POST(req: Request) {
 
     return out;
   } catch (err: unknown) {
-    return NextResponse.json({ error: err instanceof Error ? err.message : 'Unexpected error' }, { status: 500 });
+    console.error('Authentication endpoint failed:', err);
+    return NextResponse.json({ error: 'Authentication request failed' }, { status: 500 });
   }
 }
