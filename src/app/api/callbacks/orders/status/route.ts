@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update order status
-    const updateData: any = {
+    const updateData: Record<string, string> = {
       status,
       updated_at: new Date().toISOString()
     };
