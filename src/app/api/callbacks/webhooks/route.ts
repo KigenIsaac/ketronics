@@ -72,7 +72,9 @@ export async function POST(request: NextRequest) {
         .from('webhook_events')
         .update({ processed: true, processed_at: new Date().toISOString() })
         .eq('event_type', eventType || 'unknown')
-        .eq('created_at', new Date().toISOString());
+        .eq('processed', false)
+        .order('created_at', { ascending: false })
+        .limit(1);
     }
 
     return NextResponse.json({
