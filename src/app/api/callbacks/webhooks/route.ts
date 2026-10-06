@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log webhook event
-    const { data: loggedEvent, error: logError } = await supabase
+    const { data: loggedEventRaw, error: logError } = await supabase
       .from('webhook_events')
       .insert({
         event_type: eventType || 'unknown',
@@ -61,6 +61,8 @@ export async function POST(request: NextRequest) {
     if (logError) {
       console.error('Webhook logging error:', logError);
     }
+
+    const loggedEvent = loggedEventRaw as unknown as { id: string } | null;
 
     // Process based on event type or user agent
     if (userAgent.includes('GitHub')) {
