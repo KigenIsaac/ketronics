@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 export function getClientIp(request: Request): string {
@@ -19,7 +20,7 @@ export async function consumeRateLimit(
   const { data, error } = await getSupabaseAdmin().rpc(
     "consume_api_rate_limit",
     {
-      p_rate_key: key.slice(0, 200),
+      p_rate_key: createHash("sha256").update(key).digest("hex"),
       p_limit: limit,
       p_window_seconds: windowSeconds,
     },
