@@ -43,19 +43,37 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid webhook payload' }, { status: 400 });
     }
 
+    const { data: claimed, error: claimError } = await getSupabaseAdmin().rpc(
+      'claim_stripe_webhook_event',
+      { p_event_id: event.id, p_event_type: event.type },
+    );
+
+    if (claimError) throw claimError;
+
+    if (!claimed) {
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+
     switch (event.type) {
       case 'payment_intent.succeeded':
-        await handlePaymentIntentSucceeded(object as StripePaymentIntent);
+        await handlePaymentIntentSucceeded(object as StripePaymentIntent, event.id);
         break;
       case 'payment_intent.payment_failed':
-        await handlePaymentIntentFailed(object as StripePaymentIntent);
+        await handlePaymentIntentFailed(object as StripePaymentIntent, event.id);
         break;
       case 'checkout.session.completed':
-        await handleCheckoutCompleted(object as StripeCheckoutSession);
+        await handleCheckoutCompleted(object as StripeCheckoutSession, event.id);
         break;
       default:
         break;
     }
+
+    const { error: completionError } = await getSupabaseAdmin().rpc(
+      'complete_stripe_webhook_event',
+      { p_event_id: event.id },
+    );
+
+    if (completionError) throw completionError;
 
     return NextResponse.json({ received: true });
   } catch (error) {
@@ -92,7 +110,7 @@ async function markOrderPaid(orderId: string) {
   if (error) throw error;
 }
 
-async function handlePaymentIntentSucceeded(intent: StripePaymentIntent) {
+async function handlePaymentIntentSucceeded(intent: StripePaymentIntent, eventId: string) {
   const payment = await findPayment('payment_intent_id', intent.id);
   if (!payment) throw new Error('Stripe payment intent is not linked to an existing payment');
 
@@ -108,7 +126,7 @@ async function handlePaymentIntentSucceeded(intent: StripePaymentIntent) {
     transaction_id: intent.id,
     amount: Number(intent.amount) / 100,
     currency: intent.currency,
-    metadata: { event_id: intent.id, provider: 'stripe' },
+    metadata: { event_id: eventId, provider: 'stripe' },
     updated_at: now,
   }).eq('id', payment.id);
 
@@ -116,7 +134,7 @@ async function handlePaymentIntentSucceeded(intent: StripePaymentIntent) {
   if (payment.order_id) await markOrderPaid(payment.order_id);
 }
 
-async function handlePaymentIntentFailed(intent: StripePaymentIntent) {
+async function handlePaymentIntentFailed(intent: StripePaymentIntent, eventId: string) {
   const payment = await findPayment('payment_intent_id', intent.id);
   if (!payment) throw new Error('Stripe failed payment is not linked to an existing payment');
 
@@ -125,7 +143,7 @@ async function handlePaymentIntentFailed(intent: StripePaymentIntent) {
   const { error } = await getSupabaseAdmin().from('payments').update({
     status: 'failed',
     metadata: {
-      event_id: intent.id,
+      event_id: eventId,
       provider: 'stripe',
       error: intent.last_payment_error ?? null,
     },
@@ -135,7 +153,7 @@ async function handlePaymentIntentFailed(intent: StripePaymentIntent) {
   if (error) throw error;
 }
 
-async function handleCheckoutCompleted(session: StripeCheckoutSession) {
+async function handleCheckoutCompleted(session: StripeCheckoutSession, eventId: string) {
   const payment = await findPayment('checkout_session_id', session.id);
   if (!payment) throw new Error('Stripe checkout session is not linked to an existing payment');
 
@@ -154,7 +172,7 @@ async function handleCheckoutCompleted(session: StripeCheckoutSession) {
   const { error } = await getSupabaseAdmin().from('payments').update({
     status: 'completed',
     transaction_id: session.id,
-    metadata: { event_id: session.id, provider: 'stripe' },
+    metadata: { event_id: eventId, provider: 'stripe' },
     updated_at: now,
   }).eq('id', payment.id);
 
