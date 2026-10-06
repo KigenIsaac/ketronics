@@ -41,7 +41,7 @@ export default function AdminAnalyticsPage() {
     fetchAnalytics();
   }, [timeRange]);
 
-  const fetchAnalytics = async () => {
+  async function fetchAnalytics() {
     setRefreshing(true);
     try {
       const days = parseInt(timeRange);
