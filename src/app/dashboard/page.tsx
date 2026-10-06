@@ -18,11 +18,13 @@ export default async function DashboardPage() {
   // Fetch profile for display
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name')
+    .select('full_name, is_active')
     .eq('id', user.id)
     .single();
 
-  const displayName = profile?.full_name || user.email;
+  if (!profile?.is_active) return redirect('/auth/login');
+
+  const displayName = profile.full_name || user.email;
 
   return (
     <div className="container mx-auto px-4 py-8 lg:pl-0">
