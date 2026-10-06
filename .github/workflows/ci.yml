@@ -30,5 +30,7 @@ jobs:
         run: npm ci
       - name: Lint
         run: npm run lint
+      - name: Security and architecture regression checks
+        run: npm run verify
       - name: Production build
         run: npm run build
