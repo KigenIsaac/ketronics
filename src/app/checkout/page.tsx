@@ -265,7 +265,7 @@ export default function CheckoutPage() {
               </CardContent>
             </Card>
 
-            {/* WhatsApp / M-Pesa Ordering */}}
+            {/* WhatsApp / M-Pesa Ordering */}
             <Card>
               <CardHeader><CardTitle className="flex items-center gap-2"><Smartphone className="h-5 w-5" />Order & Pay via M-Pesa</CardTitle></CardHeader>
               <CardContent className="space-y-4">
