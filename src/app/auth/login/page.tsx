@@ -46,8 +46,8 @@ export default function LoginPage() {
       } else {
         router.push('/dashboard');
       }
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'Login failed');
     } finally {
       setLoading(false);
     }
