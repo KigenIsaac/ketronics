@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('SMS callback error:', err);
     return NextResponse.json({ error: 'Callback processing failed' }, { status: 500 });
   }
@@ -202,7 +202,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ events });
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('SMS status GET error:', err);
     return NextResponse.json({ error: 'Status check failed' }, { status: 500 });
   }
