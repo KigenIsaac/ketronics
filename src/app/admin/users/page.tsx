@@ -119,7 +119,7 @@ export default function AdminUsersPage() {
 
   const getStats = () => {
     const total = users.length;
-    const managers = users.filter(u => u.role === 'manager').length;
+    const managers = users.filter(u => u.role === 'manager' || u.role === 'admin').length;
     const customers = users.filter(u => u.role === 'customer').length;
     const confirmed = users.filter(u => u.email_confirmed_at).length;
 
