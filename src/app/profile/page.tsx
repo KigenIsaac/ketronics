@@ -24,7 +24,7 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    if (!user) { setLoading(false); return; }
+    if (!user) return;
     void (async () => {
       try {
         const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
@@ -80,7 +80,7 @@ export default function ProfilePage() {
     );
   }
 
-  if (loading) {
+  if (user && loading) {
     return <LoadingPage message="Loading profile..." />;
   }
 
