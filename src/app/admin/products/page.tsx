@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Product } from '@/types/product';
 import { ProductForm } from '@/components/products/ProductForm';
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,6 @@ import Link from 'next/link';
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -32,9 +31,7 @@ export default function AdminProductsPage() {
     fetchProducts();
   }, []);
 
-  useEffect(() => {
-    filterAndSortProducts();
-  }, [products, searchTerm, statusFilter, sortBy, sortOrder]);
+
 
   async function fetchProducts() {
     const { data, error } = await supabase
@@ -51,7 +48,7 @@ export default function AdminProductsPage() {
     setLoading(false);
   };
 
-  function filterAndSortProducts() {
+  const filteredProducts = useMemo(() => {
     const filtered = products.filter(product => {
       const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           product.description?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -78,8 +75,8 @@ export default function AdminProductsPage() {
       return 0;
     });
 
-    setFilteredProducts(filtered);
-  };
+    return filtered;
+  }, [products, searchTerm, statusFilter, sortBy, sortOrder]);
 
   const handleCreate = () => {
     setEditingProduct(undefined);
