@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, Package, Truck, CheckCircle, XCircle } from 'lucide-react';ide-react';
+import { ArrowLeft, Package, Truck, CheckCircle, XCircle } from 'lucide-react';
 
 interface OrderPageProps {
   params: {
