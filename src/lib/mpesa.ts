@@ -170,3 +170,68 @@ export async function initiateStkPush(input: StkPushInput): Promise<StkPushResul
     responseDescription: body.ResponseDescription,
   };
 }
+
+
+export type StkQueryResult = {
+  responseCode?: string;
+  responseDescription?: string;
+  resultCode?: string;
+  resultDescription?: string;
+};
+
+export async function queryStkPush(checkoutRequestId: string): Promise<StkQueryResult> {
+  const config = getConfig();
+
+  if (!config) {
+    throw new Error("M-Pesa STK Push is not configured");
+  }
+
+  if (!checkoutRequestId.trim()) {
+    throw new Error("Checkout request ID is required");
+  }
+
+  const timestamp = mpesaTimestamp();
+  const password = Buffer.from(
+    `${config.shortCode}${config.passkey}${timestamp}`,
+  ).toString("base64");
+
+  const accessToken = await getAccessToken(config);
+
+  const response = await fetch(
+    `${config.baseUrl}/mpesa/stkpushquery/v1/query`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        BusinessShortCode: config.shortCode,
+        Password: password,
+        Timestamp: timestamp,
+        CheckoutRequestID: checkoutRequestId,
+      }),
+      cache: "no-store",
+    },
+  );
+
+  const body = (await response.json()) as {
+    ResponseCode?: string;
+    ResponseDescription?: string;
+    ResultCode?: string;
+    ResultDesc?: string;
+  };
+
+  if (!response.ok) {
+    throw new Error(
+      body.ResponseDescription || `M-Pesa STK query failed (${response.status})`,
+    );
+  }
+
+  return {
+    responseCode: body.ResponseCode,
+    responseDescription: body.ResponseDescription,
+    resultCode: body.ResultCode,
+    resultDescription: body.ResultDesc,
+  };
+}
