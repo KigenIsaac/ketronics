@@ -42,7 +42,7 @@ export function Footer() {
     fetchFooterData();
   }, []);
 
-  const fetchFooterData = async () => {
+  async function fetchFooterData() {
     if (!isSupabaseConfigured()) {
       setLoading(false);
       return;
