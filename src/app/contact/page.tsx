@@ -49,46 +49,6 @@ export default function ContactPage() {
   });
   const [submitting, setSubmitting] = useState(false);
 
-
-  const fetchContactData = async () => {
-    if (!isSupabaseConfigured()) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const [contactRes, settingsRes] = await Promise.all([
-        supabase
-          .from('contact_info')
-          .select('*')
-          .eq('is_active', true)
-          .order('sort_order'),
-        supabase
-          .from('site_settings')
-          .select('key, value')
-          .in('key', ['contact_email', 'contact_phone', 'business_hours'])
-      ]);
-
-      if (contactRes.data) setContactInfo(contactRes.data);
-      if (settingsRes.data) {
-        const settingsMap = settingsRes.data.reduce((acc, setting) => {
-          acc[setting.key] = setting.value;
-          return acc;
-        }, {} as Record<string, string>);
-        setSiteSettings(settingsMap);
-      }
-    } catch (error) {
-      console.error('Error fetching contact data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchContactData();
-  }, []);
-
-
   const getIcon = (iconName?: string) => {
     if (!iconName) return null;
     return iconMap[iconName as keyof typeof iconMap] || null;
@@ -395,4 +355,39 @@ export default function ContactPage() {
       </div>
     </div>
   );
-}
+}  useEffect(() => {
+    void (async () => {if (!isSupabaseConfigured()) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const [contactRes, settingsRes] = await Promise.all([
+        supabase
+          .from('contact_info')
+          .select('*')
+          .eq('is_active', true)
+          .order('sort_order'),
+        supabase
+          .from('site_settings')
+          .select('key, value')
+          .in('key', ['contact_email', 'contact_phone', 'business_hours'])
+      ]);
+
+      if (contactRes.data) setContactInfo(contactRes.data);
+      if (settingsRes.data) {
+        const settingsMap = settingsRes.data.reduce((acc, setting) => {
+          acc[setting.key] = setting.value;
+          return acc;
+        }, {} as Record<string, string>);
+        setSiteSettings(settingsMap);
+      }
+    } catch (error) {
+      console.error('Error fetching contact data:', error);
+    } finally {
+      setLoading(false);
+    }
+    })();
+  }, []);
+
+
