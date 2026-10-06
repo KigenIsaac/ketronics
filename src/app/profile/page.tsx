@@ -23,13 +23,7 @@ export default function ProfilePage() {
     email: user?.email || '',
   });
 
-  useEffect(() => {
-    if (user) {
-      fetchProfile();
-    }
-  }, [user]);
-
-  async function fetchProfile() {
+async function fetchProfile() {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -53,7 +47,13 @@ export default function ProfilePage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+    }
+  }, [user]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
 
