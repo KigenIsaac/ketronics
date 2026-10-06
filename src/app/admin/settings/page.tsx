@@ -71,7 +71,7 @@ export default function AdminSettingsPage() {
     loadSettings();
   }, []);
 
-  const loadSettings = async () => {
+  async function loadSettings() {
     setLoading(true);
     try {
       // In a real app, you'd fetch settings from the database
