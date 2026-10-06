@@ -69,10 +69,10 @@ BEGIN
       RAISE EXCEPTION 'Invalid quantity';
     END IF;
 
-    SELECT id, name, price, images, status
+    SELECT p.id, p.name, p.price, p.images, p.status
       INTO v_product
-      FROM products
-     WHERE id = (v_item->>'productId')::UUID
+      FROM products p
+     WHERE p.id = (v_item->>'productId')::UUID
        AND status = 'active';
 
     IF NOT FOUND THEN
@@ -90,30 +90,46 @@ BEGIN
 
   v_total := round(v_total, 2);
 
-  INSERT INTO orders (
-    user_id,
-    total,
-    status,
-    shipping_address,
-    payment_method,
-    idempotency_key
-  )
-  VALUES (
-    v_user_id,
-    v_total,
-    'pending',
-    p_shipping_address,
-    p_payment_method,
-    p_idempotency_key
-  )
-  RETURNING orders.id INTO v_order_id;
+  BEGIN
+    INSERT INTO orders (
+      user_id,
+      total,
+      status,
+      shipping_address,
+      payment_method,
+      idempotency_key
+    )
+    VALUES (
+      v_user_id,
+      v_total,
+      'pending',
+      p_shipping_address,
+      p_payment_method,
+      p_idempotency_key
+    )
+    RETURNING orders.id INTO v_order_id;
+  EXCEPTION
+    WHEN unique_violation THEN
+      SELECT o.id, o.total, o.status, o.created_at
+        INTO id, total, status, created_at
+        FROM orders o
+       WHERE o.user_id = v_user_id
+         AND o.idempotency_key = p_idempotency_key;
+
+      IF FOUND THEN
+        RETURN NEXT;
+        RETURN;
+      END IF;
+
+      RAISE;
+  END;
 
   FOR v_item IN SELECT value FROM jsonb_array_elements(p_items)
   LOOP
-    SELECT id, name, price, images
+    SELECT p.id, p.name, p.price, p.images
       INTO v_product
-      FROM products
-     WHERE id = (v_item->>'productId')::UUID
+      FROM products p
+     WHERE p.id = (v_item->>'productId')::UUID
        AND status = 'active';
 
     INSERT INTO order_items (
