@@ -22,6 +22,10 @@ CREATE TABLE IF NOT EXISTS public.store_settings (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+INSERT INTO public.store_settings (id)
+VALUES (1)
+ON CONFLICT (id) DO NOTHING;
+
 ALTER TABLE public.store_settings
   DROP COLUMN IF EXISTS smtp_host,
   DROP COLUMN IF EXISTS smtp_port,
