@@ -20,7 +20,7 @@ for (const [name, path] of Object.entries(files)) {
   source[name] = await readFile(path, "utf8");
 }
 
-assert.equal(source.settingsMigration.includes("smtp_password"), false);
+assert.equal(source.settingsMigration.includes("DROP COLUMN IF EXISTS smtp_password"), true);
 assert.equal(source.settingsMigration.includes("ENABLE ROW LEVEL SECURITY"), true);
 assert.equal(source.settingsPage.includes("smtpPassword"), false);
 assert.equal(source.settingsPage.includes("/api/admin/settings"), true);
