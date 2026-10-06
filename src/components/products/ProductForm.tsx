@@ -58,7 +58,9 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
   const [lowStockThreshold, setLowStockThreshold] = useState(product?.low_stock_threshold?.toString() || '5');
   const [categoryId, setCategoryId] = useState(product?.category_id || '');
   const [subcategoryId, setSubcategoryId] = useState(product?.subcategory_id || '');
-  const [attributes, setAttributes] = useState<Record<string, unknown>>(product?.attributes || {});
+  const [attributes, setAttributes] = useState<Record<string, string>>(
+    Object.fromEntries(Object.entries(product?.attributes || {}).map(([key, value]) => [key, String(value ?? '')])),
+  );
   const [images, setImages] = useState<string[]>(product?.images || []);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
