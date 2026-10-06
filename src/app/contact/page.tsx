@@ -39,22 +39,9 @@ const iconMap = {
   Youtube,
 };
 
-export default function ContactPage() {
-  const [contactInfo, setContactInfo] = useState<ContactInfo[]>([]);
-  const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(true);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: '',
-  });
-  const [submitting, setSubmitting] = useState(false);
-
 async function fetchContactData() {
     if (!isSupabaseConfigured()) {
-      setLoading(false);
-      return;
+      return null;
     }
 
     try {
@@ -70,20 +57,28 @@ async function fetchContactData() {
           .in('key', ['contact_email', 'contact_phone', 'business_hours'])
       ]);
 
-      if (contactRes.data) setContactInfo(contactRes.data);
       if (settingsRes.data) {
         const settingsMap = settingsRes.data.reduce((acc, setting) => {
           acc[setting.key] = setting.value;
           return acc;
-        }, {} as Record<string, string>);
-        setSiteSettings(settingsMap);
-      }
-    } catch (error) {
-      console.error('Error fetching contact data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      }, {} as Record<string, string>);
+        }
+    return { contactInfo: contactRes.data || [], siteSettings: settingsMap };
+}
+
+
+
+export default function ContactPage() {
+  const [contactInfo, setContactInfo] = useState<ContactInfo[]>([]);
+  const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: '',
+  });
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     let active = true;
