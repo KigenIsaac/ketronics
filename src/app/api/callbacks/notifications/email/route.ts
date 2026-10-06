@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Email callback error:', err);
     return NextResponse.json({ error: 'Callback processing failed' }, { status: 500 });
   }
