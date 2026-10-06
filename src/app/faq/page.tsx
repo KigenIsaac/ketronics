@@ -25,23 +25,7 @@ export default function FAQPage() {
     void fetchFAQs().then(setFaqs).catch(console.error).finally(() => setLoading(false));
   }, []);
 
-  const fetchFAQs = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('faqs')
-        .select('*')
-        .eq('is_published', true)
-        .order('sort_order');
-
-      if (error) throw error;
-      setFaqs(data || []);
-    } catch (error) {
-      console.error('Error fetching FAQs:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  
   const groupFAQsByCategory = (faqs: FAQ[]) => {
     const grouped: Record<string, FAQ[]> = {};
     faqs.forEach((faq) => {
