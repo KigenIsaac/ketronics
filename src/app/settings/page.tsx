@@ -36,20 +36,16 @@ export default function SettingsPage() {
   });
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) { setLoading(false); return; }
     void (async () => {
       try {
         const { data, error } = await supabase.from('profiles').select('preferences').eq('id', user.id).single();
         if (error && error.code !== 'PGRST116') throw error;
         if (data?.preferences) setPreferences((current) => ({ ...current, ...data.preferences }));
-      } catch (error) {
-        console.error('Error fetching preferences:', error);
-      } finally {
-        setLoading(false);
-      }
+      } catch (error) { console.error('Error fetching preferences:', error); }
+      finally { setLoading(false); }
     })();
   }, [user]);
-
 
 
   const updatePreference = async (key: string, value: boolean) => {
