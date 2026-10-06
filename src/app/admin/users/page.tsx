@@ -7,18 +7,18 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { Search, User, Mail, Calendar, Shield, Edit, Ban, CheckCircle, Users, UserCheck, UserX } from 'lucide-react';
+import { Search, User, Shield, Edit, Ban, CheckCircle, Users, UserCheck, UserX } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface UserProfile {
   id: string;
   email: string;
   full_name: string;
-  role: 'customer' | 'manager';
+  role: 'customer' | 'manager' | 'admin';
   created_at: string;
   last_sign_in_at?: string;
   email_confirmed_at?: string;
@@ -108,6 +108,8 @@ export default function AdminUsersPage() {
 
   const getRoleBadge = (role: string) => {
     switch (role) {
+      case 'admin':
+        return <Badge variant="default" className="bg-red-100 text-red-800">Admin</Badge>;
       case 'manager':
         return <Badge variant="default" className="bg-purple-100 text-purple-800">Manager</Badge>;
       case 'customer':
