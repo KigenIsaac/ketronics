@@ -85,7 +85,7 @@ function ProductsContent() {
     setFilteredProducts(filtered);
   }, [products, searchTerm, selectedCategory]);
 
-  const fetchProducts = async () => {
+  async function fetchProducts() {
     try {
       setError(null);
       const { data, error } = await supabase
