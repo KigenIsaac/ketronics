@@ -23,7 +23,7 @@ const checkoutSchema = z.object({
     city: z.string().trim().min(2).max(100),
     country: z.string().trim().min(2).max(100),
   }),
-  paymentMethod: z.enum(['cash_on_delivery', 'mpesa', 'card']),
+  paymentMethod: z.literal('cash_on_delivery'),
   idempotencyKey: z.string().uuid(),
 });
 

@@ -146,8 +146,8 @@ BEGIN
       v_product.id,
       v_product.name,
       CASE
-        WHEN jsonb_typeof(v_product.images) = 'array'
-          THEN v_product.images->>0
+        WHEN jsonb_typeof(to_jsonb(v_product.images)) = 'array'
+          THEN to_jsonb(v_product.images)->>0
         ELSE NULL
       END,
       (v_item->>'quantity')::INTEGER,
