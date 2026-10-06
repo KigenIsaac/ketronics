@@ -17,7 +17,6 @@ import {
   Key,
   Trash2,
   Download,
-  Upload,
   Settings as SettingsIcon,
   AlertTriangle
 } from "lucide-react";
