@@ -58,7 +58,15 @@ export async function POST(request: NextRequest) {
       .select('id')
       .single();
 
-    if (payment.error || !payment.data) throw payment.error || new Error('Payment record creation failed');
+    if (payment.error || !payment.data) {
+      if (payment.error?.code === '23505') {
+        return NextResponse.json(
+          { error: 'A payment request is already in progress' },
+          { status: 409 },
+        );
+      }
+      throw payment.error || new Error('Payment record creation failed');
+    }
 
     try {
       const result = await initiateStkPush({
@@ -90,6 +98,9 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('M-Pesa STK initiation failed:', error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'M-Pesa payment failed' }, { status: 502 });
+    return NextResponse.json(
+      { error: 'M-Pesa payment could not be initiated' },
+      { status: 502 },
+    );
   }
 }
