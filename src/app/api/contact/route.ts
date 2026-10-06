@@ -55,19 +55,15 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      recipient: getContactRecipientEmail(),
-      acknowledgementSent: true,
+      acknowledgementSent: Boolean(result.acknowledgementMessageId),
       message: "Your message has been sent. We have emailed you a confirmation.",
-      ...result,
     });
   } catch (error) {
     if (error instanceof ContactMailError && error.stage === "acknowledgement") {
       return NextResponse.json(
         {
           success: true,
-          recipient: getContactRecipientEmail(),
           acknowledgementSent: false,
-          businessMessageId: error.businessMessageId,
           message:
             "Your message reached Ketronics, but the acknowledgement email could not be sent.",
         },
