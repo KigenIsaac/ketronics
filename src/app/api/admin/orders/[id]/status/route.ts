@@ -61,8 +61,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
       throw transitionError;
     }
 
-    const now = new Date().toISOString();
-
+    
     try {
       await sendOrderNotification({
         orderId: order.id,
