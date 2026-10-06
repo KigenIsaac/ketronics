@@ -32,7 +32,7 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
   const [lowStockThreshold, setLowStockThreshold] = useState(product?.low_stock_threshold?.toString() || '5');
   const [categoryId, setCategoryId] = useState(product?.category_id || '');
   const [subcategoryId, setSubcategoryId] = useState(product?.subcategory_id || '');
-  const [attributes, setAttributes] = useState<Record<string, any>>(product?.attributes || {});
+  const [attributes, setAttributes] = useState<Record<string, unknown>>(product?.attributes || {});
   const [images, setImages] = useState<string[]>(product?.images || []);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -94,7 +94,7 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
       } else {
         setSubcategoryAttributes(data || []);
         // Initialize attributes with empty values
-        const initialAttrs: Record<string, any> = {};
+        const initialAttrs: Record<string, unknown> = {};
         data?.forEach(attr => {
           initialAttrs[attr.name] = product?.attributes?.[attr.name] || '';
         });
@@ -135,7 +135,7 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
     }
   };
 
-  const handleAttributeChange = (name: string, value: any) => {
+  const handleAttributeChange = (name: string, value: string) => {
     setAttributes(prev => ({ ...prev, [name]: value }));
   };
 
