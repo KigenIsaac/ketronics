@@ -116,7 +116,7 @@ export default function AdminSettingsPage() {
     }
   };
 
-  const handleInputChange = (field: keyof StoreSettings, value: any) => {
+  const handleInputChange = (field: keyof StoreSettings, value: StoreSettings[keyof StoreSettings]) => {
     setSettings(prev => ({ ...prev, [field]: value }));
   };
 
