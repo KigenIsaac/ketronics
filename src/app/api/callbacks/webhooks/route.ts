@@ -26,7 +26,8 @@ export function verifyWebhookSignature(
   algorithm: 'sha256' | 'sha1' = 'sha256',
 ): boolean {
   if (!payload || !signature || !secret) return false;
-  const normalized = signature.startsWith('sha256=') ? signature.slice(7) : signature;
+  const prefix = `sha${algorithm.slice(3)}=`;
+  const normalized = signature.startsWith(prefix) ? signature.slice(prefix.length) : signature;
   const expected = createHmac(algorithm, secret).update(payload, 'utf8').digest('hex');
   const received = Buffer.from(normalized, 'utf8');
   const actual = Buffer.from(expected, 'utf8');
@@ -37,7 +38,10 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
     const headersList = await headers();
-    const signature = headersList.get('x-signature') || headersList.get('x-hub-signature');
+    const signature =
+      headersList.get('x-signature') ||
+      headersList.get('x-hub-signature-256') ||
+      headersList.get('x-hub-signature');
     const secret = process.env.GENERAL_WEBHOOK_SECRET;
 
     if (!verifyWebhookSignature(body, signature || '', secret || '')) {
