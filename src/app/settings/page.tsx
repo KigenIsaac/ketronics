@@ -41,7 +41,7 @@ export default function SettingsPage() {
     }
   }, [user]);
 
-  const fetchPreferences = async () => {
+  async function fetchPreferences() {
     try {
       const { data, error } = await supabase
         .from('profiles')
