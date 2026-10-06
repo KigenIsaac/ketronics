@@ -114,7 +114,7 @@ export default function CheckoutPage() {
 
         {/* Checkout Form */}
         <div>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-6">
             {/* Shipping Information */}
             <Card>
               <CardHeader>
