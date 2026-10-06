@@ -27,7 +27,39 @@ export default function CheckoutPage() {
   const total = getTotal();
 
   if (items.length === 0) {
-    return (
+    const handleStkPush = async () => {
+    setLoading(true);
+    try {
+      const orderResponse = await fetch('/api/orders/whatsapp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: items.map((item) => ({ productId: item.productId || item.id, quantity: item.quantity, attributes: item.attributes || {} })),
+          shippingInfo: { ...shippingInfo, email },
+          idempotencyKey: crypto.randomUUID(),
+        }),
+      });
+      const orderResult = await orderResponse.json();
+      if (!orderResponse.ok || !orderResult?.order) throw new Error(orderResult?.error || 'Unable to create order');
+
+      const paymentResponse = await fetch('/api/payments/mpesa/stk-push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: orderResult.order.id, checkoutToken: orderResult.order.checkout_token, phone: shippingInfo.phone }),
+      });
+      const paymentResult = await paymentResponse.json();
+      if (!paymentResponse.ok) throw new Error(paymentResult?.error || 'Unable to start M-Pesa payment');
+
+      clearCart();
+      toast.success(paymentResult.message || 'M-Pesa payment prompt sent to your phone.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to start M-Pesa payment');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
       <div className="container mx-auto p-6 text-center">
         <h1 className="text-2xl font-bold mb-4">Your cart is empty</h1>
         <Button asChild>
@@ -222,7 +254,18 @@ export default function CheckoutPage() {
               </CardContent>
             </Card>
 
-            {/* WhatsApp / M-Pesa Ordering */}
+            {/* Direct M-Pesa STK Push */}
+            <Card>
+              <CardHeader><CardTitle className="flex items-center gap-2"><Smartphone className="h-5 w-5" />Pay directly with M-Pesa</CardTitle></CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">We create your order and send an M-Pesa STK prompt to the phone number above. Approve it on your phone.</p>
+                <Button type="button" size="lg" className="w-full" disabled={loading} onClick={handleStkPush}>
+                  {loading ? 'Starting M-Pesa...' : 'Pay with M-Pesa STK Push'}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* WhatsApp / M-Pesa Ordering */
             <Card>
               <CardHeader><CardTitle className="flex items-center gap-2"><Smartphone className="h-5 w-5" />Order & Pay via M-Pesa</CardTitle></CardHeader>
               <CardContent className="space-y-4">
