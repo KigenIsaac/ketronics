@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { LoadingPage } from "@/components/loading";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Metadata } from "next";
+import Link from "next/link";
 
 interface PageContentProps {
   slug: string;
@@ -63,7 +63,7 @@ export function PageContent({ slug }: PageContentProps) {
         <h1 className="text-2xl font-bold mb-4">Page Not Found</h1>
         <p className="text-muted-foreground mb-6">The page you&apos;re looking for doesn&apos;t exist or is not published.</p>
         <Button asChild>
-          <a href="/">Go Home</a>
+          <Link href="/">Go Home</Link>
         </Button>
       </div>
     );
