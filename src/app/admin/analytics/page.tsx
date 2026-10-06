@@ -9,26 +9,30 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import {
   BarChart3,
-  TrendingUp,
   Users,
   Package,
   ShoppingCart,
   DollarSign,
-  Calendar,
   Download,
   RefreshCw
 } from 'lucide-react';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
+
+type AnalyticsOrderItem = { quantity: number; price: number; products?: { id?: string; name?: string } | null };
+type AnalyticsOrder = { id: string; created_at: string; status: string; order_items?: AnalyticsOrderItem[] };
+type AnalyticsTopProduct = { name: string; sales: number; revenue: number };
+type AnalyticsDay = { date: string; revenue: number };
+type UserRegistrationDay = { date: string; count: number };
 
 interface AnalyticsData {
   totalRevenue: number;
   totalOrders: number;
   totalProducts: number;
   totalUsers: number;
-  recentOrders: any[];
-  topProducts: any[];
-  revenueByDay: any[];
-  userRegistrations: any[];
+  recentOrders: AnalyticsOrder[];
+  topProducts: AnalyticsTopProduct[];
+  revenueByDay: AnalyticsDay[];
+  userRegistrations: UserRegistrationDay[];
 }
 
 export default function AdminAnalyticsPage() {
@@ -55,7 +59,7 @@ export default function AdminAnalyticsPage() {
           order_items (
             quantity,
             price,
-            products (name)
+            products (id, name)
           )
         `)
         .gte('created_at', startDate.toISOString())
@@ -68,19 +72,19 @@ export default function AdminAnalyticsPage() {
       }
 
       // Fetch products
-      const { data: products, error: productsError } = await supabase
+      const { data: products } = await supabase
         .from('products')
         .select('*');
 
       // Fetch users
-      const { data: users, error: usersError } = await supabase
+      const { data: users } = await supabase
         .from('profiles')
         .select('*')
         .gte('created_at', startDate.toISOString());
 
       // Calculate analytics
       const totalRevenue = orders?.reduce((sum, order) => {
-        const orderTotal = order.order_items?.reduce((itemSum: number, item: any) =>
+        const orderTotal = order.order_items?.reduce((itemSum: number, item: AnalyticsOrderItem) =>
           itemSum + (item.quantity * item.price), 0) || 0;
         return sum + orderTotal;
       }, 0) || 0;
@@ -95,7 +99,7 @@ export default function AdminAnalyticsPage() {
       // Calculate top products
       const productSales: { [key: string]: { name: string; sales: number; revenue: number } } = {};
       orders?.forEach(order => {
-        order.order_items?.forEach((item: any) => {
+        order.order_items?.forEach((item: AnalyticsOrderItem) => {
           const productId = item.products?.id;
           const productName = item.products?.name || 'Unknown Product';
           if (productId) {
@@ -116,7 +120,7 @@ export default function AdminAnalyticsPage() {
       const revenueByDay: { [key: string]: number } = {};
       orders?.forEach(order => {
         const date = format(new Date(order.created_at), 'yyyy-MM-dd');
-        const orderTotal = order.order_items?.reduce((sum: number, item: any) =>
+        const orderTotal = order.order_items?.reduce((sum: number, item: AnalyticsOrderItem) =>
           sum + (item.quantity * item.price), 0) || 0;
         revenueByDay[date] = (revenueByDay[date] || 0) + orderTotal;
       });
