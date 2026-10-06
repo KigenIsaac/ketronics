@@ -41,7 +41,7 @@ export async function POST(req: Request) {
     }
 
     return out;
-  } catch (err: any) {
-    return NextResponse.json({ error: err?.message ?? 'Unexpected error' }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : undefined ?? 'Unexpected error' }, { status: 500 });
   }
 }
