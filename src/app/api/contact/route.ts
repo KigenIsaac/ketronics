@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { consumeRateLimit, getClientIp } from "@/lib/rateLimit";
 import {
   ContactMailError,
   isMailConfigured,
@@ -36,6 +37,21 @@ export async function POST(request: NextRequest) {
         fieldErrors: parsed.error.flatten().fieldErrors,
       },
       { status: 400 },
+    );
+  }
+
+  const ip = getClientIp(request);
+  const email = parsed.data.email.toLowerCase();
+
+  const [ipAllowed, emailAllowed] = await Promise.all([
+    consumeRateLimit(`contact:ip:${ip}`, 5, 600),
+    consumeRateLimit(`contact:email:${email}`, 3, 600),
+  ]);
+
+  if (!ipAllowed || !emailAllowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429 },
     );
   }
 
