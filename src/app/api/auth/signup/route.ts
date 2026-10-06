@@ -17,7 +17,8 @@ export async function POST(req: Request) {
     });
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      console.error('Signup failed:', error);
+      return NextResponse.json({ error: 'Unable to create account with these details' }, { status: 400 });
     }
 
     const { data: { user } } = await supabase.auth.getUser();
@@ -31,6 +32,7 @@ export async function POST(req: Request) {
     const out = NextResponse.json({ user, profile }, { status: 200 });
     return out;
   } catch (err: unknown) {
-    return NextResponse.json({ error: err instanceof Error ? err.message : 'Unexpected error' }, { status: 500 });
+    console.error('Authentication endpoint failed:', err);
+    return NextResponse.json({ error: 'Authentication request failed' }, { status: 500 });
   }
 }
