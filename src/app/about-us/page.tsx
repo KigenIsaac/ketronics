@@ -15,7 +15,6 @@ import {
   TrendingUp,
   Cpu,
   Monitor,
-  Smartphone,
   Wifi
 } from "lucide-react";
 import Link from "next/link";
@@ -35,7 +34,7 @@ export default function AboutUsPage() {
           <h1 className="text-5xl font-bold">About Ketronics LTD</h1>
         </div>
         <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-          Kenya's premier technology solutions provider, delivering cutting-edge electronics,
+          Kenya&apos;s premier technology solutions provider, delivering cutting-edge electronics,
           security systems, and smart home automation to homes and businesses across East Africa.
         </p>
         <div className="flex flex-wrap justify-center gap-4">
@@ -81,7 +80,7 @@ export default function AboutUsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-lg leading-relaxed">
-              To be East Africa's most trusted technology partner, recognized for excellence in
+              To be East Africa&apos;s most trusted technology partner, recognized for excellence in
               service delivery, innovation, and customer satisfaction. We envision a connected
               Africa where technology seamlessly integrates with daily life.
             </p>
@@ -222,12 +221,12 @@ export default function AboutUsPage() {
             <h2 className="text-3xl font-bold mb-6">Our Story</h2>
             <div className="space-y-4 text-muted-foreground">
               <p>
-                Founded in 2024, Ketronics LTD began as a small electronics shop in Nairobi's
-                Westlands area. What started as a passion for technology has grown into Kenya's
+                Founded in 2024, Ketronics LTD began as a small electronics shop in Nairobi&apos;s
+                Westlands area. What started as a passion for technology has grown into Kenya&apos;s
                 most trusted technology solutions provider.
               </p>
               <p>
-                Over the years, we've expanded our services from basic electronics sales to
+                Over the years, we&apos;ve expanded our services from basic electronics sales to
                 comprehensive technology solutions, including advanced security systems, smart
                 home automation, and enterprise IT infrastructure.
               </p>
@@ -316,7 +315,7 @@ export default function AboutUsPage() {
         <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Space?</h2>
         <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
           Join thousands of satisfied customers who trust Ketronics LTD for their technology needs.
-          Let's discuss how we can help you achieve your goals.
+          Let&apos;s discuss how we can help you achieve your goals.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button size="lg" asChild>

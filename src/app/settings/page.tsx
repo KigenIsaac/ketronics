@@ -24,6 +24,12 @@ import {
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
 
+const fetchPreferences = async (userId: string) => {
+  const { data, error } = await supabase.from('profiles').select('preferences').eq('id', userId).single();
+  if (error && error.code !== 'PGRST116') throw error;
+  return data?.preferences;
+};
+
 export default function SettingsPage() {
   const { user, logout } = useUserStore();
   const { theme, setTheme } = useTheme();
@@ -36,31 +42,11 @@ export default function SettingsPage() {
   });
 
   useEffect(() => {
-    if (user) {
-      fetchPreferences();
-    }
+    if (!user) return;
+    void fetchPreferences(user.id).then((data) => { if (data) setPreferences((current) => ({ ...current, ...data })); }).catch(console.error).finally(() => setLoading(false));
   }, [user]);
 
-  const fetchPreferences = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('preferences')
-        .eq('id', user!.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error;
-
-      if (data?.preferences) {
-        setPreferences({ ...preferences, ...data.preferences });
-      }
-    } catch (error) {
-      console.error('Error fetching preferences:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  
   const updatePreference = async (key: string, value: boolean) => {
     const newPreferences = { ...preferences, [key]: value };
     setPreferences(newPreferences);

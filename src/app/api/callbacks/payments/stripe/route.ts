@@ -2,6 +2,31 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 import { verifyStripeWebhookSignature } from '@/lib/payments/stripeWebhook';
 
+type StripePaymentIntent = {
+  id: string;
+  amount?: number;
+  currency?: string;
+  last_payment_error?: {
+    message?: string;
+    code?: string;
+    type?: string;
+  } | null;
+};
+
+type StripeCheckoutSession = {
+  id: string;
+  payment_status?: string;
+  amount_total?: number | null;
+};
+
+type StripeWebhookEvent = {
+  id?: string;
+  type?: string;
+  data?: {
+    object?: StripePaymentIntent | StripeCheckoutSession;
+  };
+};
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
@@ -11,7 +36,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 400 });
     }
 
-    const event = JSON.parse(body);
+    const event = JSON.parse(body) as StripeWebhookEvent;
     const object = event.data?.object;
 
     if (!event.id || !event.type || !object) {
@@ -20,13 +45,13 @@ export async function POST(request: NextRequest) {
 
     switch (event.type) {
       case 'payment_intent.succeeded':
-        await handlePaymentIntentSucceeded(object);
+        await handlePaymentIntentSucceeded(object as StripePaymentIntent);
         break;
       case 'payment_intent.payment_failed':
-        await handlePaymentIntentFailed(object);
+        await handlePaymentIntentFailed(object as StripePaymentIntent);
         break;
       case 'checkout.session.completed':
-        await handleCheckoutCompleted(object);
+        await handleCheckoutCompleted(object as StripeCheckoutSession);
         break;
       default:
         break;
@@ -67,7 +92,7 @@ async function markOrderPaid(orderId: string) {
   if (error) throw error;
 }
 
-async function handlePaymentIntentSucceeded(intent: any) {
+async function handlePaymentIntentSucceeded(intent: StripePaymentIntent) {
   const payment = await findPayment('payment_intent_id', intent.id);
   if (!payment) throw new Error('Stripe payment intent is not linked to an existing payment');
 
@@ -75,9 +100,7 @@ async function handlePaymentIntentSucceeded(intent: any) {
     throw new Error('Stripe payment amount does not match the recorded payment');
   }
 
-  if (payment.status === 'completed' || payment.status === 'success') {
-    return;
-  }
+  if (payment.status === 'completed' || payment.status === 'success') return;
 
   const now = new Date().toISOString();
   const { error } = await getSupabaseAdmin().from('payments').update({
@@ -93,24 +116,26 @@ async function handlePaymentIntentSucceeded(intent: any) {
   if (payment.order_id) await markOrderPaid(payment.order_id);
 }
 
-async function handlePaymentIntentFailed(intent: any) {
+async function handlePaymentIntentFailed(intent: StripePaymentIntent) {
   const payment = await findPayment('payment_intent_id', intent.id);
   if (!payment) throw new Error('Stripe failed payment is not linked to an existing payment');
 
-  if (payment.status === 'completed' || payment.status === 'success') {
-    return;
-  }
+  if (payment.status === 'completed' || payment.status === 'success') return;
 
   const { error } = await getSupabaseAdmin().from('payments').update({
     status: 'failed',
-    metadata: { event_id: intent.id, provider: 'stripe', error: intent.last_payment_error ?? null },
+    metadata: {
+      event_id: intent.id,
+      provider: 'stripe',
+      error: intent.last_payment_error ?? null,
+    },
     updated_at: new Date().toISOString(),
   }).eq('id', payment.id);
 
   if (error) throw error;
 }
 
-async function handleCheckoutCompleted(session: any) {
+async function handleCheckoutCompleted(session: StripeCheckoutSession) {
   const payment = await findPayment('checkout_session_id', session.id);
   if (!payment) throw new Error('Stripe checkout session is not linked to an existing payment');
 

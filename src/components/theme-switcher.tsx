@@ -1,9 +1,27 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore, useEffect } from "react";
 import { Sun, Moon, Monitor, Palette, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+
+const subscribeMounted = () => () => {};
+const getMountedSnapshot = () => true;
+const getMountedServerSnapshot = () => false;
+
+function subscribeAccentColor(callback: () => void) {
+  window.addEventListener("storage", callback);
+  return () => window.removeEventListener("storage", callback);
+}
+
+function getAccentColorSnapshot() {
+  return localStorage.getItem("accentColor") || "#191970";
+}
+
+function getAccentColorServerSnapshot() {
+  return "#191970";
+}
 
 const colors = [
   { name: "Blue", value: "#3b82f6" },
@@ -19,17 +37,9 @@ const colors = [
 
 export function ThemeSwitcher() {
   const { theme, setTheme } = useTheme();
-  const [accentColor, setAccentColor] = useState("#191970");
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(subscribeMounted, getMountedSnapshot, getMountedServerSnapshot);
+  const accentColor = useSyncExternalStore(subscribeAccentColor, getAccentColorSnapshot, getAccentColorServerSnapshot);
   const [expanded, setExpanded] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    const savedColor = localStorage.getItem("accentColor");
-    if (savedColor) {
-      setAccentColor(savedColor);
-    }
-  }, []);
 
   useEffect(() => {
     if (mounted) {
@@ -38,8 +48,8 @@ export function ThemeSwitcher() {
   }, [accentColor, mounted]);
 
   const handleColorChange = (color: string) => {
-    setAccentColor(color);
     localStorage.setItem("accentColor", color);
+    window.dispatchEvent(new Event("storage"));
   };
 
   if (!mounted) return null;

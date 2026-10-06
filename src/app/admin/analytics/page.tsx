@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from "@/components/ui/button";
@@ -18,17 +18,20 @@ import {
   Download,
   RefreshCw
 } from 'lucide-react';
-import { format, subDays, startOfDay, endOfDay } from 'date-fns';
+import { format, subDays } from 'date-fns';
 
+interface AnalyticsOrderItem { quantity: number; price: number; products?: { id?: string; name?: string } | null }
+interface AnalyticsOrder { id: string; status: string; created_at: string; order_items?: AnalyticsOrderItem[] | null }
+interface AnalyticsUser { created_at: string }
 interface AnalyticsData {
   totalRevenue: number;
   totalOrders: number;
   totalProducts: number;
   totalUsers: number;
-  recentOrders: any[];
-  topProducts: any[];
-  revenueByDay: any[];
-  userRegistrations: any[];
+  recentOrders: AnalyticsOrder[];
+  topProducts: { name: string; sales: number; revenue: number }[];
+  revenueByDay: { date: string; revenue: number }[];
+  userRegistrations: { date: string; count: number }[];
 }
 
 export default function AdminAnalyticsPage() {
@@ -37,18 +40,14 @@ export default function AdminAnalyticsPage() {
   const [timeRange, setTimeRange] = useState('30');
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    fetchAnalytics();
-  }, [timeRange]);
-
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     setRefreshing(true);
     try {
       const days = parseInt(timeRange);
       const startDate = subDays(new Date(), days);
 
       // Fetch orders within time range
-      const { data: orders, error: ordersError } = await supabase
+      const { data: ordersRaw, error: ordersError } = await supabase
         .from('orders')
         .select(`
           *,
@@ -68,19 +67,23 @@ export default function AdminAnalyticsPage() {
       }
 
       // Fetch products
-      const { data: products, error: productsError } = await supabase
+      const { data: productsRaw, error: productsError } = await supabase
         .from('products')
         .select('*');
 
       // Fetch users
-      const { data: users, error: usersError } = await supabase
+      const { data: usersRaw, error: usersError } = await supabase
         .from('profiles')
         .select('*')
         .gte('created_at', startDate.toISOString());
 
+      const orders = (ordersRaw || []) as AnalyticsOrder[];
+      const products = productsRaw || [];
+      const users = (usersRaw || []) as AnalyticsUser[];
+
       // Calculate analytics
       const totalRevenue = orders?.reduce((sum, order) => {
-        const orderTotal = order.order_items?.reduce((itemSum: number, item: any) =>
+        const orderTotal = order.order_items?.reduce((itemSum: number, item: AnalyticsOrderItem) =>
           itemSum + (item.quantity * item.price), 0) || 0;
         return sum + orderTotal;
       }, 0) || 0;
@@ -95,7 +98,7 @@ export default function AdminAnalyticsPage() {
       // Calculate top products
       const productSales: { [key: string]: { name: string; sales: number; revenue: number } } = {};
       orders?.forEach(order => {
-        order.order_items?.forEach((item: any) => {
+        order.order_items?.forEach((item: AnalyticsOrderItem) => {
           const productId = item.products?.id;
           const productName = item.products?.name || 'Unknown Product';
           if (productId) {
@@ -116,7 +119,7 @@ export default function AdminAnalyticsPage() {
       const revenueByDay: { [key: string]: number } = {};
       orders?.forEach(order => {
         const date = format(new Date(order.created_at), 'yyyy-MM-dd');
-        const orderTotal = order.order_items?.reduce((sum: number, item: any) =>
+        const orderTotal = order.order_items?.reduce((sum: number, item: AnalyticsOrderItem) =>
           sum + (item.quantity * item.price), 0) || 0;
         revenueByDay[date] = (revenueByDay[date] || 0) + orderTotal;
       });
@@ -154,7 +157,7 @@ export default function AdminAnalyticsPage() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [timeRange]);
 
   const handleExport = () => {
     // Simple CSV export
@@ -186,6 +189,7 @@ export default function AdminAnalyticsPage() {
 
     toast.success('Analytics data exported successfully');
   };
+
 
   if (loading) {
     return (
@@ -352,7 +356,7 @@ export default function AdminAnalyticsPage() {
                           {order.status}
                         </Badge>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Ksh. {order.order_items?.reduce((sum: number, item: any) =>
+                          Ksh. {order.order_items?.reduce((sum: number, item: AnalyticsOrderItem) =>
                             sum + (item.quantity * item.price), 0).toFixed(2) || '0.00'}
                         </p>
                       </div>

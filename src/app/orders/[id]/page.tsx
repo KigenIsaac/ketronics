@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabaseServerClient';
-import { Order, OrderItem } from '@/types/product';
+import { Order } from '@/types/product';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

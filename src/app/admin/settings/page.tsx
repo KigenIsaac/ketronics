@@ -71,7 +71,7 @@ export default function AdminSettingsPage() {
     loadSettings();
   }, []);
 
-  const loadSettings = async () => {
+  async function loadSettings() {
     setLoading(true);
     try {
       // In a real app, you'd fetch settings from the database
@@ -116,7 +116,7 @@ export default function AdminSettingsPage() {
     }
   };
 
-  const handleInputChange = (field: keyof StoreSettings, value: any) => {
+  const handleInputChange = (field: keyof StoreSettings, value: StoreSettings[keyof StoreSettings]) => {
     setSettings(prev => ({ ...prev, [field]: value }));
   };
 

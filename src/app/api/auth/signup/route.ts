@@ -7,7 +7,6 @@ export async function POST(req: Request) {
     const parsed = z.object({ email: z.string().email().max(254), password: z.string().min(8).max(128), full_name: z.string().trim().min(1).max(100).optional() }).safeParse(await req.json());
     if (!parsed.success) return NextResponse.json({ error: 'Invalid signup details' }, { status: 400 });
     const { email, password, full_name } = parsed.data;
-    const response = NextResponse.json({ ok: true });
     
     const supabase = await createSupabaseServerClient()
 
@@ -31,7 +30,7 @@ export async function POST(req: Request) {
 
     const out = NextResponse.json({ user, profile }, { status: 200 });
     return out;
-  } catch (err: any) {
-    return NextResponse.json({ error: err?.message ?? 'Unexpected error' }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Unexpected error' }, { status: 500 });
   }
 }

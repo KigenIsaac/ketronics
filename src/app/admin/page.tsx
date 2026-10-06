@@ -12,10 +12,6 @@ import {
   Settings,
   Tag,
   Truck,
-  FileText,
-  Shield,
-  MessageSquare,
-  CreditCard,
   Plus
 } from 'lucide-react';
 
@@ -37,7 +33,7 @@ export default async function AdminPage() {
     .eq('id', user.id)
     .single();
 
-  if (error || !profile || !['manager', 'admin'].includes((profile as any).role)) {
+  if (error || !profile || !['manager', 'admin'].includes(profile.role)) {
     return redirect('/');
   }
 

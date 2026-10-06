@@ -3,12 +3,27 @@ import { supabase } from '@/lib/supabase';
 import { headers } from 'next/headers';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
-// Webhook signature verification utility
+type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+
+type JsonObject = { [key: string]: Json | undefined };
+
+function asObject(value: Json): JsonObject | null {
+  return typeof value === 'object' && value !== null && !Array.isArray(value) ? value : null;
+}
+
+function asString(value: Json | undefined): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
+function asNumber(value: Json | undefined): number | undefined {
+  return typeof value === 'number' ? value : undefined;
+}
+
 export function verifyWebhookSignature(
   payload: string,
   signature: string,
   secret: string,
-  algorithm: 'sha256' | 'sha1' = 'sha256'
+  algorithm: 'sha256' | 'sha1' = 'sha256',
 ): boolean {
   if (!payload || !signature || !secret) return false;
   const normalized = signature.startsWith('sha256=') ? signature.slice(7) : signature;
@@ -18,14 +33,17 @@ export function verifyWebhookSignature(
   return received.length === actual.length && timingSafeEqual(received, actual);
 }
 
-// General webhook handler for custom integrations
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
     const headersList = await headers();
     const signature = headersList.get('x-signature') || headersList.get('x-hub-signature');
     const secret = process.env.GENERAL_WEBHOOK_SECRET;
-    if (!verifyWebhookSignature(body, signature || '', secret || '')) return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 401 });
+
+    if (!verifyWebhookSignature(body, signature || '', secret || '')) {
+      return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 401 });
+    }
+
     const eventType = headersList.get('x-event-type') || headersList.get('x-github-event');
     const userAgent = headersList.get('user-agent') || '';
 
@@ -34,20 +52,17 @@ export async function POST(request: NextRequest) {
       userAgent,
       hasSignature: !!signature,
       bodyLength: body.length,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
-    // Parse JSON body
-    let payload;
+    let payload: Json;
     try {
-      payload = JSON.parse(body);
+      payload = JSON.parse(body) as Json;
     } catch {
-      // If not JSON, treat as raw text
       payload = body;
     }
 
-    // Log webhook event
-    const { data: loggedEventRaw, error: logError } = await supabase
+    const { data: loggedEvent, error: logError } = await supabase
       .from('webhook_events')
       .insert({
         event_type: eventType || 'unknown',
@@ -55,169 +70,168 @@ export async function POST(request: NextRequest) {
         signature,
         user_agent: userAgent,
         processed: false,
-        created_at: new Date().toISOString()
-      });
+        created_at: new Date().toISOString(),
+      })
+      .select('id')
+      .single();
 
     if (logError) {
       console.error('Webhook logging error:', logError);
     }
 
-    const loggedEvent = loggedEventRaw as unknown as { id: string } | null;
-
-    // Process based on event type or user agent
     if (userAgent.includes('GitHub')) {
       await handleGitHubWebhook(payload, eventType);
     } else if (eventType?.includes('order') || eventType?.includes('payment')) {
       await handleCommerceWebhook(payload, eventType);
     } else {
-      // Generic webhook processing
       await handleGenericWebhook(payload, eventType);
     }
 
-    // Mark as processed
-    if (!logError) {
+    if (!logError && loggedEvent) {
       await supabase
         .from('webhook_events')
         .update({ processed: true, processed_at: new Date().toISOString() })
-        .eq('id', loggedEvent?.id);
+        .eq('id', loggedEvent.id);
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Webhook processed successfully'
+      message: 'Webhook processed successfully',
     });
-
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('General webhook error:', err);
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
 }
 
-async function handleGitHubWebhook(payload: any, eventType: string | null) {
+async function handleGitHubWebhook(payload: Json, eventType: string | null) {
+  const object = asObject(payload);
+  if (!object) return;
+
   console.log('Processing GitHub webhook:', eventType);
 
   switch (eventType) {
-    case 'push':
-      // Handle code pushes
-      const { repository, commits } = payload;
+    case 'push': {
+      const repository = asObject(object.repository ?? null);
+      const commits = Array.isArray(object.commits) ? object.commits : [];
       console.log('GitHub push:', {
-        repo: repository?.full_name,
-        commits: commits?.length
+        repo: repository ? asString(repository.full_name) : undefined,
+        commits: commits.length,
       });
       break;
-
-    case 'pull_request':
-      // Handle PR events
-      const { action, pull_request } = payload;
-      console.log('GitHub PR:', { action, pr: pull_request?.number });
+    }
+    case 'pull_request': {
+      const pullRequest = asObject(object.pull_request ?? null);
+      console.log('GitHub PR:', {
+        action: asString(object.action),
+        pr: pullRequest ? asNumber(pullRequest.number) : undefined,
+      });
       break;
-
-    case 'release':
-      // Handle releases
-      const { release } = payload;
-      console.log('GitHub release:', release?.tag_name);
+    }
+    case 'release': {
+      const release = asObject(object.release ?? null);
+      console.log('GitHub release:', release ? asString(release.tag_name) : undefined);
       break;
-
+    }
     default:
       console.log('Unhandled GitHub event:', eventType);
   }
 }
 
-async function handleCommerceWebhook(payload: any, eventType: string | null) {
+async function handleCommerceWebhook(payload: Json, eventType: string | null) {
   console.log('Processing commerce webhook:', eventType);
 
-  // Handle various e-commerce related webhooks
   if (eventType?.includes('inventory')) {
-    // Inventory updates
     await handleInventoryUpdate(payload);
   } else if (eventType?.includes('customer')) {
-    // Customer data updates
     await handleCustomerUpdate(payload);
   } else if (eventType?.includes('subscription')) {
-    // Subscription events
     await handleSubscriptionEvent(payload);
   }
 }
 
-async function handleGenericWebhook(payload: any, eventType: string | null) {
+async function handleGenericWebhook(payload: Json, eventType: string | null) {
   console.log('Processing generic webhook:', eventType);
 
-  // Store the webhook data for manual processing
   const { error } = await supabase
     .from('generic_webhooks')
     .insert({
       event_type: eventType,
       payload,
       processed: false,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     });
 
-  if (error) {
-    console.error('Generic webhook storage error:', error);
-  }
+  if (error) console.error('Generic webhook storage error:', error);
 }
 
-async function handleInventoryUpdate(payload: any) {
-  const { product_id, quantity, location } = payload;
+async function handleInventoryUpdate(payload: Json) {
+  const object = asObject(payload);
+  if (!object) return;
+
+  const productId = asString(object.product_id);
+  const quantity = asNumber(object.quantity);
+  const location = asString(object.location);
 
   const { error } = await supabase
     .from('inventory_updates')
     .insert({
-      product_id,
+      product_id: productId,
       quantity_change: quantity,
       location,
       source: 'webhook',
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     });
 
-  if (error) {
-    console.error('Inventory update error:', error);
-  }
+  if (error) console.error('Inventory update error:', error);
 }
 
-async function handleCustomerUpdate(payload: any) {
-  const { customer_id, updates } = payload;
+async function handleCustomerUpdate(payload: Json) {
+  const object = asObject(payload);
+  if (!object) return;
+
+  const customerId = asString(object.customer_id);
+  const updates = object.updates ?? null;
 
   const { error } = await supabase
     .from('customer_updates')
     .insert({
-      customer_id,
+      customer_id: customerId,
       updates,
       source: 'webhook',
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     });
 
-  if (error) {
-    console.error('Customer update error:', error);
-  }
+  if (error) console.error('Customer update error:', error);
 }
 
-async function handleSubscriptionEvent(payload: any) {
-  const { subscription_id, event, customer_id } = payload;
+async function handleSubscriptionEvent(payload: Json) {
+  const object = asObject(payload);
+  if (!object) return;
+
+  const subscriptionId = asString(object.subscription_id);
+  const event = asString(object.event);
+  const customerId = asString(object.customer_id);
 
   const { error } = await supabase
     .from('subscription_events')
     .insert({
-      subscription_id,
+      subscription_id: subscriptionId,
       event_type: event,
-      customer_id,
+      customer_id: customerId,
       payload,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     });
 
-  if (error) {
-    console.error('Subscription event error:', error);
-  }
+  if (error) console.error('Subscription event error:', error);
 }
 
-// GET method for webhook status checks
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const eventId = searchParams.get('event_id');
 
     if (eventId) {
-      // Get specific webhook event
       const { data: event, error } = await supabase
         .from('webhook_events')
         .select('*')
@@ -231,7 +245,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ event });
     }
 
-    // Get recent webhook events
     const { data: events, error } = await supabase
       .from('webhook_events')
       .select('*')
@@ -243,8 +256,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ events });
-
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Webhook status GET error:', err);
     return NextResponse.json({ error: 'Status check failed' }, { status: 500 });
   }

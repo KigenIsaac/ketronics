@@ -40,7 +40,7 @@ export default function CategoriesPage() {
     fetchData();
   }, []);
 
-  const fetchData = async () => {
+  async function fetchData() {
     const [catRes, subRes, attrRes] = await Promise.all([
       supabase.from('categories').select('*').order('name'),
       supabase.from('subcategories').select('*, category:categories(*)').order('name'),

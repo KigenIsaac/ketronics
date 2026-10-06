@@ -24,34 +24,17 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    if (user) {
-      fetchProfile();
-    }
+    if (!user) return;
+    void (async () => {
+      try {
+        const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+        if (error && error.code !== 'PGRST116') throw error;
+        if (data) setFormData({ full_name: data.full_name || '', phone: data.phone || '', email: data.email || user.email || '' });
+      } catch (error) { console.error('Error fetching profile:', error); }
+      finally { setLoading(false); }
+    })();
   }, [user]);
 
-  const fetchProfile = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user!.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error;
-
-      if (data) {
-        setFormData({
-          full_name: data.full_name || '',
-          phone: data.phone || '',
-          email: data.email || user!.email || '',
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,7 +80,7 @@ export default function ProfilePage() {
     );
   }
 
-  if (loading) {
+  if (user && loading) {
     return <LoadingPage message="Loading profile..." />;
   }
 

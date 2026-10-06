@@ -148,7 +148,7 @@ export default function SupportPage() {
             <CardHeader>
               <CardTitle>Send us a message</CardTitle>
               <CardDescription>
-                Can't find what you're looking for? Send us a detailed message and we'll get back to you.
+                Can&apos;t find what you&apos;re looking for? Send us a detailed message and we&apos;ll get back to you.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -209,14 +209,14 @@ export default function SupportPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Once your order ships, you'll receive a tracking number via email and SMS. You can also check your order status in your account dashboard.
+                Once your order ships, you&apos;ll receive a tracking number via email and SMS. You can also check your order status in your account dashboard.
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">What's your return policy?</CardTitle>
+              <CardTitle className="text-base">What&apos;s your return policy?</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
@@ -266,7 +266,7 @@ export default function SupportPage() {
           <Badge variant="outline">Westlands</Badge>
         </div>
         <p className="text-sm text-muted-foreground mt-4">
-          Don't see your area? Contact us - we may still be able to help!
+          Don&apos;t see your area? Contact us - we may still be able to help!
         </p>
       </div>
     </div>

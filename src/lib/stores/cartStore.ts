@@ -8,7 +8,7 @@ export interface CartItem {
   price: number;
   image: string;
   quantity: number;
-  attributes?: Record<string, any>;
+  attributes?: Record<string, unknown>;
 }
 
 interface CartStore {

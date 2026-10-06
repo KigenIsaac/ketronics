@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Product } from '@/types/product';
 import { ProductForm } from '@/components/products/ProductForm';
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,6 @@ import Link from 'next/link';
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -32,11 +31,9 @@ export default function AdminProductsPage() {
     fetchProducts();
   }, []);
 
-  useEffect(() => {
-    filterAndSortProducts();
-  }, [products, searchTerm, statusFilter, sortBy, sortOrder]);
 
-  const fetchProducts = async () => {
+
+  async function fetchProducts() {
     const { data, error } = await supabase
       .from('products')
       .select('*')
@@ -51,8 +48,8 @@ export default function AdminProductsPage() {
     setLoading(false);
   };
 
-  const filterAndSortProducts = () => {
-    let filtered = products.filter(product => {
+  const filteredProducts = useMemo(() => {
+    const filtered = products.filter(product => {
       const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           product.description?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = statusFilter === 'all' || product.status === statusFilter;
@@ -60,21 +57,26 @@ export default function AdminProductsPage() {
     });
 
     filtered.sort((a, b) => {
-      let aValue: any = a[sortBy as keyof Product];
-      let bValue: any = b[sortBy as keyof Product];
+      const aRaw = a[sortBy as keyof Product];
+      const bRaw = b[sortBy as keyof Product];
 
       if (sortBy === 'price') {
-        aValue = parseFloat(aValue);
-        bValue = parseFloat(bValue);
+        const aValue = Number(aRaw ?? 0);
+        const bValue = Number(bRaw ?? 0);
+        if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+        return 0;
       }
 
+      const aValue = String(aRaw ?? '');
+      const bValue = String(bRaw ?? '');
       if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
       if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
       return 0;
     });
 
-    setFilteredProducts(filtered);
-  };
+    return filtered;
+  }, [products, searchTerm, statusFilter, sortBy, sortOrder]);
 
   const handleCreate = () => {
     setEditingProduct(undefined);
@@ -364,7 +366,7 @@ export default function AdminProductsPage() {
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>Delete Product</AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Are you sure you want to delete "{product.name}"? This action cannot be undone.
+                                    Are you sure you want to delete &quot;{product.name}&quot;? This action cannot be undone.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>

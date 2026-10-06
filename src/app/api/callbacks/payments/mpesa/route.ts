@@ -1,20 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 
-function extractCallback(body: any) {
-  return body?.Body?.stkCallback ?? null;
+type MpesaMetadataItem = {
+  Name?: string;
+  Value?: string | number | null;
+};
+
+type MpesaCallback = {
+  MerchantRequestID?: string;
+  CheckoutRequestID?: string;
+  ResultCode?: number;
+  ResultDesc?: string;
+  CallbackMetadata?: {
+    Item?: MpesaMetadataItem[];
+  };
+};
+
+function extractCallback(body: unknown): MpesaCallback | null {
+  if (typeof body !== 'object' || body === null) return null;
+  const root = body as { Body?: unknown };
+  if (typeof root.Body !== 'object' || root.Body === null) return null;
+  const callback = (root.Body as { stkCallback?: unknown }).stkCallback;
+  return typeof callback === 'object' && callback !== null ? callback as MpesaCallback : null;
 }
 
-function getMetadataValue(items: any[], name: string) {
-  return items.find((item) => item?.Name === name)?.Value ?? null;
+function getMetadataValue(items: MpesaMetadataItem[], name: string): string | number | null {
+  return items.find((item) => item.Name === name)?.Value ?? null;
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body: unknown = await request.json();
     const callback = extractCallback(body);
 
-    if (!callback?.MerchantRequestID || !callback?.CheckoutRequestID || !Number.isInteger(callback.ResultCode)) {
+    if (
+      !callback?.MerchantRequestID ||
+      !callback.CheckoutRequestID ||
+      !Number.isInteger(callback.ResultCode)
+    ) {
       return NextResponse.json({ error: 'Invalid M-Pesa callback' }, { status: 400 });
     }
 
@@ -54,9 +77,14 @@ export async function POST(request: NextRequest) {
 
     const { error: updateError } = await getSupabaseAdmin().from('payments').update({
       status,
-      transaction_id: transactionId,
-      phone_number: phoneNumber,
-      metadata: { merchant_request_id: callback.MerchantRequestID, checkout_request_id: callback.CheckoutRequestID, result_code: callback.ResultCode, result_desc: callback.ResultDesc ?? null },
+      transaction_id: transactionId == null ? null : String(transactionId),
+      phone_number: phoneNumber == null ? null : String(phoneNumber),
+      metadata: {
+        merchant_request_id: callback.MerchantRequestID,
+        checkout_request_id: callback.CheckoutRequestID,
+        result_code: callback.ResultCode,
+        result_desc: callback.ResultDesc ?? null,
+      },
       updated_at: now,
     }).eq('id', payment.id);
 
@@ -68,6 +96,7 @@ export async function POST(request: NextRequest) {
         .update({ status: 'paid', payment_date: now, updated_at: now })
         .eq('id', payment.order_id)
         .neq('status', 'paid');
+
       if (orderError) throw orderError;
     }
 
@@ -80,6 +109,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   const transactionId = new URL(request.url).searchParams.get('transaction_id');
+
   if (!transactionId) {
     return NextResponse.json({ error: 'transaction_id is required' }, { status: 400 });
   }
@@ -95,5 +125,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Status lookup failed' }, { status: 500 });
   }
 
-  return NextResponse.json({ status: data?.status ?? 'unknown', transaction_id: data?.transaction_id ?? transactionId });
+  return NextResponse.json({
+    status: data?.status ?? 'unknown',
+    transaction_id: data?.transaction_id ?? transactionId,
+  });
 }

@@ -20,6 +20,32 @@ interface ProductFormProps {
   onCancel: () => void;
 }
 
+async function loadCategories() {
+  const { data, error } = await supabase.from('categories').select('*').order('name');
+  if (error) throw error;
+  return data || [];
+}
+
+async function loadSubcategories(categoryId: string) {
+  const { data, error } = await supabase
+    .from('subcategories')
+    .select('*')
+    .eq('category_id', categoryId)
+    .order('name');
+  if (error) throw error;
+  return data || [];
+}
+
+async function loadSubcategoryAttributes(subcategoryId: string) {
+  const { data, error } = await supabase
+    .from('subcategory_attributes')
+    .select('*')
+    .eq('subcategory_id', subcategoryId)
+    .order('name');
+  if (error) throw error;
+  return data || [];
+}
+
 export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) {
   const [name, setName] = useState(product?.name || '');
   const [description, setDescription] = useState(product?.description || '');
@@ -32,7 +58,9 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
   const [lowStockThreshold, setLowStockThreshold] = useState(product?.low_stock_threshold?.toString() || '5');
   const [categoryId, setCategoryId] = useState(product?.category_id || '');
   const [subcategoryId, setSubcategoryId] = useState(product?.subcategory_id || '');
-  const [attributes, setAttributes] = useState<Record<string, any>>(product?.attributes || {});
+  const [attributes, setAttributes] = useState<Record<string, string>>(
+    Object.fromEntries(Object.entries(product?.attributes || {}).map(([key, value]) => [key, String(value ?? '')])),
+  );
   const [images, setImages] = useState<string[]>(product?.images || []);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -43,65 +71,32 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
 
   // Fetch categories on mount
   useEffect(() => {
-    const fetchCategories = async () => {
-      const { data, error } = await supabase.from('categories').select('*').order('name');
-      if (error) {
-        toast.error('Failed to load categories');
-      } else {
-        setCategories(data || []);
-      }
-    };
-    fetchCategories();
+    void loadCategories()
+      .then(setCategories)
+      .catch(() => toast.error('Failed to load categories'));
   }, []);
 
   // Fetch subcategories when category changes
   useEffect(() => {
-    if (!categoryId) {
-      setSubcategories([]);
-      setSubcategoryId('');
-      return;
-    }
-    const fetchSubcategories = async () => {
-      const { data, error } = await supabase
-        .from('subcategories')
-        .select('*')
-        .eq('category_id', categoryId)
-        .order('name');
-      if (error) {
-        toast.error('Failed to load subcategories');
-      } else {
-        setSubcategories(data || []);
-      }
-    };
-    fetchSubcategories();
+    if (!categoryId) return;
+    void loadSubcategories(categoryId)
+      .then(setSubcategories)
+      .catch(() => toast.error('Failed to load subcategories'));
   }, [categoryId]);
 
   // Fetch attributes when subcategory changes
   useEffect(() => {
-    if (!subcategoryId) {
-      setSubcategoryAttributes([]);
-      setAttributes({});
-      return;
-    }
-    const fetchAttributes = async () => {
-      const { data, error } = await supabase
-        .from('subcategory_attributes')
-        .select('*')
-        .eq('subcategory_id', subcategoryId)
-        .order('name');
-      if (error) {
-        toast.error('Failed to load attributes');
-      } else {
-        setSubcategoryAttributes(data || []);
-        // Initialize attributes with empty values
-        const initialAttrs: Record<string, any> = {};
-        data?.forEach(attr => {
-          initialAttrs[attr.name] = product?.attributes?.[attr.name] || '';
+    if (!subcategoryId) return;
+    void loadSubcategoryAttributes(subcategoryId)
+      .then((data) => {
+        setSubcategoryAttributes(data);
+        const initialAttrs: Record<string, string> = {};
+        data.forEach((attr) => {
+          initialAttrs[attr.name] = String(product?.attributes?.[attr.name] ?? '');
         });
         setAttributes(initialAttrs);
-      }
-    };
-    fetchAttributes();
+      })
+      .catch(() => toast.error('Failed to load attributes'));
   }, [subcategoryId, product?.attributes]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -117,7 +112,7 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
       }
       setImages([...images, ...newImages]);
       toast.success('Images uploaded successfully');
-    } catch (error) {
+    } catch {
       toast.error('Failed to upload images');
     } finally {
       setUploading(false);
@@ -130,12 +125,12 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
       await deleteImage(imageToRemove);
       setImages(images.filter((_, i) => i !== index));
       toast.success('Image removed');
-    } catch (error) {
+    } catch {
       toast.error('Failed to remove image');
     }
   };
 
-  const handleAttributeChange = (name: string, value: any) => {
+  const handleAttributeChange = (name: string, value: string) => {
     setAttributes(prev => ({ ...prev, [name]: value }));
   };
 
@@ -179,7 +174,7 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
         toast.success('Product created successfully');
       }
       onSuccess();
-    } catch (error) {
+    } catch {
       toast.error('Failed to save product');
     } finally {
       setSaving(false);
@@ -289,7 +284,7 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="category">Category</Label>
-              <Select value={categoryId} onValueChange={setCategoryId}>
+              <Select value={categoryId} onValueChange={(value) => { setCategoryId(value); setSubcategoryId(''); setSubcategories([]); setSubcategoryAttributes([]); setAttributes({}); }}>
                 <SelectTrigger className="mt-1">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
@@ -302,7 +297,7 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
             </div>
             <div>
               <Label htmlFor="subcategory">Subcategory</Label>
-              <Select value={subcategoryId} onValueChange={setSubcategoryId} disabled={!categoryId}>
+              <Select value={subcategoryId} onValueChange={(value) => { setSubcategoryId(value); setSubcategoryAttributes([]); setAttributes({}); }} disabled={!categoryId}>
                 <SelectTrigger className="mt-1">
                   <SelectValue placeholder="Select subcategory" />
                 </SelectTrigger>

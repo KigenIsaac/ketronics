@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
       new URL('/auth/login?message=Verification completed.', request.url)
     );
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Email verification callback error:', err);
     return NextResponse.redirect(
       new URL('/auth/login?error=An unexpected error occurred. Please try again.', request.url)
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { token, type, email } = body;
+    const { token, type} = body;
 
     const supabaseClient = await createSupabaseServerClient();
 
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ error: 'Invalid verification type' }, { status: 400 });
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Email verification POST error:', err);
     return NextResponse.json({ error: 'Verification failed' }, { status: 500 });
   }

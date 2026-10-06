@@ -6,7 +6,8 @@ import { supabase } from "@/lib/supabase";
 import { LoadingPage } from "@/components/loading";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
 
 interface PageContentProps {
   slug: string;
@@ -18,40 +19,19 @@ export function PageContent({ slug }: PageContentProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchPageContent();
+    void (async () => {
+      try {
+        const { data: pageData, error: pageError } = await supabase.from('pages').select('*').eq('slug', slug).eq('is_published', true).single();
+        if (pageError) throw pageError;
+        const { data: sectionsData, error: sectionsError } = await supabase.from('page_sections').select('*').eq('page_id', pageData.id).eq('is_active', true).order('sort_order');
+        if (sectionsError) throw sectionsError;
+        setPage(pageData);
+        setSections(sectionsData || []);
+      } catch (error) { console.error('Error fetching page content:', error); }
+      finally { setLoading(false); }
+    })();
   }, [slug]);
 
-  const fetchPageContent = async () => {
-    try {
-      // Fetch page
-      const { data: pageData, error: pageError } = await supabase
-        .from('pages')
-        .select('*')
-        .eq('slug', slug)
-        .eq('is_published', true)
-        .single();
-
-      if (pageError) throw pageError;
-
-      setPage(pageData);
-
-      // Fetch page sections
-      const { data: sectionsData, error: sectionsError } = await supabase
-        .from('page_sections')
-        .select('*')
-        .eq('page_id', pageData.id)
-        .eq('is_active', true)
-        .order('sort_order');
-
-      if (sectionsError) throw sectionsError;
-
-      setSections(sectionsData || []);
-    } catch (error) {
-      console.error('Error fetching page content:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return <LoadingPage message="Loading page content..." />;
@@ -61,9 +41,9 @@ export function PageContent({ slug }: PageContentProps) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
         <h1 className="text-2xl font-bold mb-4">Page Not Found</h1>
-        <p className="text-muted-foreground mb-6">The page you're looking for doesn't exist or is not published.</p>
+        <p className="text-muted-foreground mb-6">The page you&apos;re looking for doesn&apos;t exist or is not published.</p>
         <Button asChild>
-          <a href="/">Go Home</a>
+          <Link href="/">Go Home</Link>
         </Button>
       </div>
     );

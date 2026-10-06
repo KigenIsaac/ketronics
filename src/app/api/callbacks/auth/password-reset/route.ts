@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       new URL('/auth/login?error=Invalid reset link', request.url)
     );
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Password reset callback error:', err);
     return NextResponse.redirect(
       new URL('/auth/login?error=An unexpected error occurred', request.url)
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       message: 'Password updated successfully'
     });
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Password reset POST error:', err);
     return NextResponse.json({ error: 'Password reset failed' }, { status: 500 });
   }

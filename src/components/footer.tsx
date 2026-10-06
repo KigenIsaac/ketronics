@@ -33,49 +33,28 @@ const iconMap = {
   Clock,
 };
 
+const fetchFooterData = async () => {
+  if (!isSupabaseConfigured()) return null;
+  const [contactRes, settingsRes] = await Promise.all([
+    supabase.from('contact_info').select('*').eq('is_active', true).order('sort_order'),
+    supabase.from('site_settings').select('key, value').in('key', ['site_name', 'contact_email', 'contact_phone', 'business_hours']),
+  ]);
+  if (contactRes.error) throw contactRes.error;
+  if (settingsRes.error) throw settingsRes.error;
+  const settingsMap = (settingsRes.data || []).reduce((acc, setting) => { acc[setting.key] = setting.value; return acc; }, {} as Record<string, string>);
+  return { contactInfo: contactRes.data || [], siteSettings: settingsMap };
+};
+
 export function Footer() {
   const [contactInfo, setContactInfo] = useState<ContactInfo[]>([]);
   const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchFooterData();
+    void fetchFooterData().then((result) => { if (result) { setContactInfo(result.contactInfo); setSiteSettings(result.siteSettings); } }).catch(console.error).finally(() => setLoading(false));
   }, []);
 
-  const fetchFooterData = async () => {
-    if (!isSupabaseConfigured()) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const [contactRes, settingsRes] = await Promise.all([
-        supabase
-          .from('contact_info')
-          .select('*')
-          .eq('is_active', true)
-          .order('sort_order'),
-        supabase
-          .from('site_settings')
-          .select('key, value')
-          .in('key', ['site_name', 'contact_email', 'contact_phone', 'business_hours'])
-      ]);
-
-      if (contactRes.data) setContactInfo(contactRes.data);
-      if (settingsRes.data) {
-        const settingsMap = settingsRes.data.reduce((acc, setting) => {
-          acc[setting.key] = setting.value;
-          return acc;
-        }, {} as Record<string, string>);
-        setSiteSettings(settingsMap);
-      }
-    } catch (error) {
-      console.error('Error fetching footer data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  
   const getIcon = (iconName?: string) => {
     if (!iconName) return null;
     return iconMap[iconName as keyof typeof iconMap] || null;

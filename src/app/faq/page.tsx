@@ -9,6 +9,12 @@ import { Input } from "@/components/ui/input";
 import { LoadingPage } from "@/components/loading";
 import { Search, HelpCircle } from "lucide-react";
 
+const fetchFAQs = async () => {
+  const { data, error } = await supabase.from('faqs').select('*').eq('is_published', true).order('sort_order');
+  if (error) throw error;
+  return data || [];
+};
+
 export default function FAQPage() {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [filteredFaqs, setFilteredFaqs] = useState<FAQ[]>([]);
@@ -16,40 +22,10 @@ export default function FAQPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    fetchFAQs();
+    void fetchFAQs().then(setFaqs).catch(console.error).finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => {
-    if (searchTerm.trim() === "") {
-      setFilteredFaqs(faqs);
-    } else {
-      const filtered = faqs.filter(
-        (faq) =>
-          faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          faq.answer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (faq.category && faq.category.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-      setFilteredFaqs(filtered);
-    }
-  }, [faqs, searchTerm]);
-
-  const fetchFAQs = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('faqs')
-        .select('*')
-        .eq('is_published', true)
-        .order('sort_order');
-
-      if (error) throw error;
-      setFaqs(data || []);
-    } catch (error) {
-      console.error('Error fetching FAQs:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  
   const groupFAQsByCategory = (faqs: FAQ[]) => {
     const grouped: Record<string, FAQ[]> = {};
     faqs.forEach((faq) => {
@@ -155,7 +131,7 @@ export default function FAQPage() {
           <HelpCircle className="h-12 w-12 text-primary mx-auto mb-4" />
           <h3 className="text-xl font-semibold mb-2">Still need help?</h3>
           <p className="text-muted-foreground mb-4">
-            Can't find the answer you're looking for? Our support team is here to help.
+            Can&apos;t find the answer you&apos;re looking for? Our support team is here to help.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a

@@ -2,10 +2,11 @@
 
 import dynamic from "next/dynamic";
 
-export function ClientThemeSwitcher() {
-  const ThemeSwitcher = dynamic(() => import("@/components/theme-switcher").then(mod => mod.ThemeSwitcher), {
-    ssr: false,
-  });
+const ThemeSwitcher = dynamic(
+  () => import("@/components/theme-switcher").then((mod) => mod.ThemeSwitcher),
+  { ssr: false },
+);
 
+export function ClientThemeSwitcher() {
   return <ThemeSwitcher />;
 }
