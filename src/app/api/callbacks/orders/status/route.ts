@@ -1,204 +1,101 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { sendOrderNotification } from "@/lib/mail";
 
-// Order status update callback (from shipping providers, etc.)
+const schema = z.object({
+  orderId: z.string().uuid(),
+  status: z.enum([
+    "pending",
+    "confirmed",
+    "processing",
+    "shipped",
+    "delivered",
+    "cancelled",
+    "refunded",
+    "returned",
+  ]),
+  trackingNumber: z.string().trim().max(100).optional(),
+  carrier: z.string().trim().max(100).optional(),
+  estimatedDelivery: z.string().trim().max(100).optional(),
+  notes: z.string().trim().max(1000).optional(),
+});
+
 export async function POST(request: NextRequest) {
   const secret = process.env.ORDER_STATUS_CALLBACK_SECRET;
-  if (!secret || request.headers.get('x-callback-secret') !== secret) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!secret || request.headers.get("x-callback-secret") !== secret) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
-    const body = await request.json();
-    const { orderId, status, trackingNumber, carrier, estimatedDelivery, notes } = body;
-
-    console.log('Order status callback received:', {
-      orderId,
-      status,
-      trackingNumber,
-      carrier,
-      timestamp: new Date().toISOString()
-    });
-
-    if (!orderId || !status) {
+    const parsed = schema.safeParse(await request.json());
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Order ID and status are required' },
-        { status: 400 }
+        { error: "Invalid order status callback" },
+        { status: 400 },
       );
     }
 
-    // Validate status
-    const validStatuses = [
-      'pending', 'confirmed', 'processing', 'shipped',
-      'delivered', 'cancelled', 'refunded', 'returned'
-    ];
+    const { data: order, error: orderError } = await getSupabaseAdmin()
+      .from("orders")
+      .select("id, total, customer_email, shipping_address, status, order_items(product_name, quantity, price)")
+      .eq("id", parsed.data.orderId)
+      .single();
 
-    if (!validStatuses.includes(status)) {
-      return NextResponse.json(
-        { error: 'Invalid order status' },
-        { status: 400 }
-      );
+    if (orderError || !order) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    // Update order status
-    const updateData: Record<string, string> = {
-      status,
-      updated_at: new Date().toISOString()
-    };
+    const { error: transitionError } = await getSupabaseAdmin().rpc(
+      "transition_order_status",
+      {
+        p_order_id: parsed.data.orderId,
+        p_next_status: parsed.data.status,
+        p_tracking_number: parsed.data.trackingNumber || null,
+        p_carrier: parsed.data.carrier || null,
+        p_estimated_delivery: parsed.data.estimatedDelivery || null,
+        p_notes: parsed.data.notes || null,
+      },
+    );
 
-    // Add shipping information if provided
-    if (trackingNumber) updateData.tracking_number = trackingNumber;
-    if (carrier) updateData.shipping_carrier = carrier;
-    if (estimatedDelivery) updateData.estimated_delivery = estimatedDelivery;
-    if (notes) updateData.notes = notes;
-
-    // Set shipped date when status changes to shipped
-    if (status === 'shipped') {
-      updateData.shipped_date = new Date().toISOString();
+    if (transitionError) {
+      if (
+        transitionError.message.includes("Invalid order transition") ||
+        transitionError.message.includes("Order not found")
+      ) {
+        return NextResponse.json({ error: transitionError.message }, { status: 409 });
+      }
+      throw transitionError;
     }
 
-    // Set delivered date when status changes to delivered
-    if (status === 'delivered') {
-      updateData.delivered_date = new Date().toISOString();
-    }
-
-    const { error } = await supabase
-      .from('orders')
-      .update(updateData)
-      .eq('id', orderId);
-
-    if (error) {
-      console.error('Order status update error:', error);
-      return NextResponse.json({ error: 'Failed to update order status' }, { status: 500 });
-    }
-
-    // Create order status history record
-    const { error: historyError } = await supabase
-      .from('order_status_history')
-      .insert({
-        order_id: orderId,
-        status,
-        tracking_number: trackingNumber,
-        carrier,
-        notes,
-        created_at: new Date().toISOString()
+    try {
+      await sendOrderNotification({
+        orderId: order.id,
+        total: Number(order.total),
+        status: parsed.data.status,
+        customerName: order.shipping_address?.name,
+        customerEmail: order.customer_email,
+        customerPhone: order.shipping_address?.phone,
+        items: (order.order_items || []).map((item: { product_name: string; quantity: number; price: number }) => ({
+          name: item.product_name,
+          quantity: item.quantity,
+          price: Number(item.price),
+        })),
+        trackingNumber: parsed.data.trackingNumber,
+        carrier: parsed.data.carrier,
+        estimatedDelivery: parsed.data.estimatedDelivery,
       });
-
-    if (historyError) {
-      console.error('Order history creation error:', historyError);
-      // Don't fail the request if history creation fails
+    } catch (notificationError) {
+      console.error("Order status notification failed:", notificationError);
     }
-
-    // Send notifications based on status change
-    await sendOrderStatusNotification(orderId, status, {
-      trackingNumber,
-      carrier,
-      estimatedDelivery
-    });
 
     return NextResponse.json({
       success: true,
-      message: 'Order status updated successfully'
+      message: "Order status updated successfully",
+      order: { id: parsed.data.orderId, status: parsed.data.status },
     });
-
-  } catch (err: unknown) {
-    console.error('Order status callback error:', err);
-    return NextResponse.json({ error: 'Callback processing failed' }, { status: 500 });
-  }
-}
-
-// GET method for status checks
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const orderId = searchParams.get('order_id');
-
-    if (!orderId) {
-      return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
-    }
-
-    // Get current order status
-    const { data: order, error } = await supabase
-      .from('orders')
-      .select('id, status, tracking_number, shipping_carrier, estimated_delivery, updated_at')
-      .eq('id', orderId)
-      .single();
-
-    if (error) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
-    }
-
-    return NextResponse.json({ order });
-
-  } catch (err: unknown) {
-    console.error('Order status GET error:', err);
-    return NextResponse.json({ error: 'Status check failed' }, { status: 500 });
-  }
-}
-
-async function sendOrderStatusNotification(
-  orderId: string,
-  status: string,
-  details: {
-    trackingNumber?: string;
-    carrier?: string;
-    estimatedDelivery?: string;
-  }
-) {
-  try {
-    // Get order details with customer information
-    const { data: order } = await supabase
-      .from('orders')
-      .select(`
-        *,
-        profiles:user_id (
-          email,
-          full_name,
-          phone
-        )
-      `)
-      .eq('id', orderId)
-      .single();
-
-    if (!order) return;
-
-    const customer = order.profiles;
-    const statusMessages = {
-      confirmed: 'Your order has been confirmed and is being processed.',
-      processing: 'Your order is now being prepared for shipment.',
-      shipped: `Your order has been shipped! Tracking: ${details.trackingNumber || 'N/A'}`,
-      delivered: 'Your order has been delivered successfully.',
-      cancelled: 'Your order has been cancelled.',
-      refunded: 'Your refund has been processed.'
-    };
-
-    const message = statusMessages[status as keyof typeof statusMessages] || `Order status updated to: ${status}`;
-
-    // Here you would integrate with your notification service
-    // For example: SendGrid for email, Twilio for SMS, etc.
-
-    console.log('Order status notification:', {
-      orderId,
-      customer: customer.email,
-      status,
-      message
-    });
-
-    // Example email notification (integrate with your email service)
-    /*
-    await sendEmail({
-      to: customer.email,
-      subject: `Order ${orderId} - Status Update`,
-      template: 'order-status-update',
-      data: {
-        orderId,
-        status,
-        message,
-        trackingNumber: details.trackingNumber,
-        carrier: details.carrier,
-        estimatedDelivery: details.estimatedDelivery
-      }
-    });
-    */
-
-  } catch (err: unknown) {
-    console.error('Notification sending error:', err);
+  } catch (error) {
+    console.error("Order status callback failed:", error);
+    return NextResponse.json({ error: "Callback processing failed" }, { status: 500 });
   }
 }
