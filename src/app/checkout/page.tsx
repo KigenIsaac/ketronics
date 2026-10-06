@@ -1,24 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/lib/stores/cartStore';
-import { useUserStore } from '@/lib/stores/userStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { ArrowLeft, CreditCard, Truck } from 'lucide-react';
+import { ArrowLeft, Smartphone, Truck, MessageCircle, Phone } from 'lucide-react';
 import Link from 'next/link';
 
 export default function CheckoutPage() {
   const { items, getTotal, clearCart } = useCartStore();
-  const { user } = useUserStore();
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const [shippingInfo, setShippingInfo] = useState({
@@ -28,8 +22,6 @@ export default function CheckoutPage() {
     city: '',
     country: 'Kenya',
   });
-
-  const [paymentMethod, setPaymentMethod] = useState('cash_on_delivery');
 
   const total = getTotal();
 
@@ -44,58 +36,31 @@ export default function CheckoutPage() {
     );
   }
 
-  if (!user) {
-    router.push('/auth/login');
-    return null;
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleWhatsAppOrder = () => {
     setLoading(true);
-
-    try {
-      // Create order
-      const { data: orderData, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          user_id: user.id,
-          total,
-          shipping_address: shippingInfo,
-          payment_method: paymentMethod,
-        })
-        .select()
-        .single();
-
-      if (orderError) throw orderError;
-
-      // Create order items
-      const orderItems = items.map(item => ({
-        order_id: orderData.id,
-        product_id: item.productId,
-        product_name: item.name,
-        product_image: item.image,
-        quantity: item.quantity,
-        price: item.price,
-        attributes: item.attributes,
-      }));
-
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
-
-      if (itemsError) throw itemsError;
-
-      // Clear cart
-      clearCart();
-
-      toast.success('Order placed successfully!');
-      router.push(`/orders/${orderData.id}`);
-    } catch (error) {
-      console.error('Error placing order:', error);
-      toast.error('Failed to place order. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    const lines = [
+      'Hello Ketronics LTD, I would like to place an order.', '', 'ORDER DETAILS',
+      ...items.flatMap((item, index) => {
+        const attributes = item.attributes && Object.keys(item.attributes).length > 0
+          ? '\n   Options: ' + Object.entries(item.attributes).map(([key, value]) => key + ': ' + value).join(', ')
+          : '';
+        return [
+          (index + 1) + '. ' + item.name,
+          '   Quantity: ' + item.quantity,
+          '   Unit price: Ksh. ' + item.price.toFixed(2),
+          '   Subtotal: Ksh. ' + (item.price * item.quantity).toFixed(2) + attributes,
+        ];
+      }),
+      '', 'TOTAL: Ksh. ' + total.toFixed(2), '', 'CUSTOMER / DELIVERY DETAILS',
+      'Name: ' + shippingInfo.name, 'Phone: ' + shippingInfo.phone,
+      'Address: ' + shippingInfo.address, 'City: ' + shippingInfo.city, 'Country: ' + shippingInfo.country,
+      '', 'PAYMENT: M-Pesa', 'Please confirm the order and payment instructions on WhatsApp.',
+    ];
+    const message = encodeURIComponent(lines.join('\n'));
+    window.open('https://wa.me/254721142723?text=' + message, '_blank', 'noopener,noreferrer');
+    clearCart();
+    setLoading(false);
+    toast.success('WhatsApp order message prepared.');
   };
 
   return (
@@ -212,37 +177,20 @@ export default function CheckoutPage() {
               </CardContent>
             </Card>
 
-            {/* Payment Method */}
+            {/* WhatsApp / M-Pesa Ordering */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="h-5 w-5" />
-                  Payment Method
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="cash_on_delivery">Cash on Delivery</SelectItem>
-                    <SelectItem value="mpesa" disabled>M-Pesa (coming soon)</SelectItem>
-                    <SelectItem value="card" disabled>Credit/Debit Card (coming soon)</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-sm text-muted-foreground mt-2">
-                  {paymentMethod === 'cash_on_delivery' && 'Pay when your order is delivered.'}
-                  {paymentMethod === 'mpesa' && 'Pay via M-Pesa mobile money.'}
-                  {paymentMethod === 'card' && 'Pay securely with your card.'}
-                </p>
+              <CardHeader><CardTitle className="flex items-center gap-2"><Smartphone className="h-5 w-5" />Order & Pay via M-Pesa</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div className="rounded-lg border bg-muted/40 p-4">
+                  <p className="font-semibold">M-Pesa: 0721 142 723</p>
+                  <p className="text-sm text-muted-foreground mt-1">Tap WhatsApp Order below. We will receive your complete order, confirm it with you, and provide the payment instructions.</p>
+                </div>
+                <Button type="button" size="lg" className="w-full" disabled={loading} onClick={handleWhatsAppOrder}><MessageCircle className="mr-2 h-5 w-5" />{loading ? 'Preparing WhatsApp...' : 'Order via WhatsApp'}</Button>
+                <Button type="button" size="lg" variant="outline" className="w-full" asChild><a href="tel:+254721142723"><Phone className="mr-2 h-5 w-5" />Call to Order — 0721 142 723</a></Button>
+                <p className="text-xs text-center text-muted-foreground">Your WhatsApp message includes every item, quantity, selected options, total, and delivery details.</p>
               </CardContent>
             </Card>
-
-            <Button type="submit" size="lg" className="w-full" disabled={loading}>
-              {loading ? 'Placing Order...' : `Place Order - Ksh. ${total.toFixed(2)}`}
-            </Button>
-          </form>
+          </div>
         </div>
       </div>
     </div>
