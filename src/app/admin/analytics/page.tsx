@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from "@/components/ui/button";
@@ -9,12 +9,10 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import {
   BarChart3,
-  TrendingUp,
   Users,
   Package,
   ShoppingCart,
   DollarSign,
-  Calendar,
   Download,
   RefreshCw
 } from 'lucide-react';
@@ -67,12 +65,12 @@ export default function AdminAnalyticsPage() {
       }
 
       // Fetch products
-      const { data: productsRaw, error: productsError } = await supabase
+      const { data: productsRaw } = await supabase
         .from('products')
         .select('*');
 
       // Fetch users
-      const { data: usersRaw, error: usersError } = await supabase
+      const { data: usersRaw } = await supabase
         .from('profiles')
         .select('*')
         .gte('created_at', startDate.toISOString());
