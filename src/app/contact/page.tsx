@@ -49,9 +49,6 @@ export default function ContactPage() {
   });
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchContactData();
-  }, []);
 
   const fetchContactData = async () => {
     if (!isSupabaseConfigured()) {
@@ -86,6 +83,11 @@ export default function ContactPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchContactData();
+  }, []);
+
 
   const getIcon = (iconName?: string) => {
     if (!iconName) return null;
