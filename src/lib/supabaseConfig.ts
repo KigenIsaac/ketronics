@@ -1,5 +1,5 @@
-const fallbackSupabaseUrl = "http://127.0.0.1:54321";
-const fallbackSupabaseAnonKey = "local-build-placeholder-key";
+const fallbackSupabaseUrl = process.env.NODE_ENV === "development" ? "http://127.0.0.1:54321" : "";
+const fallbackSupabaseAnonKey = process.env.NODE_ENV === "development" ? "local-build-placeholder-key" : "";
 
 export function getSupabaseConfig() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
