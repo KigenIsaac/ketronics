@@ -24,6 +24,12 @@ import {
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
 
+async function fetchPreferences(userId: string) {
+  const { data, error } = await supabase.from('profiles').select('preferences').eq('id', userId).single();
+  if (error && error.code !== 'PGRST116') throw error;
+  return data?.preferences;
+}
+
 export default function SettingsPage() {
   const { user, logout } = useUserStore();
   const { theme, setTheme } = useTheme();
@@ -37,17 +43,11 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (user) {
-      fetchPreferences();
+      void fetchPreferences(user.id).then((data) => { if (data) setPreferences((current) => ({ ...current, ...data })); }).catch(console.error).finally(() => setLoading(false));
     }
   }, [user]);
 
-  const fetchPreferences = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('preferences')
-        .eq('id', user!.id)
-        .single();
+
 
       if (error && error.code !== 'PGRST116') throw error;
 
