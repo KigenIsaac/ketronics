@@ -1,6 +1,5 @@
 "use client";
 
-import {  } from "react";
 import { useUserStore } from "@/lib/stores/userStore";
 import { useCartStore } from "@/lib/stores/cartStore";
 import { Button } from "@/components/ui/button";
@@ -16,6 +15,7 @@ import Link from "next/link";
 import { Sidebar } from "@/components/sidebar";
 import { useMobileSidebar } from "@/components/providers";
 import Image from "next/image";
+import { isStaffRole } from "@/lib/roles";
 
 export function Header() {
   const { user, logout } = useUserStore();
@@ -78,7 +78,7 @@ export function Header() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  {user.role === 'manager' && (
+                  {isStaffRole(user.role) && (
                     <DropdownMenuItem asChild>
                       <a href="/admin">
                         <Settings className="h-4 w-4 mr-2" />
