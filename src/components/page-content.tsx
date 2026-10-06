@@ -17,11 +17,7 @@ export function PageContent({ slug }: PageContentProps) {
   const [sections, setSections] = useState<PageSection[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchPageContent();
-  }, [slug]);
-
-  async function fetchPageContent() {
+async function fetchPageContent() {
     try {
       // Fetch page
       const { data: pageData, error: pageError } = await supabase
@@ -53,7 +49,11 @@ export function PageContent({ slug }: PageContentProps) {
     }
   };
 
-  if (loading) {
+  useEffect(() => {
+    fetchPageContent();
+  }, [slug]);
+
+    if (loading) {
     return <LoadingPage message="Loading page content..." />;
   }
 
