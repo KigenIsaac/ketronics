@@ -52,7 +52,7 @@ export default function AdminProductsPage() {
   };
 
   const filterAndSortProducts = () => {
-    let filtered = products.filter(product => {
+    const filtered = products.filter(product => {
       const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           product.description?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = statusFilter === 'all' || product.status === statusFilter;
