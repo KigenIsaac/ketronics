@@ -54,10 +54,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unknown payment callback' }, { status: 404 });
     }
 
-    if (payment.status === 'completed' || payment.status === 'success') {
-      return NextResponse.json({ success: true, message: 'Callback already processed' });
-    }
-
     const items = callback.CallbackMetadata?.Item ?? [];
     const amount = callback.ResultCode === 0 ? getMetadataValue(items, 'Amount') : null;
     const transactionId = callback.ResultCode === 0 ? getMetadataValue(items, 'MpesaReceiptNumber') : null;
@@ -84,31 +80,46 @@ export async function POST(request: NextRequest) {
     }
 
     const now = new Date().toISOString();
-    const status = callback.ResultCode === 0 ? 'success' : 'failed';
+    const metadata = {
+      merchant_request_id: callback.MerchantRequestID,
+      checkout_request_id: callback.CheckoutRequestID,
+      result_code: callback.ResultCode,
+      result_desc: callback.ResultDesc ?? null,
+      callback_received_at: now,
+    };
 
-    const { error: updateError } = await getSupabaseAdmin().from('payments').update({
-      status,
-      transaction_id: transactionId == null ? null : String(transactionId),
-      phone_number: phoneNumber == null ? null : String(phoneNumber),
-      metadata: {
-        merchant_request_id: callback.MerchantRequestID,
-        checkout_request_id: callback.CheckoutRequestID,
-        result_code: callback.ResultCode,
-        result_desc: callback.ResultDesc ?? null,
-      },
-      updated_at: now,
-    }).eq('id', payment.id);
+    if (callback.ResultCode === 0) {
+      const { data: applied, error: applyError } = await getSupabaseAdmin().rpc(
+        'apply_mpesa_success',
+        {
+          p_payment_id: payment.id,
+          p_transaction_id: String(transactionId),
+          p_phone_number: phoneNumber == null ? null : String(phoneNumber),
+          p_metadata: metadata,
+        },
+      );
 
-    if (updateError) throw updateError;
+      if (applyError) throw applyError;
+      if (!applied) {
+        return NextResponse.json(
+          { error: 'Payment is not in a payable state' },
+          { status: 409 },
+        );
+      }
+    } else {
+      const { error: updateError } = await getSupabaseAdmin()
+        .from('payments')
+        .update({
+          status: 'failed',
+          transaction_id: null,
+          phone_number: null,
+          metadata,
+          updated_at: now,
+        })
+        .eq('id', payment.id)
+        .in('status', ['requested', 'pending']);
 
-    if (callback.ResultCode === 0 && payment.order_id) {
-      const { error: orderError } = await getSupabaseAdmin()
-        .from('orders')
-        .update({ status: 'paid', payment_date: now, updated_at: now })
-        .eq('id', payment.order_id)
-        .neq('status', 'paid');
-
-      if (orderError) throw orderError;
+      if (updateError) throw updateError;
     }
 
     return NextResponse.json({ success: true, message: 'Callback processed successfully' });
