@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabaseServerClient';
+import { z } from 'zod';
 
 export async function POST(req: Request) {
   try {
-    const { email, password } = await req.json();
+    const parsed = z.object({ email: z.string().email().max(254), password: z.string().min(8).max(128) }).safeParse(await req.json());
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid email or password' }, { status: 400 });
+    const { email, password } = parsed.data;
     const setCookies: Array<any> = [];
 
     const supabase = await createSupabaseServerClient()
