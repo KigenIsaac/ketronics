@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Product } from '@/types/product';
 import { ProductCard } from '@/components/products/ProductCard';
@@ -29,7 +29,6 @@ function ProductsContent() {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>(categoryParam || '');
   const [loading, setLoading] = useState(true);
@@ -59,30 +58,29 @@ function ProductsContent() {
     fetchProducts();
   }, []);
 
-  // Filter products based on search and category
-  useEffect(() => {
+  const filteredProducts = useMemo(() => {
     let filtered = products;
 
-    // Filter by category
     if (selectedCategory) {
       filtered = filtered.filter(
-        product =>
+        (product) =>
           product.category?.id === selectedCategory ||
-          product.category?.name.toLowerCase() === selectedCategory.toLowerCase()
+          product.category?.name.toLowerCase() === selectedCategory.toLowerCase(),
       );
     }
 
-    // Filter by search term
     if (searchTerm.trim()) {
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.category?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.subcategory?.name.toLowerCase().includes(searchTerm.toLowerCase())
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (product) =>
+          product.name.toLowerCase().includes(term) ||
+          product.description?.toLowerCase().includes(term) ||
+          product.category?.name.toLowerCase().includes(term) ||
+          product.subcategory?.name.toLowerCase().includes(term),
       );
     }
 
-    setFilteredProducts(filtered);
+    return filtered;
   }, [products, searchTerm, selectedCategory]);
 
   async function fetchProducts() {
