@@ -3,6 +3,8 @@ import { supabase } from '@/lib/supabase';
 
 // Shipping provider callbacks (e.g., from courier services)
 export async function POST(request: NextRequest) {
+  const secret = process.env.SHIPPING_CALLBACK_SECRET;
+  if (!secret || request.headers.get('x-callback-secret') !== secret) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
     const body = await request.json();
     const {
