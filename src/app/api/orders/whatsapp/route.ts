@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { sendOrderNotification } from '@/lib/mail';
 
 const itemSchema = z.object({
   productId: z.string().uuid(),
@@ -42,6 +43,29 @@ export async function POST(request: NextRequest) {
           ? 'One or more products are unavailable'
           : 'Unable to create order';
       return NextResponse.json({ error: message }, { status: message === 'Unable to create order' ? 500 : 409 });
+    }
+
+    const { data: orderItems } = await supabaseAdmin
+      .from('order_items')
+      .select('product_name, quantity, price')
+      .eq('order_id', data[0].id);
+
+    try {
+      await sendOrderNotification({
+        orderId: data[0].id,
+        total: Number(data[0].total),
+        status: data[0].status,
+        customerName: parsed.data.shippingInfo.name,
+        customerEmail: parsed.data.shippingInfo.email,
+        customerPhone: parsed.data.shippingInfo.phone,
+        items: (orderItems || []).map((item) => ({
+          name: item.product_name,
+          quantity: item.quantity,
+          price: Number(item.price),
+        })),
+      });
+    } catch (notificationError) {
+      console.error('New order notification failed:', notificationError);
     }
 
     return NextResponse.json({

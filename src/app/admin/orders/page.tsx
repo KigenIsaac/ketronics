@@ -34,25 +34,27 @@ export default function AdminOrdersPage() {
   };
 
   useEffect(() => {
-    if (user && user.role === 'manager') {
+    if (user && (user.role === 'manager' || user.role === 'admin')) {
       fetchOrders();
     }
   }, [user]);
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
-    const { error } = await supabase
-      .from('orders')
-      .update({ status: newStatus })
-      .eq('id', orderId);
-
-    if (error) {
+    try {
+      const response = await fetch(`/api/admin/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result?.error || 'Failed to update order');
+      fetchOrders();
+    } catch (error) {
       console.error('Error updating order status:', error);
-    } else {
-      fetchOrders(); // Refresh the list
     }
   };
 
-  if (!user || user.role !== 'manager') {
+  if (!user || !['manager', 'admin'].includes(user.role)) {
     return (
       <div className="container mx-auto p-6 text-center">
         <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
@@ -111,9 +113,13 @@ export default function AdminOrdersPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="confirmed">Confirmed</SelectItem>
                         <SelectItem value="processing">Processing</SelectItem>
+                        <SelectItem value="paid">Paid</SelectItem>
                         <SelectItem value="shipped">Shipped</SelectItem>
                         <SelectItem value="delivered">Delivered</SelectItem>
+                        <SelectItem value="refunded">Refunded</SelectItem>
+                        <SelectItem value="returned">Returned</SelectItem>
                         <SelectItem value="cancelled">Cancelled</SelectItem>
                       </SelectContent>
                     </Select>

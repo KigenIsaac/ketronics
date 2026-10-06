@@ -219,3 +219,69 @@ export async function sendContactEmails(contactMessage: ContactMessage) {
     );
   }
 }
+
+
+export interface OrderNotification {
+  orderId: string;
+  total: number;
+  status: string;
+  customerName?: string;
+  customerEmail?: string | null;
+  customerPhone?: string;
+  items?: Array<{ name: string; quantity: number; price: number }>;
+  trackingNumber?: string;
+  carrier?: string;
+  estimatedDelivery?: string;
+}
+
+export async function sendOrderNotification(order: OrderNotification) {
+  if (!isMailConfigured()) return { sent: false, reason: "smtp_not_configured" };
+
+  const mailer = getTransporter();
+  const from = getMailFromAddress();
+  const subject = `Ketronics order ${cleanHeader(order.orderId.slice(-8).toUpperCase())} - ${cleanHeader(order.status)}`;
+  const itemLines = (order.items || []).map((item) => `${item.name} x${item.quantity} - Ksh. ${item.price.toFixed(2)}`);
+  const text = [
+    `Order: ${order.orderId}`,
+    `Status: ${order.status}`,
+    `Customer: ${order.customerName || "Customer"}`,
+    order.customerPhone ? `Phone: ${order.customerPhone}` : "",
+    order.trackingNumber ? `Tracking: ${order.trackingNumber}` : "",
+    order.carrier ? `Carrier: ${order.carrier}` : "",
+    order.estimatedDelivery ? `Estimated delivery: ${order.estimatedDelivery}` : "",
+    "",
+    "Items:",
+    ...itemLines,
+    "",
+    `Total: Ksh. ${order.total.toFixed(2)}`,
+  ].filter(Boolean).join("\n");
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827">
+      <h2>Ketronics LTD — Order Update</h2>
+      <p><strong>Order:</strong> ${escapeHtml(order.orderId)}</p>
+      <p><strong>Status:</strong> ${escapeHtml(order.status)}</p>
+      <p><strong>Customer:</strong> ${escapeHtml(order.customerName || "Customer")}</p>
+      ${order.customerPhone ? `<p><strong>Phone:</strong> ${escapeHtml(order.customerPhone)}</p>` : ""}
+      ${order.trackingNumber ? `<p><strong>Tracking:</strong> ${escapeHtml(order.trackingNumber)}</p>` : ""}
+      ${order.carrier ? `<p><strong>Carrier:</strong> ${escapeHtml(order.carrier)}</p>` : ""}
+      ${order.estimatedDelivery ? `<p><strong>Estimated delivery:</strong> ${escapeHtml(order.estimatedDelivery)}</p>` : ""}
+      <h3>Items</h3>
+      <ul>${itemLines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>
+      <p><strong>Total:</strong> Ksh. ${order.total.toFixed(2)}</p>
+    </div>
+  `;
+
+  const recipients = [getContactRecipientEmail()];
+  if (order.customerEmail && order.customerEmail !== getContactRecipientEmail()) recipients.push(order.customerEmail);
+
+  await Promise.all(recipients.map((to) => mailer.sendMail({
+    from,
+    to,
+    subject,
+    text,
+    html,
+  })));
+
+  return { sent: true };
+}
