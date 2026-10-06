@@ -26,6 +26,8 @@ import {
 import { toast } from "sonner";
 import Link from "next/link";
 
+
+
 const iconMap = {
   Mail,
   Phone,
@@ -87,11 +89,9 @@ async function fetchContactData() {
     let active = true;
     void fetchContactData()
       .then((result) => {
-        if (!active) return;
-        if (result) {
-          setContactInfo(result.contactInfo);
-          setSiteSettings(result.siteSettings);
-        }
+        if (!active || !result) return;
+        setContactInfo(result.contactInfo);
+        setSiteSettings(result.siteSettings);
       })
       .catch((error) => console.error('Error fetching contact data:', error))
       .finally(() => {
