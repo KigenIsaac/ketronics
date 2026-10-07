@@ -10,11 +10,11 @@ ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Public can view active products" ON public.products;
-CREATE POLICY "Public can view active products"
+CREATE POLICY "Public can view products"
   ON public.products
   FOR SELECT
   TO anon, authenticated
-  USING (status = 'active');
+  USING (true);
 
 DROP POLICY IF EXISTS "Managers can manage products" ON public.products;
 CREATE POLICY "Managers can manage products"
