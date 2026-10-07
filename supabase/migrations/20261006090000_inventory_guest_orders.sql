@@ -107,8 +107,8 @@ BEGIN
     );
 
     IF v_product.track_inventory THEN
-      UPDATE products SET stock_quantity = stock_quantity - v_quantity, updated_at = NOW()
-      WHERE id = v_product.id;
+      UPDATE products AS p SET stock_quantity = p.stock_quantity - v_quantity, updated_at = NOW()
+      WHERE p.id = v_product.id;
     END IF;
   END LOOP;
 
@@ -182,8 +182,8 @@ BEGIN
     );
 
     IF v_product.track_inventory THEN
-      UPDATE products SET stock_quantity = stock_quantity - v_quantity, updated_at = NOW()
-      WHERE id = v_product.id;
+      UPDATE products AS p SET stock_quantity = p.stock_quantity - v_quantity, updated_at = NOW()
+      WHERE p.id = v_product.id;
     END IF;
   END LOOP;
 
