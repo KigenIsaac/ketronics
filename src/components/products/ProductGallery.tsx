@@ -1,4 +1,17 @@
 "use client";
 import Image from "next/image";
 import { useState } from "react";
-export default function ProductGallery({name,images}:{name:string;images:string[]}){const [active,setActive]=useState(0); const src=images[active]; return <div><div className="relative aspect-square overflow-hidden rounded-xl bg-[#fafafa]">{src?<Image src={src} alt={name} fill priority sizes="(max-width:1024px) 100vw, 55vw" className="object-contain p-4 sm:p-8"/>:<div className="flex h-full items-center justify-center text-sm text-black/35">No image available</div>}</div>{images.length>1&&<div className="mt-3 grid grid-cols-5 gap-2">{images.slice(0,5).map((image,index)=><button key={image+index} type="button" onClick={()=>setActive(index)} className={`relative aspect-square overflow-hidden rounded-lg border bg-white ${active===index?'border-orange-500 ring-2 ring-orange-100':'border-black/[.06]'}`}><Image src={image} alt={`${name} image ${index+1}`} fill sizes="100px" className="object-contain p-1"/></button>)}</div>}</div>
+export default function ProductGallery({name,images}:{name:string;images:string[]}) {
+  const [active,setActive]=useState(0);
+  const src=images[active];
+  return <div>
+    <div className="relative aspect-square overflow-hidden rounded-xl bg-[#fafafa]">
+      {src ? <Image src={src} alt={name} fill priority sizes="(max-width:1024px) 100vw, 55vw" className="object-contain p-4 sm:p-8"/> : <div className="flex h-full items-center justify-center text-sm text-black/35">No image available</div>}
+    </div>
+    {images.length>1 && <div className="mt-3 grid grid-cols-5 gap-2">
+      {images.slice(0,5).map((image,index) => <button key={image+index} type="button" onClick={()=>setActive(index)} className={`relative aspect-square overflow-hidden rounded-lg border bg-white ${active===index?"border-orange-500 ring-2 ring-orange-100":"border-black/[.06]"}`}>
+        <Image src={image} alt={name+" image "+(index+1)} fill sizes="100px" className="object-contain p-1"/>
+      </button>)}
+    </div>}
+  </div>;
+}
