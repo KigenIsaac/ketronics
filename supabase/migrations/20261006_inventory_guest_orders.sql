@@ -31,6 +31,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_idempotency_key
 CREATE INDEX IF NOT EXISTS idx_products_inventory
   ON products(track_inventory, stock_quantity);
 
+-- The earlier atomic-order migration defines the authenticated checkout function
+-- with a four-column return shape. Replace it here with the inventory-aware
+-- five-column version, which includes checkout_token.
+DROP FUNCTION IF EXISTS create_order_atomic(JSONB, JSONB, TEXT, UUID);
+
 CREATE OR REPLACE FUNCTION create_order_atomic(
   p_items JSONB,
   p_shipping_address JSONB,
