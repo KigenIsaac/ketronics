@@ -1,5 +1,4 @@
 'use client';
-
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Product } from '@/types/product';
@@ -8,261 +7,31 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { LoadingGrid } from '@/components/loading';
 import { supabase } from '@/lib/supabase';
-import { Search, Filter, Package, X } from 'lucide-react';
-import { toast } from 'sonner';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Search, SlidersHorizontal, X } from 'lucide-react';
+import { EmptyState, PageHero, SectionHeader, StorePage } from '@/components/store-ui';
 
-interface Category {
-  id: string;
-  name: string;
-}
+interface Category { id:string; name:string }
 
-function ProductsContent() {
-  const searchParams = useSearchParams();
-  const categoryParam = searchParams.get('category');
-
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>(categoryParam || '');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Fetch categories
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('categories')
-          .select('id, name')
-          .order('name');
-
-        if (error) throw error;
-        setCategories(data || []);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-      }
-    };
-
-    fetchCategories();
-  }, []);
-
-  // Fetch products
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const filteredProducts = useMemo(() => {
-    let filtered = products;
-
-    if (selectedCategory) {
-      filtered = filtered.filter(
-        (product) =>
-          product.category?.id === selectedCategory ||
-          product.category?.name.toLowerCase() === selectedCategory.toLowerCase(),
-      );
-    }
-
-    if (searchTerm.trim()) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (product) =>
-          product.name.toLowerCase().includes(term) ||
-          product.description?.toLowerCase().includes(term) ||
-          product.category?.name.toLowerCase().includes(term) ||
-          product.subcategory?.name.toLowerCase().includes(term),
-      );
-    }
-
-    return filtered;
-  }, [products, searchTerm, selectedCategory]);
-
-  async function fetchProducts() {
-    try {
-      setError(null);
-      const { data, error } = await supabase
-        .from('products')
-        .select(`
-          *,
-          category:categories(*),
-          subcategory:subcategories(*)
-        `)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        throw error;
-      }
-
-      setProducts(data || []);
-      toast.success(`Loaded ${data?.length || 0} products`);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      setError('Failed to load products. Please try again.');
-      toast.error('Failed to load products');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSearch = (value: string) => {
-    setSearchTerm(value);
-    if (value.trim()) {
-      toast.info(`Searching for "${value}"`);
-    }
-  };
-
-  const handleCategoryChange = (value: string) => {
-    setSelectedCategory(value);
-    if (value) {
-      const categoryName = categories.find(c => c.id === value)?.name || value;
-      toast.info(`Filtering by ${categoryName}`);
-    }
-  };
-
-  const clearFilters = () => {
-    setSearchTerm('');
-    setSelectedCategory('');
-  };
-
-  const activeFiltersCount = (searchTerm ? 1 : 0) + (selectedCategory ? 1 : 0);
-
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8 lg:pl-0">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-4">Our Products</h1>
-          <p className="text-muted-foreground">Discover our premium tech products</p>
-        </div>
-        <LoadingGrid count={8} />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="container mx-auto px-4 py-8 lg:pl-0 text-center">
-        <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-        <h1 className="text-2xl font-bold mb-4">Oops!</h1>
-        <p className="text-muted-foreground mb-6">{error}</p>
-        <Button onClick={fetchProducts}>
-          Try Again
-        </Button>
-      </div>
-    );
-  }
-
-  const selectedCategoryName = selectedCategory
-    ? categories.find(c => c.id === selectedCategory)?.name ||
-      selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)
-    : null;
-
-  return (
-    <div className="container mx-auto px-4 py-8 lg:pl-0">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-4">Our Products</h1>
-        <p className="text-muted-foreground">
-          {selectedCategoryName
-            ? `Browse ${selectedCategoryName}`
-            : 'Discover our premium selection of tech products'}
-        </p>
-      </div>
-
-      {/* Search and Filter Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-8">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder="Search products, brands, features..."
-            value={searchTerm}
-            onChange={(e) => handleSearch(e.target.value)}
-            className="pl-10 h-12"
-          />
-        </div>
-
-        <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-          <SelectTrigger className="w-full sm:w-48 h-12">
-            <SelectValue placeholder="All Categories" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">All Categories</SelectItem>
-            {categories.map(category => (
-              <SelectItem key={category.id} value={category.id}>
-                {category.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {activeFiltersCount > 0 && (
-          <Button
-            variant="outline"
-            className="h-12 px-6 gap-2"
-            onClick={clearFilters}
-          >
-            <X className="h-4 w-4" />
-            Clear
-          </Button>
-        )}
-      </div>
-
-      {/* Results Summary */}
-      <div className="flex items-center justify-between mb-6">
-        <p className="text-muted-foreground">
-          {searchTerm || selectedCategory ? (
-            <>
-              Found <span className="font-semibold text-foreground">{filteredProducts.length}</span> product{filteredProducts.length !== 1 ? 's' : ''}
-              {selectedCategoryName && ` in ${selectedCategoryName}`}
-              {searchTerm && ` matching "${searchTerm}"`}
-            </>
-          ) : (
-            <>
-              Showing <span className="font-semibold text-foreground">{filteredProducts.length}</span> product{filteredProducts.length !== 1 ? 's' : ''}
-            </>
-          )}
-        </p>
-      </div>
-
-      {/* Products Grid */}
-      {filteredProducts.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
-          {filteredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-xl font-semibold mb-2">
-            {searchTerm || selectedCategory ? 'No products found' : 'No products available'}
-          </h3>
-          <p className="text-muted-foreground mb-6">
-            {searchTerm || selectedCategory
-              ? 'Try adjusting your search or filter criteria.'
-              : 'Products will be available soon. Check back later!'}
-          </p>
-          {(searchTerm || selectedCategory) && (
-            <Button variant="outline" onClick={clearFilters}>
-              Clear Filters
-            </Button>
-          )}
-        </div>
-      )}
+function ProductsContent(){
+ const params=useSearchParams(); const categoryParam=params.get('category')||''; const queryParam=params.get('search')||'';
+ const [products,setProducts]=useState<Product[]>([]); const [categories,setCategories]=useState<Category[]>([]); const [search,setSearch]=useState(queryParam); const [category,setCategory]=useState(categoryParam); const [loading,setLoading]=useState(true); const [error,setError]=useState('');
+ useEffect(()=>{void Promise.all([supabase.from('categories').select('id,name').order('name'),supabase.from('products').select('*,category:categories(*),subcategory:subcategories(*)').eq('status','active').order('created_at',{ascending:false})]).then(([cr,pr])=>{if(cr.error)throw cr.error;if(pr.error)throw pr.error;setCategories(cr.data||[]);setProducts(pr.data||[]);}).catch(()=>setError('We could not load the catalog right now.')).finally(()=>setLoading(false));},[]);
+ const filtered=useMemo(()=>{const q=search.trim().toLowerCase();return products.filter(p=>(!category||p.category?.id===category||p.category?.name.toLowerCase()===category.toLowerCase())&&(!q||[p.name,p.description,p.brand,p.category?.name,p.subcategory?.name].some(v=>v?.toLowerCase().includes(q))))},[products,search,category]);
+ const selectedName=categories.find(c=>c.id===category)?.name||category;
+ const clear=()=>{setSearch('');setCategory('');};
+ if(loading)return <StorePage><PageHero eyebrow="SHOP KETRONICS" title="Find the right technology." description="Quality devices, components and accessories for work, home and business."/><LoadingGrid count={8} className="grid-cols-2 lg:grid-cols-4"/></StorePage>;
+ if(error)return <StorePage><EmptyState title="Catalog unavailable" description={error} action={<Button onClick={()=>window.location.reload()}>Try again</Button>}/></StorePage>;
+ return <StorePage>
+   <PageHero eyebrow="SHOP KETRONICS" title={selectedName||'Technology, selected for you.'} description="Explore our current catalog of laptops, displays, printers, components and everyday tech." action={<div className="hidden rounded-full bg-white/10 px-4 py-2 text-xs font-semibold sm:block">{products.length} products</div>}/>
+   <div className="mb-7 rounded-2xl border border-black/[.06] bg-white p-3 shadow-[0_8px_30px_rgba(16,24,40,.04)]">
+    <div className="flex flex-col gap-3 lg:flex-row">
+      <div className="relative flex-1"><Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-black/35"/><Input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search products, brands, features..." className="h-12 rounded-xl border-0 bg-[#f5f5f3] pl-11 shadow-none focus-visible:ring-1 focus-visible:ring-orange-400"/></div>
+      <div className="flex gap-2 overflow-x-auto pb-1 lg:max-w-[58%]">{[{id:'',name:'All products'},...categories].map(c=><button key={c.id} onClick={()=>setCategory(c.id)} className={`whitespace-nowrap rounded-full border px-4 py-2 text-xs font-bold transition ${category===c.id?'border-black bg-black text-white':'border-black/[.08] bg-white text-black/60 hover:border-black/20 hover:text-black'}`}>{c.name}</button>)}</div>
+      {(search||category)&&<Button variant="ghost" className="h-12 shrink-0 rounded-xl" onClick={clear}><X className="mr-2 h-4 w-4"/>Clear</Button>}
     </div>
-  );
+   </div>
+   <SectionHeader eyebrow="CATALOG" title={filtered.length ? filtered.length + ' products' : 'No matches'} description={(search||category)?'Showing filtered results.':'Browse everything currently available.'}/>
+   {filtered.length?<div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">{filtered.map(p=><ProductCard key={p.id} product={p}/>)}</div>:<EmptyState title="Nothing matched your search" description="Try another product name or clear your filters." action={<Button onClick={clear} className="rounded-full bg-orange-500 hover:bg-orange-600"><SlidersHorizontal className="mr-2 h-4 w-4"/>Reset filters</Button>}/>}
+ </StorePage>
 }
-
-
-export default function ProductsPage() {
-  return (
-    <Suspense fallback={<LoadingGrid count={8} />}>
-      <ProductsContent />
-    </Suspense>
-  );
-}
+export default function ProductsPage(){return <Suspense fallback={<StorePage><LoadingGrid count={8}/></StorePage>}><ProductsContent/></Suspense>}
