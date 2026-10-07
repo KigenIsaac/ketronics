@@ -1,103 +1,54 @@
 'use client';
 
 import { Product } from '@/types/product';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Star, ShoppingCart } from 'lucide-react';
+import { ShoppingCart, ArrowUpRight } from 'lucide-react';
 import { useCartStore } from '@/lib/stores/cartStore';
 import { toast } from 'sonner';
+import { StatusBadge } from '@/components/status-badge';
 
-interface ProductCardProps {
-  product: Product;
-}
-
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product }: { product: Product }) {
   const addItem = useCartStore((state) => state.addItem);
+  const discount = Number(product.discount || 0);
+  const price = discount > 0 ? product.price * (1 - discount / 100) : product.price;
+  const image = product.images?.[0];
+  const outOfStock = product.track_inventory && Number(product.stock_quantity || 0) <= 0;
 
-  // Get display attributes (assuming attributes are key-value and we show a few)
-  const displayAttributes = Object.entries(product.attributes || {})
-    .slice(0, 3) // Show first 3 attributes
-    .map(([key, value]) => `${key}: ${value}`)
-    .join(' | ');
-
-  const discountedPrice = product.discount && product.discount > 0
-    ? product.price * (1 - product.discount / 100)
-    : product.price;
-
-  const handleAddToCart = () => {
-    addItem({
-      productId: product.id,
-      name: product.name,
-      price: discountedPrice,
-      image: product.images[0] || '',
-      attributes: product.attributes,
-    });
-    toast.success('Added to cart!');
+  const handleAdd = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (outOfStock) return;
+    addItem({ productId: product.id, name: product.name, price, image: image || '', attributes: product.attributes });
+    toast.success('Added to cart');
   };
 
   return (
-    <Card className="w-full group hover:shadow-lg transition-shadow duration-300 border shadow-sm">
-      <CardHeader className="p-0">
-        {product.images.length > 0 && (
-          <div className="relative h-40 w-full overflow-hidden rounded-t-lg">
-            <Image
-              src={product.images[0]}
-              alt={product.name}
-              fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-            {product.discount && product.discount > 0 && (
-              <Badge className="absolute top-2 left-2 bg-red-500 text-xs">
-                -{product.discount}%
-              </Badge>
-            )}
+    <article className="group min-w-0">
+      <Link href={`/products/${product.id}`} className="block">
+        <div className="relative aspect-[1/1.02] overflow-hidden rounded-2xl border border-black/[.05] bg-white">
+          {image ? (
+            <Image src={image} alt={product.name} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-contain p-4 transition-transform duration-500 group-hover:scale-[1.045] sm:p-6" />
+          ) : <div className="flex h-full items-center justify-center text-sm text-black/35">No image</div>}
+          {discount > 0 && <span className="absolute left-3 top-3 rounded-full bg-orange-500 px-2.5 py-1 text-[10px] font-bold text-white">-{discount}%</span>}
+          {outOfStock && <span className="absolute inset-x-3 bottom-3 rounded-full bg-black/75 px-3 py-1.5 text-center text-[10px] font-bold text-white">Out of stock</span>}
+          <button onClick={handleAdd} disabled={outOfStock} aria-label={outOfStock ? 'Out of stock' : 'Add to cart'} className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-black shadow-lg opacity-100 transition-all hover:bg-orange-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 sm:opacity-0 sm:group-hover:opacity-100">
+            <ShoppingCart className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="px-1 pt-3">
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-[.16em] text-black/40">{product.brand || product.category?.name || 'Ketronics'}</span>
+            {product.status && <StatusBadge status={product.status} />}
           </div>
-        )}
-        <div className="p-3">
-          <CardTitle className="text-base font-semibold line-clamp-1">{product.name}</CardTitle>
-          {product.brand && (
-            <p className="text-xs text-muted-foreground">{product.brand}</p>
-          )}
+          <h3 className="line-clamp-2 min-h-[2.8rem] text-sm font-semibold leading-5 tracking-[-.01em] group-hover:text-orange-600">{product.name}</h3>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-base font-bold">KSh {price.toLocaleString('en-KE', { maximumFractionDigits: 0 })}</span>
+            {discount > 0 && <span className="text-xs text-black/35 line-through">KSh {product.price.toLocaleString('en-KE', { maximumFractionDigits: 0 })}</span>}
+          </div>
+          <span className="mt-2 inline-flex items-center text-[11px] font-semibold text-black/45 group-hover:text-orange-600">View product <ArrowUpRight className="ml-1 h-3 w-3" /></span>
         </div>
-      </CardHeader>
-      <CardContent className="p-3 pt-0">
-        <p className="text-xs text-muted-foreground line-clamp-2 mb-2 h-8">
-          {product.description}
-        </p>
-        {displayAttributes && (
-          <p className="text-xs text-blue-600 font-medium mb-2 line-clamp-1">
-            {displayAttributes}
-          </p>
-        )}
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-sm font-bold text-green-600">
-            Ksh. {discountedPrice.toFixed(2)}
-          </span>
-          {product.discount && product.discount > 0 && (
-            <span className="text-xs text-muted-foreground line-through">
-              Ksh. {product.price.toFixed(2)}
-            </span>
-          )}
-        </div>
-        {product.category && (
-          <Badge variant="outline" className="text-xs">
-            {product.category.name}
-          </Badge>
-        )}
-      </CardContent>
-      <CardFooter className="p-3 pt-0 flex flex-col gap-2">
-        <Button asChild size="sm" className="w-full text-xs">
-          <Link href={`/products/${product.id}`}>
-            View Details
-          </Link>
-        </Button>
-        <Button onClick={handleAddToCart} variant="outline" size="sm" className="w-full text-xs">
-          Add to Cart
-        </Button>
-      </CardFooter>
-    </Card>
+      </Link>
+    </article>
   );
 }
