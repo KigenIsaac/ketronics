@@ -145,6 +145,16 @@ export default function Home() {
         </div>
       </section>
 
+      {productLoadError ? (
+        <section className="mx-auto max-w-[1400px] px-4 pt-8 sm:px-6 lg:px-8">
+          <div className="rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-xs text-orange-900">
+            <p className="font-semibold">We’re connecting to the Ketronics catalog.</p>
+            <p className="mt-1 text-orange-800/70">The storefront could not load products from Supabase right now. Please refresh shortly or browse the store page.</p>
+            <Link href="/products" className="mt-2 inline-flex font-semibold underline underline-offset-2">Open product catalog</Link>
+          </div>
+        </section>
+      ) : null}
+
       {/* Category row */}
       <section className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-4 flex items-end justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-black/35">Shop by category</p><h2 className="mt-1 text-xl font-bold tracking-tight">Find your next essential</h2></div><Link href="/products" className="text-[11px] font-semibold text-orange-600">View all</Link></div>
