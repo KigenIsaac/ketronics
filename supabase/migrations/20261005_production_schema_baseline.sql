@@ -38,14 +38,14 @@ CREATE INDEX IF NOT EXISTS idx_products_inventory ON public.products(track_inven
 ALTER TABLE public.subcategory_attributes
   ADD COLUMN IF NOT EXISTS name TEXT,
   ADD COLUMN IF NOT EXISTS type TEXT DEFAULT 'text',
-  ADD COLUMN IF NOT EXISTS options JSONB DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS options TEXT[] DEFAULT ARRAY[]::TEXT[],
   ADD COLUMN IF NOT EXISTS display_in_card BOOLEAN NOT NULL DEFAULT false,
   ADD COLUMN IF NOT EXISTS subcategory_id UUID;
 
 UPDATE public.subcategory_attributes
 SET type = 'text' WHERE type IS NULL;
 UPDATE public.subcategory_attributes
-SET options = '[]'::jsonb WHERE options IS NULL;
+SET options = ARRAY[]::TEXT[] WHERE options IS NULL;
 UPDATE public.subcategory_attributes
 SET display_in_card = false WHERE display_in_card IS NULL;
 
