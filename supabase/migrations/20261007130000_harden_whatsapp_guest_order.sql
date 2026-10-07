@@ -42,7 +42,6 @@ DECLARE
   v_product RECORD;
   v_quantity INTEGER;
   v_email TEXT := lower(trim(COALESCE(p_shipping_address->>'email', '')));
-  v_inserted BOOLEAN := false;
 BEGIN
   IF jsonb_typeof(p_items) <> 'array' OR jsonb_array_length(p_items) = 0 THEN
     RAISE EXCEPTION 'At least one order item is required';
@@ -127,7 +126,7 @@ BEGIN
     'mpesa',
     p_idempotency_key
   )
-  ON CONFLICT (idempotency_key) DO NOTHING
+  ON CONFLICT DO NOTHING
   RETURNING public.orders.id INTO v_order_id;
 
   IF v_order_id IS NULL THEN
