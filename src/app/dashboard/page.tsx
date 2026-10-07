@@ -1,84 +1,13 @@
 import { createSupabaseServerClient } from '@/lib/supabaseServerClient';
 import { redirect } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ShoppingBag, User, Settings, Package } from "lucide-react";
 import Link from 'next/link';
-
-export default async function DashboardPage() {
-  const supabase = await createSupabaseServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
-
-  if (!session) return redirect('/auth/login');
-
-  // Re-authenticate the user for security
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError || !user) return redirect('/auth/login');
-
-  // Fetch profile for display
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, is_active')
-    .eq('id', user.id)
-    .single();
-
-  if (!profile?.is_active) return redirect('/auth/login');
-
-  const displayName = profile.full_name || user.email;
-
-  return (
-    <div className="container mx-auto px-4 py-8 lg:pl-0">
-      <h1 className="text-3xl font-bold mb-6">Welcome back, {displayName}!</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <Package className="h-8 w-8 text-primary" />
-            <CardTitle>Browse Products</CardTitle>
-            <CardDescription>Explore our catalog of tech products</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild className="w-full">
-              <Link href="/products">Browse Products</Link>
-            </Button>
-          </CardContent>
-        </Card>
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <ShoppingBag className="h-8 w-8 text-primary" />
-            <CardTitle>My Orders</CardTitle>
-            <CardDescription>View your order history and track shipments</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild className="w-full">
-              <Link href="/orders">View Orders</Link>
-            </Button>
-          </CardContent>
-        </Card>
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <User className="h-8 w-8 text-primary" />
-            <CardTitle>Profile</CardTitle>
-            <CardDescription>Manage your account information</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild className="w-full">
-              <Link href="/profile">Edit Profile</Link>
-            </Button>
-          </CardContent>
-        </Card>
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <Settings className="h-8 w-8 text-primary" />
-            <CardTitle>Settings</CardTitle>
-            <CardDescription>Update your preferences and settings</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild className="w-full">
-              <Link href="/settings">Account Settings</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
+import { Package, ShoppingBag, User, Settings, ArrowRight, Sparkles } from 'lucide-react';
+import { PageHero, SectionHeader, StorePage, Surface } from '@/components/store-ui';
+export default async function DashboardPage(){
+ const supabase=await createSupabaseServerClient(); const {data:{session}}=await supabase.auth.getSession(); if(!session)return redirect('/auth/login');
+ const {data:{user},error}=await supabase.auth.getUser(); if(error||!user)return redirect('/auth/login');
+ const {data:profile}=await supabase.from('profiles').select('full_name,is_active').eq('id',user.id).single(); if(!profile?.is_active)return redirect('/auth/login');
+ const name=profile.full_name||user.email?.split('@')[0]||'there';
+ const cards=[['Shop the catalog','Explore laptops, displays, printers and more.','/products',Package],['Your orders','Track purchases and view order history.','/orders',ShoppingBag],['Your profile','Keep your contact details up to date.','/profile',User],['Preferences','Manage notifications and account settings.','/settings',Settings]] as const;
+ return <StorePage><PageHero eyebrow="MY KETRONICS" title={'Welcome back, '+name+'.'} description="Everything you need to shop, manage your account and keep track of your orders." action={<Sparkles className="hidden h-12 w-12 text-orange-400 sm:block"/>}/><SectionHeader eyebrow="QUICK ACCESS" title="Your account" description="Pick up where you left off."/><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{cards.map(([title,desc,href,Icon])=><Link href={href} key={href} className="group"><Surface className="h-full p-5 transition hover:-translate-y-0.5 hover:shadow-lg"><div className="mb-6 flex h-11 w-11 items-center justify-center rounded-xl bg-orange-50 text-orange-600"><Icon className="h-5 w-5"/></div><h3 className="font-bold">{title}</h3><p className="mt-2 min-h-10 text-sm leading-5 text-black/50">{desc}</p><span className="mt-5 inline-flex items-center text-xs font-bold text-black/45 group-hover:text-orange-600">Open <ArrowRight className="ml-1 h-3 w-3"/></span></Surface></Link>)}</div></StorePage>
 }
