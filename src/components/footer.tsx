@@ -20,6 +20,7 @@ import {
   Headphones
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 
 const iconMap = {
@@ -46,6 +47,8 @@ const fetchFooterData = async () => {
 };
 
 export function Footer() {
+  const pathname = usePathname();
+  const isHome = pathname === "/";
   const [contactInfo, setContactInfo] = useState<ContactInfo[]>([]);
   const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -66,7 +69,7 @@ export function Footer() {
 
   if (loading) {
     return (
-      <footer className="bg-muted/50 border-t w-full">
+      <footer className={(isHome ? "bg-[#111111] text-white" : "bg-muted/50") + " border-t w-full"}>
         <div className="mx-auto px-4 py-8 max-w-screen-2xl">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {[...Array(4)].map((_, i) => (
@@ -101,7 +104,7 @@ export function Footer() {
               />
               <h3 className="text-lg font-semibold">{siteSettings.site_name || 'Ketronics LTD'}</h3>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className={isHome ? "text-sm text-white/50" : "text-sm text-muted-foreground"}>
               Your trusted partner for technology products and services in Kenya.
               We offer expert maintenance, repairs, and installation services.
             </p>
@@ -121,9 +124,9 @@ export function Footer() {
 
           {/* Quick Links */}
           <div className="space-y-4">
-            <h4 className="text-sm font-semibold uppercase tracking-wider">Quick Links</h4>
+            <h4 className={isHome ? "text-sm font-semibold uppercase tracking-wider text-white" : "text-sm font-semibold uppercase tracking-wider"}>Quick Links</h4>
             <div className="space-y-2">
-              <Link href="/products" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Link href="/products" className={isHome ? "block text-sm text-white/50 hover:text-white transition-colors" : "block text-sm text-muted-foreground hover:text-foreground transition-colors"}>
                 Products
               </Link>
               <Link href="/about-us" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -145,7 +148,7 @@ export function Footer() {
           <div className="space-y-4">
             <h4 className="text-sm font-semibold uppercase tracking-wider">Services</h4>
             <div className="space-y-2">
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+              <div className={isHome ? "flex items-center space-x-2 text-sm text-white/50" : "flex items-center space-x-2 text-sm text-muted-foreground"}>
                 <Shield className="h-4 w-4 text-green-500" />
                 <span>Expert Repairs</span>
               </div>
@@ -193,7 +196,7 @@ export function Footer() {
               {groupContactInfo('address').map((address) => {
                 const Icon = getIcon(address.icon);
                 return (
-                  <div key={address.id} className="flex items-start space-x-2 text-sm text-muted-foreground">
+                  <div key={address.id} className={isHome ? "flex items-start space-x-2 text-sm text-white/50" : "flex items-start space-x-2 text-sm text-muted-foreground"}>
                     {Icon && <Icon className="h-4 w-4 mt-0.5" />}
                     <span>{address.value}</span>
                   </div>
@@ -217,7 +220,7 @@ export function Footer() {
             © {new Date().getFullYear()} {siteSettings.site_name || 'Ketronics LTD'}. All rights reserved.
           </div>
           <div className="flex space-x-6 text-sm">
-            <Link href="/privacy-policy" className="text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/privacy-policy" className={isHome ? "text-white/50 hover:text-white transition-colors" : "text-muted-foreground hover:text-foreground transition-colors"}>
               Privacy Policy
             </Link>
             <Link href="/terms-and-conditions" className="text-muted-foreground hover:text-foreground transition-colors">
