@@ -36,3 +36,16 @@ jobs:
         run: npm run verify
       - name: Production build
         run: npm run build
+      - name: Start production server
+        run: |
+          nohup npm run start -- --hostname 127.0.0.1 --port 3000 >/tmp/ketronics-next.log 2>&1 &
+          echo $! >/tmp/ketronics-next.pid
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:3000/api/health >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ketronics-next.log
+          exit 1
+      - name: Production route smoke test
+        run: node scripts/smoke-routes.mjs
+\n
