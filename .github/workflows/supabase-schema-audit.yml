@@ -49,20 +49,19 @@ jobs:
               out.write("PGPORT=6543\n")
               out.write("PGUSER=postgres\n")
               out.write("PGDATABASE=postgres\n")
-              out.write(f"PGOPTIONS=reference={os.environ['SUPABASE_PROJECT_REF']}\n")
 
           print(f"Using Supavisor host={host} port=6543 user=postgres.<project-ref> database=postgres")
           PY
 
       - name: Verify PostgreSQL connectivity
-        run: psql -v ON_ERROR_STOP=1 -c "select current_database(), current_user, inet_server_addr(), inet_server_port();"
+        run: psql "postgresql://postgres@${PGHOST}:${PGPORT}/postgres?options=reference%3D${SUPABASE_PROJECT_REF}" -v ON_ERROR_STOP=1 -c "select current_database(), current_user, inet_server_addr(), inet_server_port();"
 
       - name: Capture production schema
         run: |
           set -euo pipefail
           mkdir -p audit
 
-          psql -v ON_ERROR_STOP=1 -At -F '|' -c "select table_schema, table_name, column_name, data_type, is_nullable, column_default from information_schema.columns where table_schema = 'public' order by table_name, ordinal_position;" > audit/public_columns.txt
+          psql "postgresql://postgres@${PGHOST}:${PGPORT}/postgres?options=reference%3D${SUPABASE_PROJECT_REF}" -v ON_ERROR_STOP=1 -At -F '|' -c "select table_schema, table_name, column_name, data_type, is_nullable, column_default from information_schema.columns where table_schema = 'public' order by table_name, ordinal_position;" > audit/public_columns.txt
           psql -v ON_ERROR_STOP=1 -At -F '|' -c "select schemaname, tablename, indexname, indexdef from pg_indexes where schemaname = 'public' order by tablename, indexname;" > audit/public_indexes.txt
           psql -v ON_ERROR_STOP=1 -At -F '|' -c "select n.nspname as schema_name, c.relname as table_name, c.relrowsecurity as rls_enabled from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r' order by c.relname;" > audit/public_rls.txt
           psql -v ON_ERROR_STOP=1 -At -F '|' -c "select schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check from pg_policies where schemaname = 'public' order by tablename, policyname;" > audit/public_policies.txt
@@ -70,7 +69,7 @@ jobs:
           psql -v ON_ERROR_STOP=1 -At -F '|' -c "select version, name from supabase_migrations.schema_migrations order by version;" > audit/migration_history.txt
 
           printf '%s\n' "=== PRODUCTION TABLES ==="
-          psql -v ON_ERROR_STOP=1 -c "select table_name from information_schema.tables where table_schema='public' and table_type='BASE TABLE' order by table_name;"
+          psql "postgresql://postgres@${PGHOST}:${PGPORT}/postgres?options=reference%3D${SUPABASE_PROJECT_REF}" -v ON_ERROR_STOP=1 -c "select table_name from information_schema.tables where table_schema='public' and table_type='BASE TABLE' order by table_name;"
           printf '%s\n' "=== PRODUCTION MIGRATION HISTORY ==="
           cat audit/migration_history.txt || true
           printf '%s\n' "=== PRODUCTION RLS ==="
