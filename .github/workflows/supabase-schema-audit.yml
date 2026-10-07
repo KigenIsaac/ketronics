@@ -1,4 +1,4 @@
-name: Supabase production schema audit
+name: Supabase production database
 
 on:
   push:
@@ -11,73 +11,32 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: supabase-production
+  cancel-in-progress: false
+
 jobs:
-  audit:
+  migration-check:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     env:
-      SUPABASE_PROJECT_REF: klepxrustnlpzyivwxwf
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_ID: klepxrustnlpzyivwxwf
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure Supavisor connection
-        run: |
-          set -euo pipefail
-          curl --fail-with-body --silent --show-error \
-            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
-            "https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}" \
-            -o /tmp/project.json
-
-          python3 - <<'PY'
-          import json, os
-
-          with open("/tmp/project.json", encoding="utf-8") as f:
-              project = json.load(f)
-
-          region = project.get("region")
-          if not region:
-              raise SystemExit("Supabase project response did not include a region")
-
-          # Supabase documents this IPv4-capable Supavisor hostname pattern.
-          host = f"aws-0-{region}.pooler.supabase.com"
-
-          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as out:
-              out.write(f"PGHOST={host}\n")
-              out.write("PGPORT=6543\n")
-              out.write("PGUSER=postgres\n")
-              out.write("PGDATABASE=postgres\n")
-
-          print(f"Using Supavisor host={host} port=6543 user=postgres.<project-ref> database=postgres")
-          PY
-
-      - name: Verify PostgreSQL connectivity
-        run: psql "postgresql://postgres@${PGHOST}:${PGPORT}/postgres?options=reference%3D${SUPABASE_PROJECT_REF}" -v ON_ERROR_STOP=1 -c "select current_database(), current_user, inet_server_addr(), inet_server_port();"
-
-      - name: Capture production schema
-        run: |
-          set -euo pipefail
-          mkdir -p audit
-
-          psql "postgresql://postgres@${PGHOST}:${PGPORT}/postgres?options=reference%3D${SUPABASE_PROJECT_REF}" -v ON_ERROR_STOP=1 -At -F '|' -c "select table_schema, table_name, column_name, data_type, is_nullable, column_default from information_schema.columns where table_schema = 'public' order by table_name, ordinal_position;" > audit/public_columns.txt
-          psql -v ON_ERROR_STOP=1 -At -F '|' -c "select schemaname, tablename, indexname, indexdef from pg_indexes where schemaname = 'public' order by tablename, indexname;" > audit/public_indexes.txt
-          psql -v ON_ERROR_STOP=1 -At -F '|' -c "select n.nspname as schema_name, c.relname as table_name, c.relrowsecurity as rls_enabled from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r' order by c.relname;" > audit/public_rls.txt
-          psql -v ON_ERROR_STOP=1 -At -F '|' -c "select schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check from pg_policies where schemaname = 'public' order by tablename, policyname;" > audit/public_policies.txt
-          psql -v ON_ERROR_STOP=1 -At -F '|' -c "select routine_schema, routine_name, routine_type, data_type from information_schema.routines where routine_schema = 'public' order by routine_name;" > audit/public_routines.txt
-          psql -v ON_ERROR_STOP=1 -At -F '|' -c "select version, name from supabase_migrations.schema_migrations order by version;" > audit/migration_history.txt
-
-          printf '%s\n' "=== PRODUCTION TABLES ==="
-          psql "postgresql://postgres@${PGHOST}:${PGPORT}/postgres?options=reference%3D${SUPABASE_PROJECT_REF}" -v ON_ERROR_STOP=1 -c "select table_name from information_schema.tables where table_schema='public' and table_type='BASE TABLE' order by table_name;"
-          printf '%s\n' "=== PRODUCTION MIGRATION HISTORY ==="
-          cat audit/migration_history.txt || true
-          printf '%s\n' "=== PRODUCTION RLS ==="
-          cat audit/public_rls.txt
-
-      - name: Upload audit
-        uses: actions/upload-artifact@v4
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
         with:
-          name: supabase-production-schema-audit
-          path: audit/
-          retention-days: 7
+          version: latest
+
+      - name: Link production project
+        run: supabase link --project-ref "$SUPABASE_PROJECT_ID" --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Show migration plan
+        run: supabase db push --dry-run
+
+      - name: Show migration history
+        run: supabase migration list
