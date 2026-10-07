@@ -2,19 +2,19 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const files = {
-  settingsMigration: "supabase/migrations/20261006_store_settings_hardening.sql",
+  settingsMigration: "supabase/migrations/20261006150000_store_settings_hardening.sql",
   settingsPage: "src/app/admin/settings/page.tsx",
   mpesaCallback: "src/app/api/callbacks/payments/mpesa/route.ts",
   mpesa: "src/lib/mpesa.ts",
   roles: "src/lib/roles.ts",
   storage: "src/lib/storage.ts",
-  commerceRls: "supabase/migrations/20261006_commerce_rls_hardening.sql",
+  commerceRls: "supabase/migrations/20261006060000_commerce_rls_hardening.sql",
   webhook: "src/app/api/callbacks/webhooks/route.ts",
   rateLimit: "src/lib/rateLimit.ts",
   guestOrder: "src/app/api/orders/whatsapp/route.ts",
   contact: "src/app/api/contact/route.ts",
-  orderStateMachine: "supabase/migrations/20261006_order_state_machine.sql",
-  staffLifecycle: "supabase/migrations/20261007_admin_staff_lifecycle.sql",
+  orderStateMachine: "supabase/migrations/20261006120000_order_state_machine.sql",
+  staffLifecycle: "supabase/migrations/20261007000000_admin_staff_lifecycle.sql",
 };
 
 const source = {};
