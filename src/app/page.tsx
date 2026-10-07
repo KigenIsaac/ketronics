@@ -51,6 +51,7 @@ function ProductTile({ product }: { product: Product }) {
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [productLoadError, setProductLoadError] = useState<string | null>(null);
   const [slide, setSlide] = useState(0);
   const { user, loading: userLoading } = useUserStore();
   const router = useRouter();
@@ -58,8 +59,25 @@ export default function Home() {
   useEffect(() => {
     let cancelled = false;
     const loadProducts = async () => {
-      const { data } = await supabase.from("products").select("*, category:categories(*)").eq("status", "active").order("created_at", { ascending: false }).limit(16);
-      if (!cancelled) setProducts(data ?? []);
+      setProductLoadError(null);
+
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(16);
+
+      if (cancelled) return;
+
+      if (error) {
+        console.error("[Ketronics] Failed to load homepage products:", error);
+        setProducts([]);
+        setProductLoadError(error.message);
+        return;
+      }
+
+      setProducts(data ?? []);
     };
     void loadProducts();
     return () => { cancelled = true; };
