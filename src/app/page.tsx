@@ -98,7 +98,7 @@ export default function Home() {
   }
 
   return (
-    <main className="overflow-hidden bg-[#f7f7f5] text-[#101114]">
+    <main className="-mx-4 -mt-[72px] -mb-4 overflow-hidden bg-[#f7f7f5] text-[#101114] lg:-mx-6 lg:-mt-6 lg:-mb-6">
       {/* Hero */}
       <section className="relative min-h-[calc(100vh-3.5rem)] bg-[#080a0d] text-white">
         <div className="absolute inset-0 overflow-hidden">
