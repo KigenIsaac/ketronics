@@ -1,120 +1,17 @@
 "use client";
-
 import { useState } from "react";
 import { isStaffRole } from "@/lib/roles";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 import { useUserStore } from "@/lib/stores/userStore";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Alert,AlertDescription } from "@/components/ui/alert";
+import { Loader2,ArrowLeft,Check } from "lucide-react";
+import Link from "next/link";
 
-export default function SignupPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const router = useRouter();
-  const { fetchUser } = useUserStore();
-
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    try {
-      // Use server route to sign up and set cookies for SSR
-      const res = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, full_name: fullName }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data?.error || 'Signup failed');
-      }
-
-      await fetchUser();
-      const user = useUserStore.getState().user;
-      if (isStaffRole(data?.profile?.role) || isStaffRole(user?.role)) {
-        router.push('/admin');
-      } else {
-        router.push('/dashboard');
-      }
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'Signup failed');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Sign Up for Ketronics LTD</CardTitle>
-          <CardDescription>
-            Create your account to start shopping and managing services
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSignup} className="space-y-4">
-            <div>
-              <Label htmlFor="fullName">Full Name</Label>
-              <Input
-                id="fullName"
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Sign Up
-            </Button>
-          </form>
-          <div className="mt-4 text-center">
-            <p className="text-sm text-muted-foreground">
-              Already have an account?{" "}
-              <a href="/auth/login" className="text-primary hover:underline">
-                Login
-              </a>
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+export default function SignupPage(){
+ const[email,setEmail]=useState("");const[password,setPassword]=useState("");const[fullName,setFullName]=useState("");const[loading,setLoading]=useState(false);const[error,setError]=useState("");const router=useRouter();const{fetchUser}=useUserStore();
+ const submit=async(e:React.FormEvent)=>{e.preventDefault();setLoading(true);setError("");try{const res=await fetch("/api/auth/signup",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password,full_name:fullName})});const data=await res.json();if(!res.ok)throw new Error(data?.error||"Signup failed");await fetchUser();const user=useUserStore.getState().user;router.push(isStaffRole(data?.profile?.role)||isStaffRole(user?.role)?"/admin":"/dashboard")}catch(e){setError(e instanceof Error?e.message:"Signup failed")}finally{setLoading(false)}};
+ return <div className="min-h-[calc(100vh-120px)] py-8 sm:py-14"><div className="mx-auto grid max-w-5xl overflow-hidden rounded-3xl border border-black/[.06] bg-white shadow-[0_20px_70px_rgba(16,24,40,.08)] lg:grid-cols-2"><div className="order-2 p-6 sm:p-10 lg:order-1"><Link href="/" className="mb-8 inline-flex items-center text-xs font-semibold text-black/45 hover:text-orange-600"><ArrowLeft className="mr-2 h-3.5 w-3.5"/>Back to store</Link><p className="text-[10px] font-bold uppercase tracking-[.22em] text-orange-600">KETRONICS ACCOUNT</p><h1 className="mt-2 text-3xl font-bold tracking-[-.04em]">Create your account</h1><p className="mt-2 text-sm text-black/45">Shop faster, track orders and keep your details in one place.</p><form onSubmit={submit} className="mt-7 space-y-5"><div><Label htmlFor="fullName">Full name</Label><Input id="fullName" autoComplete="name" value={fullName} onChange={e=>setFullName(e.target.value)} required className="mt-1.5 h-11 rounded-xl"/></div><div><Label htmlFor="email">Email</Label><Input id="email" type="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} required className="mt-1.5 h-11 rounded-xl"/></div><div><Label htmlFor="password">Password</Label><Input id="password" type="password" autoComplete="new-password" minLength={8} value={password} onChange={e=>setPassword(e.target.value)} required className="mt-1.5 h-11 rounded-xl"/><p className="mt-1 text-[11px] text-black/40">Use at least 8 characters.</p></div>{error&&<Alert variant="destructive" className="rounded-xl"><AlertDescription>{error}</AlertDescription></Alert>}<Button disabled={loading} className="h-11 w-full rounded-full bg-orange-500 font-bold hover:bg-orange-600">{loading&&<Loader2 className="mr-2 h-4 w-4 animate-spin"/>}{loading?"Creating account…":"Create account"}</Button></form><p className="mt-6 text-center text-sm text-black/50">Already have an account? <Link href="/auth/login" className="font-bold text-orange-600">Sign in</Link></p></div><div className="order-1 bg-[#10152b] p-8 text-white lg:order-2 lg:p-10"><p className="text-[10px] font-bold uppercase tracking-[.25em] text-white/45">WHY JOIN</p><h2 className="mt-4 text-4xl font-bold tracking-[-.05em]">A smoother way to shop technology.</h2><div className="mt-10 space-y-4">{["Track every order in one place","Faster checkout next time","Keep delivery details up to date"].map(x=><div key={x} className="flex items-center gap-3 text-sm text-white/70"><span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10"><Check className="h-4 w-4 text-orange-400"/></span>{x}</div>)}</div></div></div></div>;
 }
