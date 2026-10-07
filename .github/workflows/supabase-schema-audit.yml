@@ -71,12 +71,6 @@ jobs:
             echo "renamed=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Stop after migration rename
-        if: steps.normalize.outputs.renamed == 'true'
-        run: |
-          echo "Migration filenames were normalized and pushed. The new commit will run the migration job again."
-          exit 0
-
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
         with:
@@ -84,6 +78,16 @@ jobs:
 
       - name: Link production project
         run: supabase link --project-ref "$SUPABASE_PROJECT_ID" --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Repair legacy migration history
+        run: |
+          set -euo pipefail
+          history="$(supabase migration list)"
+          if grep -q "20261005" <<< "$history" || grep -q "20261006" <<< "$history"; then
+            supabase migration repair 20261005 20261006 --status reverted
+          else
+            echo "No legacy 20261005/20261006 history entries found."
+          fi
 
       - name: Apply production migrations
         run: supabase db push
