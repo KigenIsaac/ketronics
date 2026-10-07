@@ -16,36 +16,92 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      PGHOST: db.klepxrustnlpzyivwxwf.supabase.co
-      PGPORT: "5432"
-      PGDATABASE: postgres
-      PGUSER: postgres
-      PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_REF: klepxrustnlpzyivwxwf
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Verify PostgreSQL connectivity
-        run: psql -v ON_ERROR_STOP=1 -c "select current_database(), current_user, version();"
+      - name: Verify Supabase Management API access
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error \
+            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            "https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}" \
+            -o /tmp/project.json
+          jq -e '.id == env.SUPABASE_PROJECT_REF' /tmp/project.json >/dev/null
 
       - name: Capture production schema
         run: |
           set -euo pipefail
           mkdir -p audit
 
-          psql -v ON_ERROR_STOP=1 -At -F '|' -c "select table_schema, table_name, column_name, data_type, is_nullable, column_default from information_schema.columns where table_schema = 'public' order by table_name, ordinal_position;" > audit/public_columns.txt
-          psql -v ON_ERROR_STOP=1 -At -F '|' -c "select schemaname, tablename, indexname, indexdef from pg_indexes where schemaname = 'public' order by tablename, indexname;" > audit/public_indexes.txt
-          psql -v ON_ERROR_STOP=1 -At -F '|' -c "select n.nspname, c.relname, c.relrowsecurity from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r' order by c.relname;" > audit/public_rls.txt
-          psql -v ON_ERROR_STOP=1 -At -F '|' -c "select schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check from pg_policies where schemaname = 'public' order by tablename, policyname;" > audit/public_policies.txt
-          psql -v ON_ERROR_STOP=1 -At -F '|' -c "select routine_schema, routine_name, routine_type, data_type from information_schema.routines where routine_schema = 'public' order by routine_name;" > audit/public_routines.txt
-          psql -v ON_ERROR_STOP=1 -At -F '|' -c "select version, name from supabase_migrations.schema_migrations order by version;" > audit/migration_history.txt
+          run_sql() {
+            local name="$1"
+            local query="$2"
+            curl --fail-with-body --silent --show-error \
+              -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+              -H "Content-Type: application/json" \
+              "https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}/database/query/read-only" \
+              --data-binary "$(jq -n --arg q "$query" '{query:$q}')" \
+              > "audit/${name}.json"
+          }
 
-          printf '%s\n' "=== TABLES ==="
-          psql -v ON_ERROR_STOP=1 -c "select table_name from information_schema.tables where table_schema='public' and table_type='BASE TABLE' order by table_name;"
-          printf '%s\n' "=== MIGRATION HISTORY ==="
-          cat audit/migration_history.txt || true
-          printf '%s\n' "=== RLS ==="
-          cat audit/public_rls.txt
+          run_sql public_columns "
+            select table_schema, table_name, column_name, data_type, is_nullable, column_default
+            from information_schema.columns
+            where table_schema = 'public'
+            order by table_name, ordinal_position;
+          "
+
+          run_sql public_indexes "
+            select schemaname, tablename, indexname, indexdef
+            from pg_indexes
+            where schemaname = 'public'
+            order by tablename, indexname;
+          "
+
+          run_sql public_rls "
+            select n.nspname as schema_name, c.relname as table_name, c.relrowsecurity as rls_enabled
+            from pg_class c
+            join pg_namespace n on n.oid = c.relnamespace
+            where n.nspname = 'public' and c.relkind = 'r'
+            order by c.relname;
+          "
+
+          run_sql public_policies "
+            select schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check
+            from pg_policies
+            where schemaname = 'public'
+            order by tablename, policyname;
+          "
+
+          run_sql public_routines "
+            select routine_schema, routine_name, routine_type, data_type
+            from information_schema.routines
+            where routine_schema = 'public'
+            order by routine_name;
+          "
+
+          run_sql migration_history "
+            select version, name
+            from supabase_migrations.schema_migrations
+            order by version;
+          "
+
+          run_sql public_tables "
+            select table_name
+            from information_schema.tables
+            where table_schema = 'public' and table_type = 'BASE TABLE'
+            order by table_name;
+          "
+
+          printf '%s\n' "=== PRODUCTION TABLES ==="
+          jq -r '.[] | [.table_name] | @tsv' audit/public_tables.json
+          printf '%s\n' "=== PRODUCTION MIGRATION HISTORY ==="
+          cat audit/migration_history.json
+          printf '%s\n' "=== PRODUCTION RLS ==="
+          cat audit/public_rls.json
 
       - name: Upload audit
         uses: actions/upload-artifact@v4
