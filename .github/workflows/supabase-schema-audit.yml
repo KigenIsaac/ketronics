@@ -47,10 +47,10 @@ jobs:
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as out:
               out.write(f"PGHOST={host}\n")
               out.write("PGPORT=6543\n")
-              out.write("PGUSER=postgres\n")
+              out.write(f"PGUSER=postgres.{os.environ['SUPABASE_PROJECT_REF']}\n")
               out.write("PGDATABASE=postgres\n")
 
-          print(f"Using Supavisor host={host} port=6543 database=postgres")
+          print(f"Using Supavisor host={host} port=6543 user=postgres.<project-ref> database=postgres")
           PY
 
       - name: Verify PostgreSQL connectivity
