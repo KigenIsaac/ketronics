@@ -48,4 +48,3 @@ jobs:
           exit 1
       - name: Production route smoke test
         run: node scripts/smoke-routes.mjs
-\n
