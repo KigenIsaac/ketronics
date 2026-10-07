@@ -59,10 +59,11 @@ export async function POST(request: NextRequest) {
     const transactionId = callback.ResultCode === 0 ? getMetadataValue(items, 'MpesaReceiptNumber') : null;
     const phoneNumber = callback.ResultCode === 0 ? getMetadataValue(items, 'PhoneNumber') : null;
 
+    // Daraja callbacks are not treated as cryptographically authenticated.
+    // Independently query the provider before changing financial state.
+    const verification = await queryStkPush(callback.CheckoutRequestID);
+
     if (callback.ResultCode === 0) {
-      // Daraja callbacks are not treated as cryptographically authenticated.
-      // Independently query the provider before changing financial state.
-      const verification = await queryStkPush(callback.CheckoutRequestID);
       if (verification.resultCode !== '0') {
         return NextResponse.json(
           { error: 'Payment provider verification did not confirm success' },
@@ -77,6 +78,13 @@ export async function POST(request: NextRequest) {
       if (payment.amount != null && Math.abs(Number(payment.amount) - Number(amount)) >= 0.01) {
         return NextResponse.json({ error: 'Payment amount mismatch' }, { status: 400 });
       }
+    } else if (verification.resultCode === '0') {
+      // Never let an unverified failure callback cancel a payment that the
+      // provider reports as successful. Wait for the success callback/retry.
+      return NextResponse.json(
+        { error: 'Payment provider verification reports success' },
+        { status: 409 },
+      );
     }
 
     const now = new Date().toISOString();
