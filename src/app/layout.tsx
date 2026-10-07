@@ -157,9 +157,6 @@ export default function RootLayout({
               {/* Main content */}
               <div className="flex-1 flex flex-col min-w-0 lg:ml-0">
 
-                {/* Mobile header spacing for sidebar toggle */}
-                <div className="lg:hidden h-14" />
-
                 {/* Page content */}
                 <main className="flex-1 lg:px-6 lg:py-6 px-4 py-4">
                   {children}
