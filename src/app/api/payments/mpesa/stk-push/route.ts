@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { getClientIp, consumeRateLimit } from '@/lib/rateLimit';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { initiateStkPush, isMpesaConfigured } from '@/lib/mpesa';
 
@@ -18,15 +19,23 @@ export async function POST(request: NextRequest) {
     const parsed = schema.safeParse(await request.json());
     if (!parsed.success) return NextResponse.json({ error: 'Invalid payment request' }, { status: 400 });
 
+    const { orderId, checkoutToken, phone } = parsed.data;
+    const ipAllowed = await consumeRateLimit(`mpesa-stk-ip:${getClientIp(request)}`, 8, 600);
+    const orderAllowed = await consumeRateLimit(`mpesa-stk-order:${orderId}`, 3, 600);
+    if (!ipAllowed || !orderAllowed) {
+      return NextResponse.json({ error: 'Too many payment attempts. Please try again later.' }, { status: 429 });
+    }
+
     const { data: order, error: orderError } = await supabaseAdmin
       .from('orders')
       .select('id, total, status, checkout_token, payment_method')
-      .eq('id', parsed.data.orderId)
-      .eq('checkout_token', parsed.data.checkoutToken)
+      .eq('id', orderId)
+      .eq('checkout_token', checkoutToken)
       .single();
 
     if (orderError || !order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     if (order.status === 'paid') return NextResponse.json({ error: 'Order is already paid' }, { status: 409 });
+
     if (order.payment_method !== 'mpesa') return NextResponse.json({ error: 'Order is not an M-Pesa order' }, { status: 409 });
 
     const amount = Number(order.total);
@@ -59,7 +68,7 @@ export async function POST(request: NextRequest) {
         amount,
         currency: 'KES',
         status: 'requested',
-        phone_number: parsed.data.phone,
+        phone_number: phone,
         metadata: {},
       })
       .select('id')
@@ -78,7 +87,7 @@ export async function POST(request: NextRequest) {
     try {
       const result = await initiateStkPush({
         amount,
-        phone: parsed.data.phone,
+        phone,
         accountReference: order.id.replace(/-/g, '').slice(-12),
         transactionDesc: 'Ketronics order',
       });
