@@ -122,24 +122,23 @@ export default function Home() {
 
       {/* Hero carousel */}
       <section className="mx-auto max-w-[1400px] px-4 pt-4 sm:px-6 lg:px-8">
-        <div className="relative min-h-[360px] overflow-hidden rounded-2xl bg-[#071a37] sm:min-h-[430px] lg:min-h-[470px]">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_45%,rgba(35,118,255,.5),transparent_38%),linear-gradient(120deg,#071a37,#052f74_55%,#0a72bc)]" />
-          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_center,rgba(255,255,255,.15),transparent_55%)]" />
-          <div className="relative grid min-h-[360px] items-center px-6 py-10 sm:min-h-[430px] sm:px-10 lg:min-h-[470px] lg:grid-cols-[.9fr_1.1fr] lg:px-14">
-            <div className="z-10 max-w-xl text-white">
-              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/55">KETRONICS · FEATURED</p>
-              <h1 className="mt-4 text-4xl font-bold leading-[.95] tracking-[-0.055em] sm:text-6xl">{heroTitle}</h1>
-              <p className="mt-5 max-w-md text-sm leading-6 text-white/70 sm:text-base">{heroSub}</p>
-              <div className="mt-7 flex gap-3">
-                <Link href="/products" className="inline-flex h-10 items-center rounded-full bg-orange-500 px-5 text-xs font-bold text-white hover:bg-orange-600">Shop now <ArrowRight className="ml-2 h-3.5 w-3.5" /></Link>
+        <div className="relative overflow-hidden rounded-2xl bg-[#071a37] shadow-[0_20px_60px_rgba(7,26,55,.16)]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_30%,rgba(35,118,255,.55),transparent_34%),linear-gradient(120deg,#071a37,#07377e_58%,#0b75bd)]" />
+          <div className="relative grid min-h-[520px] lg:min-h-[470px] lg:grid-cols-[.92fr_1.08fr]">
+            <div className="relative z-10 flex flex-col justify-center px-6 pb-5 pt-10 sm:px-10 lg:px-14 lg:py-12">
+              <p className="text-[9px] font-bold uppercase tracking-[0.24em] text-white/55">KETRONICS · FEATURED</p>
+              <h1 className="mt-3 max-w-[12ch] text-[2.65rem] font-bold leading-[.94] tracking-[-0.06em] text-white sm:text-6xl">{heroTitle}</h1>
+              <p className="mt-4 max-w-md text-sm leading-5 text-white/65 sm:mt-5 sm:text-base sm:leading-6">{heroSub}</p>
+              <div className="mt-5 flex gap-2.5 sm:mt-7">
+                <Link href="/products" className="inline-flex h-10 items-center rounded-full bg-orange-500 px-5 text-xs font-bold text-white shadow-lg shadow-orange-950/20 hover:bg-orange-600">Shop now <ArrowRight className="ml-2 h-3.5 w-3.5" /></Link>
                 <Link href="/contact" className="hidden h-10 items-center rounded-full border border-white/20 px-5 text-xs font-semibold text-white sm:inline-flex">Talk to an expert</Link>
               </div>
             </div>
-            <div className="absolute inset-y-0 right-0 flex w-[58%] items-center justify-center lg:static lg:w-auto">
-              {hero?.images?.[0] ? <Image src={hero.images[0]} alt={hero.name} width={600} height={500} priority className="max-h-[330px] w-auto object-contain drop-shadow-[0_25px_40px_rgba(0,0,0,.35)] transition-all duration-700 sm:max-h-[390px] lg:max-h-[430px]" /> : <div className="h-64 w-64 rounded-full bg-white/10" />}
+            <div className="relative mx-4 mb-4 flex min-h-[205px] items-center justify-center overflow-hidden rounded-xl bg-white sm:mx-6 sm:mb-6 sm:min-h-[245px] lg:mx-0 lg:mb-0 lg:min-h-0 lg:rounded-none lg:bg-white/95">
+              {hero?.images?.[0] ? <Image src={hero.images[0]} alt={hero.name} width={700} height={560} priority className="h-full max-h-[205px] w-full object-contain p-3 sm:max-h-[245px] sm:p-5 lg:max-h-[400px] lg:p-8" /> : <div className="h-40 w-40 rounded-full bg-black/5" />}
             </div>
           </div>
-          <div className="absolute bottom-5 left-6 flex gap-1.5 sm:left-10">
+          <div className="absolute bottom-4 left-6 flex gap-1.5 sm:left-10">
             {[0,1,2].map((index) => <button key={index} type="button" onClick={() => setSlide(index)} aria-label={"Show slide " + (index + 1)} className={"h-1.5 rounded-full transition-all " + (slide === index ? "w-8 bg-white" : "w-3 bg-white/30")} />)}
           </div>
         </div>
