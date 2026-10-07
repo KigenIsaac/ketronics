@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { Search, User, Shield, Edit, Ban, CheckCircle, Users, UserCheck, UserX } from 'lucide-react';
+import { Search, User, Shield, Edit , CheckCircle, Users, UserX } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface UserProfile {
