@@ -5,110 +5,64 @@ import { useCartStore } from "@/lib/stores/cartStore";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { User, LogOut, Settings, ShoppingCart, Menu, X } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
-import { Sidebar } from "@/components/sidebar";
 import { useMobileSidebar } from "@/components/providers";
 import Image from "next/image";
 import { isStaffRole } from "@/lib/roles";
+import { usePathname } from "next/navigation";
 
 export function Header() {
   const { user, logout } = useUserStore();
   const { getItemCount } = useCartStore();
   const cartItemCount = getItemCount();
   const { isOpen: isMobileMenuOpen, setIsOpen: setIsMobileMenuOpen } = useMobileSidebar();
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
+  const pathname = usePathname();
+  const isHome = pathname === "/";
 
   return (
-    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-30 w-full">
-      <div className="mx-auto px-4 flex h-14 items-center max-w-screen-2xl">
-        {/* Mobile menu toggle on the left */}
-        <div className="lg:hidden mr-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleMobileMenu}
-            className="h-9 w-9 p-0"
-          >
-            {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-          </Button>
+    <header className={isHome ? "sticky top-0 z-30 w-full border-b border-white/10 bg-[#080a0d] text-white" : "sticky top-0 z-30 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"}>
+      <div className="mx-auto flex h-14 max-w-screen-2xl items-center px-4">
+        <div className="mr-4 lg:hidden">
+          {!isHome && (
+            <Button variant="ghost" size="sm" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="h-9 w-9 p-0" aria-label="Open navigation menu">
+              {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </Button>
+          )}
         </div>
-
-        {/* Logo/Brand - Logo on mobile, Logo + Text on desktop */}
         <div className="flex-1 lg:flex-none">
-          <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-            <Image
-              src="/ketronics-logo.png"
-              alt="Ketronics LTD Logo"
-              width={32}
-              height={32}
-              className="rounded"
-              priority
-            />
-            <span className="font-bold text-lg hidden sm:inline">Ketronics LTD</span>
+          <Link href="/" className="flex items-center space-x-2 transition-opacity hover:opacity-80">
+            <Image src="/ketronics-logo.png" alt="Ketronics LTD Logo" width={32} height={32} className="rounded" priority />
+            <span className="hidden text-lg font-bold sm:inline">Ketronics LTD</span>
           </Link>
         </div>
-
-        {/* Desktop navigation and user menu on the right */}
-        <nav className="flex items-center space-x-2 ml-auto">
-          <Button variant="ghost" size="sm" asChild className="relative">
-            <Link href="/cart">
+        <nav className="ml-auto flex items-center space-x-2">
+          <Button variant="ghost" size="sm" asChild className={isHome ? "relative text-white hover:bg-white/10 hover:text-white" : "relative"}>
+            <Link href="/cart" aria-label={cartItemCount ? "Shopping cart, items in cart" : "Shopping cart"}>
               <ShoppingCart className="h-4 w-4" />
-              {cartItemCount > 0 && (
-                <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">
-                  {cartItemCount}
-                </Badge>
-              )}
+              {cartItemCount > 0 && <Badge className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center p-0 text-xs">{cartItemCount}</Badge>}
             </Link>
           </Button>
-            {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <User className="h-4 w-4 mr-2" />
-                    {user.full_name || user.email}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {isStaffRole(user.role) && (
-                    <DropdownMenuItem asChild>
-                      <a href="/admin">
-                        <Settings className="h-4 w-4 mr-2" />
-                        Admin Panel
-                      </a>
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem asChild>
-                    <a href="/dashboard">
-                      <User className="h-4 w-4 mr-2" />
-                      Dashboard
-                    </a>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={logout}>
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <div className="flex space-x-2">
-                <Button variant="ghost" size="sm" asChild>
-                  <a href="/auth/login">Login</a>
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className={isHome ? "text-white hover:bg-white/10 hover:text-white" : ""}>
+                  <User className="mr-2 h-4 w-4" />{user.full_name || user.email}
                 </Button>
-                <Button size="sm" asChild>
-                  <a href="/auth/signup">Sign Up</a>
-                </Button>
-              </div>
-            )}
-          </nav>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {isStaffRole(user.role) && <DropdownMenuItem asChild><a href="/admin"><Settings className="mr-2 h-4 w-4" />Admin Panel</a></DropdownMenuItem>}
+                <DropdownMenuItem asChild><a href="/dashboard"><User className="mr-2 h-4 w-4" />Dashboard</a></DropdownMenuItem>
+                <DropdownMenuItem onClick={logout}><LogOut className="mr-2 h-4 w-4" />Logout</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="flex space-x-2">
+              <Button variant="ghost" size="sm" asChild className={isHome ? "text-white hover:bg-white/10 hover:text-white" : ""}><a href="/auth/login">Login</a></Button>
+              <Button size="sm" asChild className={isHome ? "bg-white text-black hover:bg-white/90" : ""}><a href="/auth/signup">Sign Up</a></Button>
+            </div>
+          )}
+        </nav>
       </div>
     </header>
   );
