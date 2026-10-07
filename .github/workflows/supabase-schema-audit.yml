@@ -94,3 +94,12 @@ jobs:
 
       - name: Verify migration history
         run: supabase migration list
+
+      - name: Verify production schema
+        run: |
+          set -euo pipefail
+          supabase db query --linked -p "$SUPABASE_DB_PASSWORD" "select count(*) as product_count, count(*) filter (where status = 'active') as active_product_count, count(*) filter (where track_inventory = false) as non_inventory_tracked from public.products;"
+          supabase db query --linked -p "$SUPABASE_DB_PASSWORD" "select table_name from information_schema.tables where table_schema = 'public' and table_name in ('orders','order_items','payments','order_status_history','shipping_updates','api_rate_limits','stripe_webhook_events') order by table_name;"
+          supabase db query --linked -p "$SUPABASE_DB_PASSWORD" "select table_name, bool_or(rls_enabled) as rls_enabled from (select c.relname as table_name, c.relrowsecurity as rls_enabled from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relname in ('products','categories','subcategories','subcategory_attributes','orders','order_items','payments')) s group by table_name order by table_name;"
+          supabase db query --linked -p "$SUPABASE_DB_PASSWORD" "select column_name, data_type from information_schema.columns where table_schema = 'public' and table_name = 'products' and column_name in ('status','track_inventory','stock_quantity','low_stock_threshold') order by column_name;"
+          supabase db query --linked -p "$SUPABASE_DB_PASSWORD" "select column_name from information_schema.columns where table_schema = 'public' and table_name = 'store_settings' and column_name like 'smtp_%' order by column_name;"
