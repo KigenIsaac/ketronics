@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { isStaffRole } from "@/lib/roles";
 import { useUserStore } from "@/lib/stores/userStore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
+import { supabase } from "@/lib/supabase";
+import type { Product } from "@/types/product";
 import {
   ArrowRight,
   CheckCircle2,
@@ -37,8 +40,28 @@ const services = [
 ];
 
 export default function Home() {
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [productsLoading, setProductsLoading] = useState(true);
   const { user, loading: userLoading } = useUserStore();
   const router = useRouter();
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadFeaturedProducts = async () => {
+      const { data } = await supabase
+        .from("products")
+        .select("*, category:categories(*)")
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(4);
+      if (!cancelled) {
+        setFeaturedProducts(data ?? []);
+        setProductsLoading(false);
+      }
+    };
+    void loadFeaturedProducts();
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     if (!userLoading && user) {
@@ -174,6 +197,83 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Featured products */}
+      <section className="mx-auto max-w-[1400px] px-5 py-24 sm:px-8 lg:px-12 lg:py-32">
+        <div className="mb-12 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-black/40">02 — Featured</p>
+            <h2 className="mt-5 text-4xl font-semibold tracking-[-0.045em] sm:text-6xl">Good technology, chosen well.</h2>
+          </div>
+          <Link href="/products" className="inline-flex items-center text-sm font-medium text-black/55 transition-colors hover:text-black">
+            Browse the full store <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </div>
+
+        {productsLoading ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="aspect-[4/5] animate-pulse rounded-[1.5rem] bg-black/[0.05]" />
+            ))}
+          </div>
+        ) : featuredProducts.length > 0 ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {featuredProducts.map((product) => {
+              const price = product.discount && product.discount > 0
+                ? product.price * (1 - product.discount / 100)
+                : product.price;
+              return (
+                <Link
+                  key={product.id}
+                  href={"/products/" + product.id}
+                  className="group overflow-hidden rounded-[1.5rem] border border-black/10 bg-white transition-all duration-500 hover:-translate-y-1 hover:shadow-xl"
+                >
+                  <div className="relative aspect-square overflow-hidden bg-[#f1f1ee]">
+                    {product.images?.[0] ? (
+                      <Image
+                        src={product.images[0]}
+                        alt={product.name}
+                        fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 300px"
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-xs uppercase tracking-[0.18em] text-black/25">Ketronics</div>
+                    )}
+                    {product.discount && product.discount > 0 && (
+                      <span className="absolute left-4 top-4 rounded-full bg-black px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white">
+                        -{product.discount}%
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-5">
+                    <p className="text-[10px] uppercase tracking-[0.16em] text-black/35">{product.brand || product.category?.name || "Technology"}</p>
+                    <h3 className="mt-2 line-clamp-2 min-h-12 text-base font-semibold leading-6 tracking-tight">{product.name}</h3>
+                    <div className="mt-5 flex items-end justify-between gap-3">
+                      <div>
+                        <p className="text-lg font-semibold">KSh {price.toLocaleString("en-KE", { maximumFractionDigits: 0 })}</p>
+                        {product.discount && product.discount > 0 && (
+                          <p className="text-xs text-black/35 line-through">KSh {product.price.toLocaleString("en-KE", { maximumFractionDigits: 0 })}</p>
+                        )}
+                      </div>
+                      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black text-white transition-transform group-hover:translate-x-1">
+                        <ArrowRight className="h-4 w-4" />
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="rounded-[1.5rem] border border-dashed border-black/15 px-6 py-12 text-center">
+            <p className="text-sm text-black/45">New products are being added to the store.</p>
+            <Link href="/products" className="mt-4 inline-flex items-center text-sm font-semibold">
+              Explore the store <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </div>
+        )}
+      </section>
+
       {/* Categories */}
       <section className="bg-[#111316] px-5 py-24 text-white sm:px-8 lg:px-12 lg:py-32">
         <div className="mx-auto max-w-[1400px]">
@@ -224,7 +324,7 @@ export default function Home() {
       <section className="mx-auto max-w-[1400px] px-5 py-24 sm:px-8 lg:px-12 lg:py-32">
         <div className="grid gap-14 lg:grid-cols-[.7fr_1.3fr]">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-black/40">03 — Services</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-black/40">04 — Services</p>
             <h2 className="mt-5 max-w-md text-4xl font-semibold leading-[1.05] tracking-[-0.045em] sm:text-5xl">
               More than a store.
             </h2>
@@ -262,7 +362,7 @@ export default function Home() {
         <div className="relative mx-auto max-w-[1400px] overflow-hidden rounded-[2rem] bg-[#e8e8e3] px-6 py-16 sm:px-12 sm:py-20 lg:px-20">
           <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-white/70 blur-3xl" />
           <div className="relative max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-black/35">04 — Start here</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-black/35">05 — Start here</p>
             <h2 className="mt-5 text-4xl font-semibold leading-[1] tracking-[-0.055em] sm:text-6xl">
               Ready to upgrade your technology?
             </h2>
