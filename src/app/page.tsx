@@ -9,9 +9,9 @@ import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import type { Product } from "@/types/product";
 import {
-  ArrowRight, ChevronLeft, ChevronRight, Heart, Laptop, Monitor, Package,
-  Phone, Printer, Search, ShieldCheck, ShoppingBag, Smartphone, Sparkles,
-  Star, Tag, Truck, Tv, Watch, Headphones, Cpu
+  ArrowRight, ChevronLeft, ChevronRight, Heart, Laptop, Package,
+  Phone, Printer, ShieldCheck, ShoppingBag, Smartphone, Star, Tag, Truck,
+  Tv, Headphones, Cpu
 } from "lucide-react";
 
 const categories = [
@@ -96,7 +96,7 @@ export default function Home() {
   const heroSub = ["Shop laptops, phones, displays and accessories from Ketronics.", "Find dependable devices and components for home and business.", "Discover current products and practical technology services."][slide];
 
   return (
-    <main className="-mx-4 -mt-[72px] -mb-4 overflow-hidden bg-[#fffdf9] text-[#151515] lg:-mx-6 lg:-mt-6 lg:-mb-6">
+    <main className="-mx-4 -mt-6 -mb-4 overflow-hidden bg-[#fffdf9] text-[#151515] lg:-mx-6 lg:-mt-6 lg:-mb-6">
       {/* Promo strip */}
       <div className="bg-[#151515] px-4 py-2 text-center text-[10px] font-medium tracking-wide text-white sm:text-xs">
         <span className="text-orange-400">Special offers</span> · Shop technology with Ketronics · M-Pesa checkout available · <Link href="/contact" className="underline underline-offset-2">Need help?</Link>
