@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { createSupabaseServerClient } from '@/lib/supabaseServerClient';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { initiateStkPush, isMpesaConfigured } from '@/lib/mpesa';
 
@@ -30,6 +29,14 @@ export async function POST(request: NextRequest) {
     if (order.status === 'paid') return NextResponse.json({ error: 'Order is already paid' }, { status: 409 });
     if (order.payment_method !== 'mpesa') return NextResponse.json({ error: 'Order is not an M-Pesa order' }, { status: 409 });
 
+    const amount = Number(order.total);
+    if (!Number.isFinite(amount) || amount <= 0 || !Number.isInteger(amount)) {
+      return NextResponse.json(
+        { error: 'M-Pesa payments require a whole-number KES order total' },
+        { status: 422 },
+      );
+    }
+
     const existing = await supabaseAdmin
       .from('payments')
       .select('id, status, checkout_request_id')
@@ -49,7 +56,7 @@ export async function POST(request: NextRequest) {
       .insert({
         order_id: order.id,
         provider: 'mpesa',
-        amount: Number(order.total),
+        amount,
         currency: 'KES',
         status: 'requested',
         phone_number: parsed.data.phone,
@@ -70,7 +77,7 @@ export async function POST(request: NextRequest) {
 
     try {
       const result = await initiateStkPush({
-        amount: Number(order.total),
+        amount,
         phone: parsed.data.phone,
         accountReference: order.id.replace(/-/g, '').slice(-12),
         transactionDesc: 'Ketronics order',
