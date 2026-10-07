@@ -14,6 +14,7 @@ const files = {
   guestOrder: "src/app/api/orders/whatsapp/route.ts",
   contact: "src/app/api/contact/route.ts",
   orderStateMachine: "supabase/migrations/20261006_order_state_machine.sql",
+  staffLifecycle: "supabase/migrations/20261007_admin_staff_lifecycle.sql",
 };
 
 const source = {};
@@ -39,6 +40,10 @@ assert.equal(source.webhook.includes("export async function GET"), false);
 assert.equal(source.rateLimit.includes("consume_api_rate_limit"), true);
 assert.equal(source.guestOrder.includes("consumeRateLimit"), true);
 assert.equal(source.contact.includes("consumeRateLimit"), true);
+
+assert.equal(source.staffLifecycle.includes("Only active admins can change staff activation status"), true);
+assert.equal(source.staffLifecycle.includes("OLD.role IN ('manager', 'admin')"), true);
+assert.equal(source.staffLifecycle.includes("role = 'admin'"), true);
 
 assert.equal(source.orderStateMachine.includes("FOR UPDATE"), true);
 assert.equal(source.orderStateMachine.includes("pending' AND p_next_status IN ('confirmed', 'cancelled')"), true);
