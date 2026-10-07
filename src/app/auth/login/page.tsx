@@ -1,110 +1,17 @@
 "use client";
-
 import { useState } from "react";
 import { isStaffRole } from "@/lib/roles";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 import { useUserStore } from "@/lib/stores/userStore";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Alert,AlertDescription } from "@/components/ui/alert";
+import { Loader2,ArrowLeft,ShieldCheck } from "lucide-react";
+import Link from "next/link";
 
-export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const router = useRouter();
-  const { fetchUser } = useUserStore();
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    try {
-      // POST credentials to server route which will set secure cookies for SSR
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data?.error || 'Login failed');
-      }
-
-      // Sync client store and redirect according to role
-      await fetchUser();
-      const user = useUserStore.getState().user;
-      if (isStaffRole(data?.profile?.role) || isStaffRole(user?.role)) {
-        router.push('/admin');
-      } else {
-        router.push('/dashboard');
-      }
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'Login failed');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Login to Ketronics LTD</CardTitle>
-          <CardDescription>
-            Enter your credentials to access your account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Login
-            </Button>
-          </form>
-          <div className="mt-4 text-center">
-            <p className="text-sm text-muted-foreground">
-              Don&apos;t have an account?{" "}
-              <a href="/auth/signup" className="text-primary hover:underline">
-                Sign up
-              </a>
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+export default function LoginPage(){
+ const[email,setEmail]=useState("");const[password,setPassword]=useState("");const[loading,setLoading]=useState(false);const[error,setError]=useState("");const router=useRouter();const{fetchUser}=useUserStore();
+ const submit=async(e:React.FormEvent)=>{e.preventDefault();setLoading(true);setError("");try{const res=await fetch("/api/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password})});const data=await res.json();if(!res.ok)throw new Error(data?.error||"Login failed");await fetchUser();const user=useUserStore.getState().user;router.push(isStaffRole(data?.profile?.role)||isStaffRole(user?.role)?"/admin":"/dashboard")}catch(e){setError(e instanceof Error?e.message:"Login failed")}finally{setLoading(false)}};
+ return <div className="min-h-[calc(100vh-120px)] py-8 sm:py-14"><div className="mx-auto grid max-w-5xl overflow-hidden rounded-3xl border border-black/[.06] bg-white shadow-[0_20px_70px_rgba(16,24,40,.08)] lg:grid-cols-2"><div className="hidden bg-[#10152b] p-10 text-white lg:flex lg:flex-col lg:justify-between"><div><Link href="/" className="text-sm font-bold">← Ketronics</Link><div className="mt-24"><p className="text-[10px] font-bold uppercase tracking-[.25em] text-white/45">WELCOME BACK</p><h1 className="mt-3 text-5xl font-bold tracking-[-.06em]">Your tech, one account.</h1><p className="mt-5 max-w-sm text-sm leading-6 text-white/55">Track orders, manage your details and shop the Ketronics catalog.</p></div></div><div className="flex items-center gap-2 text-xs text-white/45"><ShieldCheck className="h-4 w-4"/> Secure account access</div></div><div className="p-6 sm:p-10"><Link href="/" className="mb-8 inline-flex items-center text-xs font-semibold text-black/45 hover:text-orange-600"><ArrowLeft className="mr-2 h-3.5 w-3.5"/>Back to store</Link><p className="text-[10px] font-bold uppercase tracking-[.22em] text-orange-600">KETRONICS ACCOUNT</p><h2 className="mt-2 text-3xl font-bold tracking-[-.04em]">Sign in</h2><p className="mt-2 text-sm text-black/45">Access your orders and account.</p><form onSubmit={submit} className="mt-7 space-y-5"><div><Label htmlFor="email">Email</Label><Input id="email" type="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} required className="mt-1.5 h-11 rounded-xl"/></div><div><Label htmlFor="password">Password</Label><Input id="password" type="password" autoComplete="current-password" value={password} onChange={e=>setPassword(e.target.value)} required className="mt-1.5 h-11 rounded-xl"/></div>{error&&<Alert variant="destructive" className="rounded-xl"><AlertDescription>{error}</AlertDescription></Alert>}<Button disabled={loading} className="h-11 w-full rounded-full bg-orange-500 font-bold hover:bg-orange-600">{loading&&<Loader2 className="mr-2 h-4 w-4 animate-spin"/>}{loading?"Signing in…":"Sign in"}</Button></form><p className="mt-6 text-center text-sm text-black/50">New to Ketronics? <Link href="/auth/signup" className="font-bold text-orange-600">Create an account</Link></p></div></div></div>;
 }
