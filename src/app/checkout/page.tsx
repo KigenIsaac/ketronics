@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { ArrowLeft, Smartphone, Truck, MessageCircle, Phone, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Smartphone, MessageCircle, Phone, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { PageHero, SectionHeader, StorePage, Surface } from '@/components/store-ui';
 
