@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabaseServerClient';
+import { getClientIp, consumeRateLimit } from '@/lib/rateLimit';
 import { z } from 'zod';
 
 export async function POST(req: Request) {
@@ -7,8 +8,14 @@ export async function POST(req: Request) {
     const parsed = z.object({ email: z.string().email().max(254), password: z.string().min(8).max(128) }).safeParse(await req.json());
     if (!parsed.success) return NextResponse.json({ error: 'Invalid email or password' }, { status: 400 });
     const { email, password } = parsed.data;
-    const supabase = await createSupabaseServerClient()
 
+    const ipAllowed = await consumeRateLimit(`auth-login-ip:${getClientIp(req)}`, 10, 900);
+    const emailAllowed = await consumeRateLimit(`auth-login-email:${email.toLowerCase()}`, 5, 900);
+    if (!ipAllowed || !emailAllowed) {
+      return NextResponse.json({ error: 'Too many login attempts. Please try again later.' }, { status: 429 });
+    }
+
+    const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error || !data) {
@@ -17,17 +24,13 @@ export async function POST(req: Request) {
     }
 
     const { data: { user } } = await supabase.auth.getUser();
-
-    // Fetch profile role/metadata to return to client
     const { data: profile } = await supabase
       .from('profiles')
       .select('role, full_name')
       .eq('id', user?.id ?? data.user?.id)
       .single();
 
-    const out = NextResponse.json({ user, profile }, { status: 200 });
-
-    return out;
+    return NextResponse.json({ user, profile }, { status: 200 });
   } catch (err: unknown) {
     console.error('Authentication endpoint failed:', err);
     return NextResponse.json({ error: 'Authentication request failed' }, { status: 500 });
