@@ -64,7 +64,6 @@ export default function Home() {
       const { data, error } = await supabase
         .from("products")
         .select("*")
-        .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(16);
 
