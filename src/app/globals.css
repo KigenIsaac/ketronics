@@ -48,20 +48,20 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --background: #f7f6f2;
+  --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --primary: #ff6b00;
+  --primary-foreground: #ffffff;
+  --secondary: #f0efeb;
+  --secondary-foreground: #171717;
+  --muted: #f0efeb;
+  --muted-foreground: #6b6b6b;
+  --accent: #fff1e7;
+  --accent-foreground: #c94f00;
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
@@ -140,4 +140,14 @@
 
 .animate-scroll:hover {
   animation-play-state: paused;
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body { min-height: 100vh; background: #f7f6f2; color: #171717; }
+  ::selection { background: #ff6b00; color: white; }
+  button, a, input, textarea, select { -webkit-tap-highlight-color: transparent; }
+}
+@layer utilities {
+  .text-balance { text-wrap: balance; }
 }
