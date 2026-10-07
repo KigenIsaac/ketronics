@@ -93,6 +93,7 @@ function ProductsContent() {
           category:categories(*),
           subcategory:subcategories(*)
         `)
+        .eq('status', 'active')
         .order('created_at', { ascending: false });
 
       if (error) {
