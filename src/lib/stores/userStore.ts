@@ -17,7 +17,7 @@ interface UserStore {
   logout: () => Promise<void>;
 }
 
-export const useUserStore = create<UserStore>((set, get) => ({
+export const useUserStore = create<UserStore>((set) => ({
   user: null,
   loading: true,
   setUser: (user) => set({ user }),
