@@ -1,0 +1,74 @@
+name: Supabase production schema audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/**"
+      - ".github/workflows/supabase-schema-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PGHOST: db.klepxrustnlpzyivwxwf.supabase.co
+      PGPORT: "5432"
+      PGDATABASE: postgres
+      PGUSER: postgres
+      PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify PostgreSQL connectivity
+        run: psql "${DATABASE_URL}" -v ON_ERROR_STOP=1 -c "select current_database(), current_user, version();"
+        env:
+          DATABASE_URL: postgresql://postgres:${{ secrets.SUPABASE_DB_PASSWORD }}@db.klepxrustnlpzyivwxwf.supabase.co:5432/postgres
+
+      - name: Capture production schema
+        run: |
+          set -euo pipefail
+          mkdir -p audit
+
+          psql "${DATABASE_URL}" -v ON_ERROR_STOP=1 -At -F '|' \
+            -c "select table_schema, table_name, column_name, data_type, is_nullable, column_default from information_schema.columns where table_schema = 'public' order by table_name, ordinal_position;" \
+            > audit/public_columns.txt
+
+          psql "${DATABASE_URL}" -v ON_ERROR_STOP=1 -At -F '|' \
+            -c "select schemaname, tablename, indexname, indexdef from pg_indexes where schemaname = 'public' order by tablename, indexname;" \
+            > audit/public_indexes.txt
+
+          psql "${DATABASE_URL}" -v ON_ERROR_STOP=1 -At -F '|' \
+            -c "select n.nspname, c.relname, c.relrowsecurity from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r' order by c.relname;" \
+            > audit/public_rls.txt
+
+          psql "${DATABASE_URL}" -v ON_ERROR_STOP=1 -At -F '|' \
+            -c "select schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check from pg_policies where schemaname = 'public' order by tablename, policyname;" \
+            > audit/public_policies.txt
+
+          psql "${DATABASE_URL}" -v ON_ERROR_STOP=1 -At -F '|' \
+            -c "select routine_schema, routine_name, routine_type, data_type from information_schema.routines where routine_schema = 'public' order by routine_name;" \
+            > audit/public_routines.txt
+
+          psql "${DATABASE_URL}" -v ON_ERROR_STOP=1 -At -F '|' \
+            -c "select version, name from supabase_migrations.schema_migrations order by version;" \
+            > audit/migration_history.txt
+
+          printf '%s\n' "=== TABLES ==="
+          psql "${DATABASE_URL}" -v ON_ERROR_STOP=1 -c "select table_name from information_schema.tables where table_schema='public' and table_type='BASE TABLE' order by table_name;"
+          printf '%s\n' "=== MIGRATION HISTORY ==="
+          cat audit/migration_history.txt || true
+          printf '%s\n' "=== RLS ==="
+          cat audit/public_rls.txt
+
+      - name: Upload audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-production-schema-audit
+          path: audit/
+          retention-days: 7
