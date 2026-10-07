@@ -28,33 +28,29 @@ jobs:
           set -euo pipefail
           curl --fail-with-body --silent --show-error \
             -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
-            "https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}/config/database/pgbouncer" \
-            -o /tmp/pgbouncer.json
+            "https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}" \
+            -o /tmp/project.json
 
           python3 - <<'PY'
           import json, os
-          from urllib.parse import urlparse, unquote
 
-          with open("/tmp/pgbouncer.json", encoding="utf-8") as f:
-              cfg = json.load(f)
+          with open("/tmp/project.json", encoding="utf-8") as f:
+              project = json.load(f)
 
-          uri = cfg["connection_string"]
-          parsed = urlparse(uri)
-          if not parsed.hostname or not parsed.port or not parsed.username or not parsed.path:
-              raise SystemExit("Supabase pooler configuration did not contain a usable connection string")
+          region = project.get("region")
+          if not region:
+              raise SystemExit("Supabase project response did not include a region")
 
-          values = {
-              "PGHOST": parsed.hostname,
-              "PGPORT": str(parsed.port),
-              "PGUSER": unquote(parsed.username),
-              "PGDATABASE": parsed.path.lstrip("/").split("?")[0],
-          }
+          # Supabase documents this IPv4-capable Supavisor hostname pattern.
+          host = f"aws-0-{region}.pooler.supabase.com"
 
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as out:
-              for key, value in values.items():
-                  out.write(f"{key}={value}\n")
+              out.write(f"PGHOST={host}\n")
+              out.write("PGPORT=6543\n")
+              out.write("PGUSER=postgres\n")
+              out.write("PGDATABASE=postgres\n")
 
-          print(f"Using Supavisor host={values['PGHOST']} port={values['PGPORT']} database={values['PGDATABASE']}")
+          print(f"Using Supavisor host={host} port=6543 database=postgres")
           PY
 
       - name: Verify PostgreSQL connectivity
