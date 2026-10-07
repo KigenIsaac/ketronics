@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Bell, Moon, Sun, Shield, LogOut, Settings as SettingsIcon, KeyRound, ExternalLink } from "lucide-react";
+import { Bell, Moon, Sun, LogOut, Settings as SettingsIcon, KeyRound, ExternalLink } from "lucide-react";
 import { useTheme } from "next-themes";
 import { PageHero, StorePage, Surface } from "@/components/store-ui";
 import Link from "next/link";
