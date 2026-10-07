@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: supabase-production
@@ -26,50 +26,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Normalize migration versions
-        id: normalize
-        run: |
-          set -euo pipefail
-          declare -A renames=(
-            [20261005_production_schema_baseline.sql]=20261005000000_production_schema_baseline.sql
-            [20261006_admin_authorization.sql]=20261006010000_admin_authorization.sql
-            [20261006_api_rate_limits.sql]=20261006020000_api_rate_limits.sql
-            [20261006_atomic_mpesa_success.sql]=20261006030000_atomic_mpesa_success.sql
-            [20261006_atomic_order_creation.sql]=20261006040000_atomic_order_creation.sql
-            [20261006_atomic_payment_success.sql]=20261006050000_atomic_payment_success.sql
-            [20261006_commerce_rls_hardening.sql]=20261006060000_commerce_rls_hardening.sql
-            [20261006_expire_stale_orders.sql]=20261006070000_expire_stale_orders.sql
-            [20261006_inventory_cron.sql]=20261006080000_inventory_cron.sql
-            [20261006_inventory_guest_orders.sql]=20261006090000_inventory_guest_orders.sql
-            [20261006_inventory_release.sql]=20261006100000_inventory_release.sql
-            [20261006_mpesa_attempt_lock.sql]=20261006110000_mpesa_attempt_lock.sql
-            [20261006_order_state_machine.sql]=20261006120000_order_state_machine.sql
-            [20261006_payment_idempotency.sql]=20261006130000_payment_idempotency.sql
-            [20261006_remove_legacy_mpesa_transition.sql]=20261006140000_remove_legacy_mpesa_transition.sql
-            [20261006_store_settings_hardening.sql]=20261006150000_store_settings_hardening.sql
-            [20261006_stripe_webhook_idempotency.sql]=20261006160000_stripe_webhook_idempotency.sql
-            [20261007_admin_staff_lifecycle.sql]=20261007000000_admin_staff_lifecycle.sql
-          )
-
-          changed=false
-          for old in "${!renames[@]}"; do
-            new="${renames[$old]}"
-            if [ -f "supabase/migrations/$old" ]; then
-              git mv "supabase/migrations/$old" "supabase/migrations/$new"
-              changed=true
-            fi
-          done
-
-          if [ "$changed" = "true" ]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "fix: normalize Supabase migration versions"
-            git push origin HEAD:main
-            echo "renamed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "renamed=false" >> "$GITHUB_OUTPUT"
-          fi
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
@@ -94,6 +50,9 @@ jobs:
 
       - name: Verify migration history
         run: supabase migration list
+
+      - name: Lint production schema
+        run: supabase db lint --linked --fail-on error
 
       - name: Verify production schema
         run: |
