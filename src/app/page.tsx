@@ -2,278 +2,284 @@
 
 import { useEffect } from "react";
 import { isStaffRole } from "@/lib/roles";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { LoadingPage } from "@/components/loading";
-import { Laptop, Printer, Tv, Monitor, Wrench, Shield, Network, Headphones, ArrowRight, Star } from "lucide-react";
 import { useUserStore } from "@/lib/stores/userStore";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import Link from "next/link";
+import {
+  ArrowRight,
+  CheckCircle2,
+  ChevronRight,
+  Cpu,
+  Headphones,
+  Laptop,
+  Monitor,
+  Network,
+  Printer,
+  ShieldCheck,
+  ShoppingBag,
+  Sparkles,
+  Wrench,
+  Zap,
+} from "lucide-react";
+
+const categories = [
+  { title: "Laptops", description: "Work, create and play.", href: "/products?category=laptops", icon: Laptop, tag: "Performance" },
+  { title: "Printers", description: "Reliable office printing.", href: "/products?category=printers", icon: Printer, tag: "Business" },
+  { title: "TVs & Displays", description: "Sharper ways to see more.", href: "/products?category=tvs", icon: Monitor, tag: "Entertainment" },
+  { title: "PCs & Components", description: "Built around your needs.", href: "/products?category=pcs", icon: Cpu, tag: "Custom" },
+];
+
+const services = [
+  { icon: Wrench, title: "Repairs & maintenance", text: "Keep your devices reliable with practical technical support." },
+  { icon: ShieldCheck, title: "CCTV & security", text: "Professional security solutions for homes and businesses." },
+  { icon: Network, title: "Networks & connectivity", text: "Plan, install and troubleshoot dependable networks." },
+  { icon: Headphones, title: "Technical support", text: "Get help choosing, setting up and maintaining your technology." },
+];
 
 export default function Home() {
   const { user, loading: userLoading } = useUserStore();
   const router = useRouter();
+
   useEffect(() => {
     if (!userLoading && user) {
-      toast.info("Redirecting to your dashboard...");
-      setTimeout(() => {
-        if (isStaffRole(user.role)) {
-          router.push("/admin");
-        } else {
-          router.push("/dashboard");
-        }
-      }, 1500);
+      const timer = window.setTimeout(() => {
+        router.push(isStaffRole(user.role) ? "/admin" : "/dashboard");
+      }, 900);
+      return () => window.clearTimeout(timer);
     }
   }, [user, userLoading, router]);
 
   if (userLoading) {
-    return <LoadingPage message="Loading your experience..." />;
+    return (
+      <main className="min-h-screen bg-[#080a0d] flex items-center justify-center text-white">
+        <div className="flex items-center gap-3 text-sm text-white/60">
+          <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
+          Loading your experience
+        </div>
+      </main>
+    );
   }
 
   if (user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mx-auto"></div>
-          <p className="text-lg">Welcome back, {user.full_name || user.email}!</p>
-          <p className="text-muted-foreground">Redirecting to your dashboard...</p>
+      <main className="min-h-screen bg-[#080a0d] flex items-center justify-center text-white">
+        <div className="text-center">
+          <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/5">
+            <Zap className="h-5 w-5" />
+          </div>
+          <p className="text-lg font-medium">Welcome back, {user.full_name || user.email}</p>
+          <p className="mt-1 text-sm text-white/50">Taking you to your workspace…</p>
         </div>
-      </div>
+      </main>
     );
   }
 
-  const handleBrowseProducts = () => {
-    toast.success("Exploring our product catalog!");
-    router.push('/products');
-  };
-
-  const handleGetStarted = () => {
-    toast.info("Let's get you started!");
-    router.push('/auth/signup');
-  };
-
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="relative py-20 px-4 text-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5"></div>
-        <div className="relative max-w-4xl mx-auto">
-          <div className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-            <Star className="h-4 w-4 mr-2" />
-            Welcome to Ketronics LTD
+    <main className="overflow-hidden bg-[#f7f7f5] text-[#101114]">
+      {/* Hero */}
+      <section className="relative min-h-[calc(100vh-3.5rem)] bg-[#080a0d] text-white">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -right-32 -top-40 h-[620px] w-[620px] rounded-full bg-white/[0.06] blur-3xl" />
+          <div className="absolute -bottom-48 left-1/3 h-[500px] w-[500px] rounded-full bg-amber-300/[0.08] blur-3xl" />
+          <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/30 to-transparent" />
+          <div className="absolute inset-0 opacity-[0.035]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px)", backgroundSize: "72px 72px" }} />
+        </div>
+
+        <div className="relative mx-auto flex min-h-[calc(100vh-3.5rem)] max-w-[1400px] flex-col justify-between px-5 py-10 sm:px-8 lg:px-12">
+          <div className="flex items-center justify-between text-xs uppercase tracking-[0.22em] text-white/45">
+            <span className="flex items-center gap-2">
+              <Sparkles className="h-3.5 w-3.5 text-white" />
+              Technology, thoughtfully supplied
+            </span>
+            <span className="hidden sm:block">Kenya · Ketronics LTD</span>
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6">
-            Your Trusted Tech Store in <span className="text-primary">Kenya</span>
-          </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-            Shop laptops, printers, TVs, PCs, CCTV installation, network setup and tech repairs with fast delivery and expert support across Kenya.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              size="lg"
-              className="text-lg px-8 py-3 h-auto group"
-              onClick={handleBrowseProducts}
-            >
-              Browse Products
-              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="text-lg px-8 py-3 h-auto"
-              onClick={handleGetStarted}
-            >
-              Get Started
-            </Button>
+
+          <div className="grid items-end gap-12 py-16 lg:grid-cols-[1.25fr_.75fr] lg:py-20">
+            <div>
+              <p className="mb-6 text-sm font-medium text-white/55">YOUR TECHNOLOGY PARTNER</p>
+              <h1 className="max-w-5xl text-[clamp(3.5rem,9vw,8.5rem)] font-semibold leading-[0.86] tracking-[-0.07em]">
+                Tech that
+                <br />
+                <span className="text-white/45">moves you</span>
+                <br />
+                forward.
+              </h1>
+              <p className="mt-9 max-w-xl text-base leading-7 text-white/60 sm:text-lg">
+                Discover dependable technology products and expert services—from everyday devices to the systems that keep your business connected.
+              </p>
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+                <Link
+                  href="/products"
+                  className="group inline-flex h-12 items-center justify-center rounded-full bg-white px-6 text-sm font-semibold text-black transition-transform hover:scale-[1.02]"
+                >
+                  Explore products
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Link>
+                <Link
+                  href="/contact"
+                  className="inline-flex h-12 items-center justify-center rounded-full border border-white/15 bg-white/[0.04] px-6 text-sm font-medium text-white transition-colors hover:bg-white/[0.09]"
+                >
+                  Talk to us
+                </Link>
+              </div>
+            </div>
+
+            <div className="lg:pb-3">
+              <div className="rounded-[2rem] border border-white/10 bg-white/[0.045] p-5 backdrop-blur-sm sm:p-6">
+                <div className="mb-10 flex items-center justify-between">
+                  <span className="text-xs uppercase tracking-[0.18em] text-white/45">Why Ketronics</span>
+                  <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_18px_rgba(52,211,153,.7)]" />
+                </div>
+                <div className="space-y-5">
+                  {[
+                    "Curated technology products",
+                    "M-Pesa-ready checkout",
+                    "Technical services & support",
+                    "Built for Kenyan customers",
+                  ].map((item) => (
+                    <div key={item} className="flex items-center gap-3 border-b border-white/8 pb-5 last:border-0 last:pb-0">
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-white/70" />
+                      <span className="text-sm text-white/75">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between border-t border-white/10 pt-5 text-xs text-white/35">
+            <span>Scroll to explore</span>
+            <span className="hidden sm:block">01 / 04</span>
           </div>
         </div>
       </section>
 
-      {/* Products Section */}
-      <section className="py-16 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4 text-foreground">Featured Products</h2>
-            <p className="text-lg text-muted-foreground">Explore our premium selection of tech products</p>
+      {/* Intro */}
+      <section className="mx-auto max-w-[1400px] px-5 py-24 sm:px-8 lg:px-12 lg:py-32">
+        <div className="grid gap-12 lg:grid-cols-[.8fr_1.2fr] lg:gap-24">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-black/40">01 — What we do</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-primary/20">
-              <CardHeader className="text-center">
-                <div className="mx-auto mb-4 p-3 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                  <Laptop className="h-8 w-8 text-primary" />
-                </div>
-                <CardTitle className="group-hover:text-primary transition-colors">Laptops</CardTitle>
-                <CardDescription>High-performance laptops for work and play</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Badge variant="secondary" className="mb-4">New Arrivals</Badge>
-                <Button variant="ghost" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors" asChild>
-                  <Link href="/products?category=laptops">
-                    View Laptops
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-            <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-primary/20">
-              <CardHeader className="text-center">
-                <div className="mx-auto mb-4 p-3 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                  <Printer className="h-8 w-8 text-primary" />
-                </div>
-                <CardTitle className="group-hover:text-primary transition-colors">Printers</CardTitle>
-                <CardDescription>Reliable printing solutions for home and office</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Badge variant="secondary" className="mb-4">Best Sellers</Badge>
-                <Button variant="ghost" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors" asChild>
-                  <Link href="/products?category=printers">
-                    View Printers
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-            <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-primary/20">
-              <CardHeader className="text-center">
-                <div className="mx-auto mb-4 p-3 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                  <Tv className="h-8 w-8 text-primary" />
-                </div>
-                <CardTitle className="group-hover:text-primary transition-colors">TVs</CardTitle>
-                <CardDescription>Crystal clear displays for entertainment</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Badge variant="secondary" className="mb-4">4K Available</Badge>
-                <Button variant="ghost" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors" asChild>
-                  <Link href="/products?category=tvs">
-                    View TVs
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-            <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-primary/20">
-              <CardHeader className="text-center">
-                <div className="mx-auto mb-4 p-3 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                  <Monitor className="h-8 w-8 text-primary" />
-                </div>
-                <CardTitle className="group-hover:text-primary transition-colors">PCs</CardTitle>
-                <CardDescription>Custom-built computers for every need</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Badge variant="secondary" className="mb-4">Custom Config</Badge>
-                <Button variant="ghost" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors" asChild>
-                  <Link href="/products?category=pcs">
-                    View PCs
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
+          <div>
+            <h2 className="max-w-4xl text-4xl font-semibold leading-[1.05] tracking-[-0.045em] sm:text-6xl">
+              The right technology should feel simple.
+            </h2>
+            <p className="mt-7 max-w-2xl text-base leading-7 text-black/55 sm:text-lg">
+              Ketronics brings products, technical expertise and after-sales support into one experience. Whether you need a new laptop or a complete technology setup, we help you make the right choice.
+            </p>
+            <Link href="/about-us" className="mt-8 inline-flex items-center text-sm font-semibold hover:gap-3 transition-all">
+              Discover Ketronics <ChevronRight className="ml-1 h-4 w-4" />
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Services Section */}
-      <section className="py-16 px-4 bg-muted/30">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4 text-foreground">Expert Services</h2>
-            <p className="text-lg text-muted-foreground">Professional tech services you can trust</p>
+      {/* Categories */}
+      <section className="bg-[#111316] px-5 py-24 text-white sm:px-8 lg:px-12 lg:py-32">
+        <div className="mx-auto max-w-[1400px]">
+          <div className="mb-14 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/35">02 — Shop</p>
+              <h2 className="mt-5 text-4xl font-semibold tracking-[-0.045em] sm:text-6xl">Technology for every setup.</h2>
+            </div>
+            <Link href="/products" className="inline-flex items-center text-sm text-white/60 hover:text-white">
+              View all products <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardHeader className="text-center">
-                <div className="mx-auto mb-4 p-3 rounded-full bg-green-100 dark:bg-green-900/20">
-                  <Wrench className="h-8 w-8 text-green-600 dark:text-green-400" />
-                </div>
-                <CardTitle>Maintenance & Repairs</CardTitle>
-                <CardDescription>Keep your devices running smoothly with our expert repair services</CardDescription>
-              </CardHeader>
-            </Card>
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardHeader className="text-center">
-                <div className="mx-auto mb-4 p-3 rounded-full bg-blue-100 dark:bg-blue-900/20">
-                  <Shield className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-                </div>
-                <CardTitle>CCTV Installation</CardTitle>
-                <CardDescription>Secure your property with professional CCTV systems</CardDescription>
-              </CardHeader>
-            </Card>
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardHeader className="text-center">
-                <div className="mx-auto mb-4 p-3 rounded-full bg-purple-100 dark:bg-purple-900/20">
-                  <Network className="h-8 w-8 text-purple-600 dark:text-purple-400" />
-                </div>
-                <CardTitle>Network Setup</CardTitle>
-                <CardDescription>Reliable network solutions for homes and businesses</CardDescription>
-              </CardHeader>
-            </Card>
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardHeader className="text-center">
-                <div className="mx-auto mb-4 p-3 rounded-full bg-orange-100 dark:bg-orange-900/20">
-                  <Headphones className="h-8 w-8 text-orange-600 dark:text-orange-400" />
-                </div>
-                <CardTitle>Software Support</CardTitle>
-                <CardDescription>Expert software installation and troubleshooting</CardDescription>
-              </CardHeader>
-            </Card>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            {categories.map((category, index) => {
+              const Icon = category.icon;
+              return (
+                <Link
+                  key={category.title}
+                  href={category.href}
+                  className="group relative min-h-[300px] overflow-hidden rounded-[1.75rem] border border-white/8 bg-white/[0.035] p-7 transition-all duration-500 hover:-translate-y-1 hover:bg-white/[0.07] sm:p-9"
+                >
+                  <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-white/[0.025] transition-transform duration-700 group-hover:scale-150" />
+                  <div className="relative flex h-full flex-col justify-between">
+                    <div className="flex items-start justify-between">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06]">
+                        <Icon className="h-5 w-5 text-white/80" />
+                      </div>
+                      <span className="text-xs uppercase tracking-[0.18em] text-white/30">0{index + 1}</span>
+                    </div>
+                    <div>
+                      <span className="text-xs uppercase tracking-[0.18em] text-white/35">{category.tag}</span>
+                      <h3 className="mt-2 text-3xl font-medium tracking-[-0.035em]">{category.title}</h3>
+                      <p className="mt-2 text-sm text-white/45">{category.description}</p>
+                      <span className="mt-6 inline-flex items-center text-sm font-medium text-white/65 group-hover:text-white">
+                        Shop category <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-16 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-3xl font-bold text-primary mb-2">500+</div>
-              <div className="text-muted-foreground">Happy Customers</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-primary mb-2">1000+</div>
-              <div className="text-muted-foreground">Products Sold</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-primary mb-2">50+</div>
-              <div className="text-muted-foreground">Expert Technicians</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-primary mb-2">24/7</div>
-              <div className="text-muted-foreground">Support Available</div>
-            </div>
+      {/* Services */}
+      <section className="mx-auto max-w-[1400px] px-5 py-24 sm:px-8 lg:px-12 lg:py-32">
+        <div className="grid gap-14 lg:grid-cols-[.7fr_1.3fr]">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-black/40">03 — Services</p>
+            <h2 className="mt-5 max-w-md text-4xl font-semibold leading-[1.05] tracking-[-0.045em] sm:text-5xl">
+              More than a store.
+            </h2>
+            <p className="mt-6 max-w-md text-sm leading-6 text-black/50">
+              From installation to troubleshooting, our technical services help you get more from the technology you buy.
+            </p>
+            <Link href="/contact" className="mt-8 inline-flex h-11 items-center rounded-full bg-black px-5 text-sm font-medium text-white hover:bg-black/85">
+              Request a service <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </div>
+
+          <div className="divide-y divide-black/10 border-y border-black/10">
+            {services.map((service, index) => {
+              const Icon = service.icon;
+              return (
+                <div key={service.title} className="group grid gap-4 py-7 sm:grid-cols-[70px_1fr_auto] sm:items-center">
+                  <span className="text-xs text-black/30">0{index + 1}</span>
+                  <div className="flex items-start gap-4">
+                    <Icon className="mt-1 h-5 w-5 shrink-0 text-black/50" />
+                    <div>
+                      <h3 className="text-xl font-medium tracking-tight">{service.title}</h3>
+                      <p className="mt-1 max-w-lg text-sm leading-6 text-black/45">{service.text}</p>
+                    </div>
+                  </div>
+                  <ArrowRight className="hidden h-4 w-4 text-black/25 transition-transform group-hover:translate-x-1 sm:block" />
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 px-4 bg-primary text-primary-foreground">
-        <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-6">Ready to Get Started?</h2>
-          <p className="text-lg opacity-90 mb-8">
-            Join thousands of satisfied customers. Contact us today for all your tech needs.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              size="lg"
-              variant="secondary"
-              className="text-lg px-8"
-              onClick={() => router.push("/contact")}
-            >
-              Contact Us
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="text-lg px-8 border-primary-foreground/20 hover:bg-primary-foreground/10"
-              onClick={() => router.push("/products")}
-            >
-              Shop Now
-            </Button>
+      {/* CTA */}
+      <section className="px-5 pb-5 sm:px-8 lg:px-12 lg:pb-8">
+        <div className="relative mx-auto max-w-[1400px] overflow-hidden rounded-[2rem] bg-[#e8e8e3] px-6 py-16 sm:px-12 sm:py-20 lg:px-20">
+          <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-white/70 blur-3xl" />
+          <div className="relative max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-black/35">04 — Start here</p>
+            <h2 className="mt-5 text-4xl font-semibold leading-[1] tracking-[-0.055em] sm:text-6xl">
+              Ready to upgrade your technology?
+            </h2>
+            <p className="mt-6 max-w-xl text-base leading-7 text-black/50">
+              Browse the store, tell us what you need, or speak with the Ketronics team.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link href="/products" className="inline-flex h-12 items-center justify-center rounded-full bg-black px-6 text-sm font-semibold text-white hover:bg-black/85">
+                Shop now <ShoppingBag className="ml-2 h-4 w-4" />
+              </Link>
+              <Link href="/contact" className="inline-flex h-12 items-center justify-center rounded-full border border-black/15 px-6 text-sm font-semibold hover:bg-white/60">
+                Contact Ketronics
+              </Link>
+            </div>
           </div>
         </div>
       </section>
-    </div>
+    </main>
   );
 }
