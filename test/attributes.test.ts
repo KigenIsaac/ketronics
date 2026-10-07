@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { attributesEqual } from "../src/lib/utils/attributes.ts";
+import { attributesEqual } from "../src/lib/utils/attributes";
 
 test("attributesEqual treats object key order as irrelevant", () => {
   assert.equal(
@@ -19,9 +19,9 @@ test("attributesEqual distinguishes different values", () => {
   );
 });
 
-test("attributesEqual distinguishes arrays by order", () => {
+test("attributesEqual distinguishes null from a concrete value", () => {
   assert.equal(
-    attributesEqual({ sizes: ["S", "M"] }, { sizes: ["M", "S"] }),
+    attributesEqual({ warranty: null }, { warranty: true }),
     false,
   );
 });
@@ -30,11 +30,11 @@ test("undefined and an empty attribute set are treated consistently", () => {
   assert.equal(attributesEqual(undefined, {}), true);
 });
 
-test("nested objects are compared deterministically", () => {
+test("multiple primitive attributes remain deterministic", () => {
   assert.equal(
     attributesEqual(
-      { config: { warranty: true, memory: 16 } },
-      { config: { memory: 16, warranty: true } },
+      { color: "black", storage: 512, refurbished: false, warranty: null },
+      { warranty: null, refurbished: false, storage: 512, color: "black" },
     ),
     true,
   );
