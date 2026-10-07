@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { attributesEqual } from "../src/lib/utils/attributes";
+import { attributesEqual } from "../src/lib/utils/attributes.ts";
 
 test("attributesEqual treats object key order as irrelevant", () => {
   assert.equal(
