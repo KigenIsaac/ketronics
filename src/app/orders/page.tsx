@@ -1,112 +1,11 @@
 'use client';
-
-import { useEffect, useState } from 'react';
+import { useEffect,useState } from 'react';
 import { useUserStore } from '@/lib/stores/userStore';
 import { Order } from '@/types/product';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { EmptyState, PageHero, SectionHeader, StorePage, Surface } from '@/components/store-ui';
+import { StatusBadge } from '@/components/status-badge';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
-import { Package, Eye } from 'lucide-react';
-
-async function loadOrders(userId: string) {
-  const { data, error } = await supabase
-    .from('orders')
-    .select(`
-      *,
-      order_items (count)
-    `)
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
-  if (error) throw error;
-  return data || [];
-}
-
-export default function OrdersPage() {
-  const { user } = useUserStore();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!user) return;
-
-    let active = true;
-    void loadOrders(user.id)
-      .then((data) => {
-        if (active) setOrders(data);
-      })
-      .catch((error) => console.error('Error fetching orders:', error))
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [user]);
-
-  if (!user) {
-    return (
-      <div className="container mx-auto p-6 text-center">
-        <h1 className="text-2xl font-bold mb-4">Please log in to view your orders</h1>
-        <Button asChild>
-          <Link href="/auth/login">Login</Link>
-        </Button>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return <div className="container mx-auto p-6">Loading orders...</div>;
-  }
-
-  return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-8">My Orders</h1>
-
-      {orders.length === 0 ? (
-        <div className="text-center">
-          <Package className="h-24 w-24 mx-auto text-muted-foreground mb-4" />
-          <h2 className="text-xl font-semibold mb-2">No orders yet</h2>
-          <p className="text-muted-foreground mb-6">Start shopping to see your orders here.</p>
-          <Button asChild>
-            <Link href="/products">Browse Products</Link>
-          </Button>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {orders.map((order) => (
-            <Card key={order.id}>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div>
-                      <h3 className="font-semibold">Order #{order.id.slice(-8)}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(order.created_at).toLocaleDateString()}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {order.order_items?.length || 0} items
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <p className="font-semibold">Ksh. {order.total.toFixed(2)}</p>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/orders/${order.id}`}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          View Details
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+import { ShoppingBag, ArrowRight } from 'lucide-react';
+export default function OrdersPage(){const {user}=useUserStore();const[orders,setOrders]=useState<Order[]>([]);const[loading,setLoading]=useState(true);useEffect(()=>{if(!user){setLoading(false);return}let active=true;void supabase.from('orders').select('*,order_items(*)').eq('user_id',user.id).order('created_at',{ascending:false}).then(({data,error})=>{if(error)throw error;if(active)setOrders((data||[]) as Order[])}).catch(console.error).finally(()=>{if(active)setLoading(false)});return()=>{active=false}},[user]);if(!user)return <StorePage><EmptyState title="Sign in to view your orders" description="Your order history and tracking details are tied to your account." action={<Button asChild className="rounded-full bg-orange-500 hover:bg-orange-600"><Link href="/auth/login">Sign in</Link></Button>}/></StorePage>;if(loading)return <StorePage><PageHero eyebrow="ORDERS" title="Your orders" description="Loading your latest purchases…"/><div className="h-48 animate-pulse rounded-2xl bg-white"/></StorePage>;return <StorePage><PageHero eyebrow="ORDERS" title="Your orders" description="Track purchases, payment status and delivery progress."/><SectionHeader title={orders.length+' order'+(orders.length===1?'':'s')} href="/products" actionLabel="Continue shopping"/>{orders.length===0?<EmptyState title="No orders yet" description="Your next great tech purchase will appear here." action={<Button asChild className="rounded-full bg-orange-500 hover:bg-orange-600"><Link href="/products">Start shopping</Link></Button>}/>:<div className="space-y-3">{orders.map(o=><Surface key={o.id} className="p-4 sm:p-5"><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><div className="flex flex-wrap items-center gap-2"><span className="font-bold">Order #{o.id.slice(-8).toUpperCase()}</span><StatusBadge status={o.status}/></div><p className="mt-1 text-xs text-black/45">{new Date(o.created_at).toLocaleString('en-KE',{dateStyle:'medium',timeStyle:'short'})} · {o.order_items?.length||0} items</p></div><div className="flex items-center justify-between gap-4 sm:justify-end"><span className="font-bold">KSh {Number(o.total).toLocaleString('en-KE',{maximumFractionDigits:0})}</span><Button asChild variant="outline" className="rounded-full"><Link href={'/orders/'+o.id}>View <ArrowRight className="ml-2 h-4 w-4"/></Link></Button></div></div></Surface>)}</div>}</StorePage>}
