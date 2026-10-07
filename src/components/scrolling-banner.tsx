@@ -1,60 +1,26 @@
-import { MapPin, Phone, Mail, Clock } from "lucide-react";
+"use client";
+
+import { usePathname } from "next/navigation";
 
 export function ScrollingBanner() {
+  const pathname = usePathname();
+  if (pathname === "/") return null;
+
   const bannerItems = [
-    {
-      icon: MapPin,
-      text: "📍 Eldoret, Kenya AA building 1st floor room F6A",
-      color: "text-blue-600"
-    },
-    {
-      icon: Phone,
-      text: "📞 Call us: +254 728 097 922 | +254 721 142 723",
-      color: "text-green-600"
-    },
-    {
-      icon: Mail,
-      text: "✉️ Email: info@ketronics.co.ke | support@ketronics.co.ke",
-      color: "text-purple-600"
-    },
-    {
-      icon: Clock,
-      text: "🕒 Mon-Fri: 8AM-6PM | Sat: 9AM-4PM | Emergency Support: 24/7",
-      color: "text-orange-600"
-    },
-    {
-      icon: MapPin,
-      text: "🚚 Free delivery within Eldoret CBD | Installation services available",
-      color: "text-red-600"
-    },
-    {
-      icon: Phone,
-      text: "🛠️ Expert CCTV installation, network setup, and tech repairs",
-      color: "text-indigo-600"
-    }
+    "📍 Eldoret, Kenya AA building 1st floor room F6A",
+    "📞 Call us: +254 728 097 922 | +254 721 142 723",
+    "✉️ Email: info@ketronics.co.ke | support@ketronics.co.ke",
+    "🕒 Mon-Fri: 8AM-6PM | Sat: 9AM-4PM | Emergency Support: 24/7",
+    "🚚 Free delivery within Eldoret CBD | Installation services available",
+    "🛠️ Expert CCTV installation, network setup, and tech repairs",
   ];
 
   return (
-    <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border-b border-primary/20 py-2 overflow-hidden">
+    <div className="overflow-hidden border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 py-2">
       <div className="animate-scroll flex whitespace-nowrap">
-        {/* First set of items */}
-        {bannerItems.map((item, index) => (
-          <div
-            key={`first-${index}`}
-            className="flex items-center mx-8 text-sm font-medium"
-          >
-            <span className={`${item.color} mr-2`}>{item.text}</span>
-            <span className="text-muted-foreground mx-4">•</span>
-          </div>
-        ))}
-        {/* Duplicate set for seamless scrolling */}
-        {bannerItems.map((item, index) => (
-          <div
-            key={`second-${index}`}
-            className="flex items-center mx-8 text-sm font-medium"
-          >
-            <span className={`${item.color} mr-2`}>{item.text}</span>
-            <span className="text-muted-foreground mx-4">•</span>
+        {[...bannerItems, ...bannerItems].map((item, index) => (
+          <div key={index} className="mx-8 flex items-center text-sm font-medium">
+            <span className="text-muted-foreground">{item}</span><span className="mx-4 text-muted-foreground">•</span>
           </div>
         ))}
       </div>
