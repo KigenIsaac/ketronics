@@ -10,7 +10,7 @@ import { supabase } from "@/lib/supabase";
 import type { Product } from "@/types/product";
 import {
   ArrowRight, ChevronLeft, ChevronRight, Heart, Laptop, Package,
-  Phone, Printer, ShieldCheck, ShoppingBag, Smartphone, Star, Tag, Truck,
+  Phone, Printer, ShieldCheck, Smartphone, Star, Tag, Truck,
   Tv, Headphones, Cpu
 } from "lucide-react";
 
