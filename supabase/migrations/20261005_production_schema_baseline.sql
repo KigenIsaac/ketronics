@@ -27,13 +27,9 @@ UPDATE public.products SET track_inventory = false WHERE track_inventory IS NULL
 UPDATE public.products SET stock_quantity = 0 WHERE stock_quantity IS NULL;
 UPDATE public.products SET low_stock_threshold = 5 WHERE low_stock_threshold IS NULL;
 
-ALTER TABLE public.products
-  DROP CONSTRAINT IF EXISTS products_stock_quantity_nonnegative,
-  DROP CONSTRAINT IF EXISTS products_low_stock_threshold_nonnegative;
-
-ALTER TABLE public.products
-  ADD CONSTRAINT products_stock_quantity_nonnegative CHECK (stock_quantity >= 0),
-  ADD CONSTRAINT products_low_stock_threshold_nonnegative CHECK (low_stock_threshold >= 0);
+-- Inventory constraints are added by the canonical 20261006 inventory migration.
+-- Keeping them there avoids duplicate-constraint failures when this baseline
+-- is followed by the normal migration chain.
 
 CREATE INDEX IF NOT EXISTS idx_products_status ON public.products(status);
 CREATE INDEX IF NOT EXISTS idx_products_inventory ON public.products(track_inventory, stock_quantity);
