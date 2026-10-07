@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { Phone,Mail,MessageCircle,MapPin,HelpCircle,Wrench,Shield,Truck,ArrowRight } from "lucide-react";
+import { Phone,Mail,MessageCircle,MapPin,Wrench,Shield,Truck,ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHero,SectionHeader,StorePage,Surface } from "@/components/store-ui";
 export const metadata:Metadata={title:"Support | Ketronics LTD",description:"Get help with Ketronics products, orders and technology services."};
