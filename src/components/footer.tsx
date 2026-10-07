@@ -3,7 +3,7 @@ import { useEffect,useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { isSupabaseConfigured } from "@/lib/supabaseConfig";
 import Link from "next/link";
-import { Mail,Phone,MapPin,Clock,ShieldCheck,Truck,Headphones } from "lucide-react";
+import { Mail,Phone,MapPin,Clock,ShieldCheck,Truck } from "lucide-react";
 import { ContactInfo } from "@/types/product";
 
 export function Footer(){
