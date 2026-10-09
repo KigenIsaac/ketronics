@@ -11,7 +11,7 @@ const getMountedSnapshot = () => true;
 const getMountedServerSnapshot = () => false;
 
 export function ThemeSwitcher() {
-  const { theme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const mounted = useSyncExternalStore(subscribeMounted, getMountedSnapshot, getMountedServerSnapshot);
   const [expanded, setExpanded] = useState(false);
 
@@ -24,8 +24,10 @@ export function ThemeSwitcher() {
         size="icon"
         className="fixed bottom-4 right-4 z-50"
         onClick={() => setExpanded(true)}
+        aria-label="Open theme settings"
+        title="Theme settings"
       >
-        {theme === "dark" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+        {resolvedTheme === "dark" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
       </Button>
     );
   }
