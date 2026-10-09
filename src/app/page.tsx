@@ -97,7 +97,6 @@ export default function Home() {
   const heroProducts = useMemo(() => products.slice(0, 3), [products]);
   const firstProducts = products.slice(0, 4);
   const secondProducts = products.slice(4, 8);
-  const thirdProducts = products.slice(8, 12);
   const fourthProducts = products.slice(12, 16);
   const arrivalPageCount = Math.max(1, Math.ceil(products.length / 4));
   const arrivalProducts = products.slice(arrivalPage * 4, arrivalPage * 4 + 4);
