@@ -18,9 +18,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadataBase = new URL("https://ketronics.co.ke");
-
 export const metadata: Metadata = {
+  metadataBase: new URL("https://ketronics.co.ke"),
   title: {
     default: "Ketronics LTD",
     template: "%s | Ketronics LTD",
