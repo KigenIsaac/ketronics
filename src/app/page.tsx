@@ -9,7 +9,7 @@ import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import type { Product } from "@/types/product";
 import {
-  ArrowRight, ChevronLeft, ChevronRight, Heart, Laptop, Package,
+  ArrowRight, ChevronLeft, ChevronRight, Laptop, Package,
   Phone, Printer, ShieldCheck, Smartphone, Star, Tag, Truck,
   Tv, Headphones, Cpu
 } from "lucide-react";
@@ -32,13 +32,11 @@ function ProductTile({ product }: { product: Product }) {
           <Image src={product.images[0]} alt={product.name} fill sizes="(max-width: 640px) 50vw, 220px" className="object-contain p-3 transition-transform duration-500 group-hover:scale-105" />
         ) : <div className="flex h-full items-center justify-center text-xs text-black/25">No image</div>}
         {product.discount && product.discount > 0 ? <span className="absolute left-2 top-2 rounded bg-orange-500 px-2 py-1 text-[9px] font-bold text-white">-{product.discount}%</span> : null}
-        <button type="button" onClick={(e) => e.preventDefault()} aria-label="Add to wishlist" className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-          <Heart className="h-3.5 w-3.5" />
-        </button>
+        
       </div>
       <div className="px-1 pt-3">
-        <p className="truncate text-[10px] uppercase tracking-[0.12em] text-black/35">{product.brand || product.category?.name || "Technology"}</p>
-        <h3 className="mt-1 line-clamp-2 min-h-9 text-xs font-medium leading-4 text-black/80">{product.name}</h3>
+        <p className="truncate text-[11px] uppercase tracking-[0.1em] text-black/45">{product.brand || product.category?.name || "Technology"}</p>
+        <h3 className="mt-1 line-clamp-2 min-h-10 text-[13px] font-medium leading-[1.2rem] text-black/85">{product.name}</h3>
         <div className="mt-2 flex items-center gap-2">
           <span className="text-sm font-bold">KSh {price.toLocaleString("en-KE", { maximumFractionDigits: 0 })}</span>
           {product.discount ? <span className="text-[10px] text-black/30 line-through">KSh {product.price.toLocaleString("en-KE", { maximumFractionDigits: 0 })}</span> : null}
@@ -53,6 +51,7 @@ export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [productLoadError, setProductLoadError] = useState<string | null>(null);
   const [slide, setSlide] = useState(0);
+  const [arrivalPage, setArrivalPage] = useState(0);
   const { user, loading: userLoading } = useUserStore();
   const router = useRouter();
 
@@ -98,14 +97,15 @@ export default function Home() {
   const heroProducts = useMemo(() => products.slice(0, 3), [products]);
   const firstProducts = products.slice(0, 4);
   const secondProducts = products.slice(4, 8);
-  const thirdProducts = products.slice(8, 12);
   const fourthProducts = products.slice(12, 16);
+  const arrivalPageCount = Math.max(1, Math.ceil(products.length / 4));
+  const arrivalProducts = products.slice(arrivalPage * 4, arrivalPage * 4 + 4);
 
   if (userLoading || user) {
     return (
-      <main className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center"><div className="mx-auto mb-4 h-2.5 w-2.5 animate-pulse rounded-full bg-orange-500" /><p className="text-sm text-black/50">{user ? "Taking you to your workspace…" : "Loading Ketronics…"}</p></div>
-      </main>
+      </div>
     );
   }
 
@@ -114,7 +114,7 @@ export default function Home() {
   const heroSub = ["Shop laptops, phones, displays and accessories from Ketronics.", "Find dependable devices and components for home and business.", "Discover current products and practical technology services."][slide];
 
   return (
-    <main className="-mx-4 -mt-6 -mb-4 overflow-hidden bg-[#fffdf9] text-[#151515] lg:-mx-6 lg:-mt-6 lg:-mb-6">
+    <div className="-mx-4 -mt-6 -mb-4 overflow-hidden bg-[#fffdf9] text-[#151515] lg:-mx-6 lg:-mt-6 lg:-mb-6">
       {/* Promo strip */}
       <div className="bg-[#151515] px-4 py-2 text-center text-[10px] font-medium tracking-wide text-white sm:text-xs">
         <span className="text-orange-400">Special offers</span> · Shop technology with Ketronics · M-Pesa checkout available · <Link href="/contact" className="underline underline-offset-2">Need help?</Link>
@@ -127,7 +127,7 @@ export default function Home() {
           <div className="relative grid min-h-[520px] lg:min-h-[470px] lg:grid-cols-[.92fr_1.08fr]">
             <div className="relative z-10 flex flex-col justify-center px-6 pb-5 pt-10 sm:px-10 lg:px-14 lg:py-12">
               <p className="text-[9px] font-bold uppercase tracking-[0.24em] text-white/55">KETRONICS · FEATURED</p>
-              <h1 className="mt-3 max-w-[12ch] text-[2.65rem] font-bold leading-[.94] tracking-[-0.06em] text-white sm:text-6xl">{heroTitle}</h1>
+              <h1 className="mt-3 max-w-[12ch] text-[clamp(2rem,8vw,2.65rem)] font-bold leading-[.98] tracking-[-0.055em] text-white sm:text-6xl">{heroTitle}</h1>
               <p className="mt-4 max-w-md text-sm leading-5 text-white/65 sm:mt-5 sm:text-base sm:leading-6">{heroSub}</p>
               <div className="mt-5 flex gap-2.5 sm:mt-7">
                 <Link href="/products" className="inline-flex h-10 items-center rounded-full bg-orange-500 px-5 text-xs font-bold text-white shadow-lg shadow-orange-950/20 hover:bg-orange-600">Shop now <ArrowRight className="ml-2 h-3.5 w-3.5" /></Link>
@@ -173,7 +173,7 @@ export default function Home() {
         <div className="relative min-h-[230px] overflow-hidden rounded-2xl bg-[#100c28] px-6 py-8 sm:px-10">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_45%,rgba(139,92,246,.55),transparent_35%),linear-gradient(100deg,#100c28,#28105d)]" />
           <div className="relative z-10 max-w-md text-white"><p className="text-[10px] font-bold uppercase tracking-[.2em] text-white/50">Smart device collection</p><h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Grab the right tech for your day.</h2><p className="mt-3 text-xs leading-5 text-white/60">Everyday devices, entertainment and accessories selected for practical use.</p><Link href="/products" className="mt-6 inline-flex h-9 items-center rounded-full bg-orange-500 px-5 text-[11px] font-bold">Explore collection <ArrowRight className="ml-2 h-3 w-3" /></Link></div>
-          {secondProducts[0]?.images?.[0] ? <Image src={secondProducts[0].images[0]} alt="" width={380} height={280} className="absolute bottom-[-30px] right-4 h-[270px] w-[300px] object-contain drop-shadow-2xl sm:right-10 sm:h-[320px] sm:w-[380px]" /> : null}
+          {secondProducts[0]?.images?.[0] ? <Image src={secondProducts[0].images[0]} alt="" width={380} height={280} className="absolute bottom-[-30px] right-4 hidden h-[270px] w-[300px] object-contain drop-shadow-2xl sm:block sm:right-10 sm:h-[320px] sm:w-[380px]" /> : null}
         </div>
       </section>
 
@@ -198,8 +198,8 @@ export default function Home() {
 
       {/* New arrivals */}
       <section className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mb-5 flex items-end justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-black/35">Just landed</p><h2 className="mt-1 text-xl font-bold tracking-tight">New arrival products</h2></div><div className="flex gap-1"><button type="button" aria-label="Previous products" className="flex h-8 w-8 items-center justify-center rounded-full border border-black/10"><ChevronLeft className="h-4 w-4" /></button><button type="button" aria-label="Next products" className="flex h-8 w-8 items-center justify-center rounded-full border border-black/10"><ChevronRight className="h-4 w-4" /></button></div></div>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">{thirdProducts.map((p) => <ProductTile key={p.id} product={p} />)}</div>
+        <div className="mb-5 flex items-end justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-black/35">Just landed</p><h2 className="mt-1 text-xl font-bold tracking-tight">New arrival products</h2></div><div className="flex gap-1"><button type="button" aria-label="Previous products" onClick={() => setArrivalPage((page) => Math.max(0, page - 1))} disabled={arrivalPage === 0} className="flex h-9 w-9 items-center justify-center rounded-full border border-black/10 transition hover:border-black/30 disabled:cursor-not-allowed disabled:opacity-30"><ChevronLeft className="h-4 w-4" /></button><button type="button" aria-label="Next products" onClick={() => setArrivalPage((page) => Math.min(arrivalPageCount - 1, page + 1))} disabled={arrivalPage >= arrivalPageCount - 1} className="flex h-9 w-9 items-center justify-center rounded-full border border-black/10 transition hover:border-black/30 disabled:cursor-not-allowed disabled:opacity-30"><ChevronRight className="h-4 w-4" /></button></div></div>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">{arrivalProducts.map((p) => <ProductTile key={p.id} product={p} />)}</div>
       </section>
 
       {/* Sale banner */}
@@ -207,7 +207,7 @@ export default function Home() {
         <div className="relative overflow-hidden rounded-2xl bg-[#101010] px-6 py-9 text-white sm:px-10">
           <div className="absolute right-0 top-0 h-full w-2/3 bg-[radial-gradient(circle_at_65%_45%,rgba(255,255,255,.18),transparent_38%)]" />
           <div className="relative z-10 max-w-md"><p className="text-[10px] font-bold uppercase tracking-[.2em] text-white/45">Better value, same ambition</p><h2 className="mt-3 text-3xl font-bold sm:text-4xl">Great deals on all your tech essentials.</h2><p className="mt-3 text-xs text-white/55">Explore current prices and available discounts across the store.</p><Link href="/products" className="mt-6 inline-flex rounded-full bg-white px-5 py-2.5 text-[11px] font-bold text-black">Shop deals</Link></div>
-          {fourthProducts[0]?.images?.[0] ? <Image src={fourthProducts[0].images[0]} alt="" width={340} height={260} className="absolute bottom-[-25px] right-3 h-64 w-72 object-contain sm:right-12" /> : null}
+          {fourthProducts[0]?.images?.[0] ? <Image src={fourthProducts[0].images[0]} alt="" width={340} height={260} className="absolute bottom-[-25px] right-3 hidden h-64 w-72 object-contain sm:block sm:right-12" /> : null}
         </div>
       </section>
 
@@ -231,6 +231,6 @@ export default function Home() {
       <section className="mx-auto max-w-[1400px] px-4 pb-10 sm:px-6 lg:px-8">
         <div className="rounded-2xl bg-[#f0eee8] px-6 py-12 text-center sm:px-10"><p className="text-[10px] font-bold uppercase tracking-[.2em] text-black/35">Need a recommendation?</p><h2 className="mx-auto mt-3 max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">Tell us what you’re trying to build.</h2><p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-black/50">Our team can help you choose products, plan installations and find practical technology for your home or business.</p><div className="mt-6 flex justify-center gap-3"><Link href="/contact" className="rounded-full bg-orange-500 px-6 py-3 text-xs font-bold text-white">Contact Ketronics</Link><Link href="/products" className="rounded-full border border-black/10 bg-white px-6 py-3 text-xs font-bold">Browse store</Link></div></div>
       </section>
-    </main>
+    </div>
   );
 }

@@ -47,7 +47,8 @@
 }
 
 :root {
-  --radius: 0.625rem;
+  color-scheme: light;
+  --radius: 0.75rem;
   --background: #f7f6f2;
   --foreground: #171717;
   --card: #ffffff;
@@ -64,8 +65,8 @@
   --accent-foreground: #c94f00;
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --input: oklch(0.88 0 0);
+  --ring: #ff8a3d;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -82,6 +83,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -119,19 +121,64 @@
   * {
     @apply border-border outline-ring/50;
   }
+
+  html {
+    min-width: 320px;
+    scroll-behavior: smooth;
+    scroll-padding-top: 7rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
+    min-height: 100vh;
+    min-width: 320px;
+    overflow-x: clip;
     @apply bg-background text-foreground;
+    font-feature-settings: "ss01" on, "cv11" on;
+    text-rendering: optimizeLegibility;
+  }
+
+  button, input, textarea, select {
+    font: inherit;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button:not(:disabled), [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
+  a {
+    -webkit-tap-highlight-color: transparent;
+    text-underline-offset: 0.2em;
+  }
+
+  img, video, canvas, svg {
+    max-width: 100%;
+  }
+
+  img {
+    height: auto;
+  }
+
+  ::selection {
+    background: #ff6b00;
+    color: #fff;
+  }
+
+  :focus-visible {
+    outline: 3px solid rgb(255 107 0 / 55%);
+    outline-offset: 3px;
+  }
+
+  input, textarea, select {
+    min-width: 0;
   }
 }
 
-/* Scrolling banner animation */
+/* Consistent motion for storefront marquees and product reveals. */
 @keyframes scroll {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
 .animate-scroll {
@@ -142,12 +189,23 @@
   animation-play-state: paused;
 }
 
-@layer base {
-  html { scroll-behavior: smooth; }
-  body { min-height: 100vh; background: #f7f6f2; color: #171717; }
-  ::selection { background: #ff6b00; color: white; }
-  button, a, input, textarea, select { -webkit-tap-highlight-color: transparent; }
-}
 @layer utilities {
   .text-balance { text-wrap: balance; }
+
+  .safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 374px) {
+  .animate-scroll { animation-duration: 55s; }
 }

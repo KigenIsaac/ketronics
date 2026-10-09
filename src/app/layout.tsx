@@ -18,9 +18,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadataBase = new URL("https://ketronics.co.ke");
-
 export const metadata: Metadata = {
+  metadataBase: new URL("https://ketronics.co.ke"),
   title: {
     default: "Ketronics LTD",
     template: "%s | Ketronics LTD",
@@ -152,7 +151,7 @@ export default function RootLayout({
 
             <div className="flex flex-1 min-h-0">
               {/* Sidebar - positioned between header and footer on desktop */}
-              <Sidebar className="hidden lg:flex w-auto flex-shrink-0" />
+              <Sidebar className="w-auto flex-shrink-0" />
 
               {/* Main content */}
               <div className="flex-1 flex flex-col min-w-0 lg:ml-0">
