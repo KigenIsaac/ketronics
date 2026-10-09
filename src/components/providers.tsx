@@ -5,7 +5,6 @@ import { useUserStore } from "@/lib/stores/userStore";
 import { Toaster } from "sonner";
 import React, { createContext, useContext, useState } from "react";
 import { ClientThemeSwitcher } from "@/components/client-theme-switcher";
-import { Sidebar } from "@/components/sidebar";
 
 // Mobile sidebar context
 const MobileSidebarContext = createContext<{
@@ -26,12 +25,7 @@ function MobileSidebarProvider({ children }: { children: React.ReactNode }) {
   return (
     <MobileSidebarContext.Provider value={{ isOpen, setIsOpen }}>
       {children}
-      {/* Mobile Sidebar - rendered at root level for proper overlay */}
-      <Sidebar
-        className="lg:hidden"
-        isOpen={isOpen}
-        onToggle={setIsOpen}
-      />
+
     </MobileSidebarContext.Provider>
   );
 }
