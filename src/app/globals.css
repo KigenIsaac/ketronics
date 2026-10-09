@@ -84,37 +84,38 @@
 
 .dark {
   color-scheme: dark;
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Ketronics dark palette: deep navy surfaces, clear text, and orange commerce actions. */
+  --background: #0b1020;
+  --foreground: #f4f6fb;
+  --card: #111a2e;
+  --card-foreground: #f4f6fb;
+  --popover: #141f35;
+  --popover-foreground: #f4f6fb;
+  --primary: #ff7a1a;
+  --primary-foreground: #17120e;
+  --secondary: #1b2740;
+  --secondary-foreground: #e8edf7;
+  --muted: #18233a;
+  --muted-foreground: #a5b0c5;
+  --accent: #2a2630;
+  --accent-foreground: #ffb274;
+  --destructive: #ef6464;
+  --border: #ffffff1c;
+  --input: #ffffff24;
+  --ring: #ff984d;
+  --chart-1: #ff7a1a;
+  --chart-2: #57c7a5;
+  --chart-3: #79a9ff;
+  --chart-4: #d6a5ff;
+  --chart-5: #ff9b91;
+  --sidebar: #0e172a;
+  --sidebar-foreground: #f4f6fb;
+  --sidebar-primary: #ff7a1a;
+  --sidebar-primary-foreground: #17120e;
+  --sidebar-accent: #1b2740;
+  --sidebar-accent-foreground: #f4f6fb;
+  --sidebar-border: #ffffff1c;
+  --sidebar-ring: #ff984d;
 }
 
 @layer base {
@@ -208,4 +209,93 @@
 
 @media (max-width: 374px) {
   .animate-scroll { animation-duration: 55s; }
+}
+
+
+/* Dark-mode compatibility for older screens that still use fixed light utility colours. */
+.dark body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+.dark header {
+  color: var(--foreground);
+  background-color: #0e172a !important;
+  border-color: var(--border) !important;
+}
+
+.dark header > div:first-child,
+.dark header [class*="bg-[#fdfcf9]"],
+.dark header [class*="bg-[#f4f3ef]"],
+.dark header [class*="bg-[#f2f1ed]"],
+.dark header [class*="bg-[#f5f4f0]"],
+.dark header [class*="bg-white"] {
+  background-color: #111a2e !important;
+}
+
+.dark header [class*="border-black"] {
+  border-color: var(--border) !important;
+}
+
+.dark header [class*="text-black"] {
+  color: var(--muted-foreground) !important;
+}
+
+.dark header input {
+  color: var(--foreground);
+}
+
+.dark header input::placeholder {
+  color: var(--muted-foreground);
+}
+
+.dark header a:hover,
+.dark header button:hover {
+  color: var(--foreground);
+}
+
+.dark [data-slot="card"] {
+  color: var(--card-foreground);
+  background-color: var(--card);
+  border-color: var(--border);
+  box-shadow: 0 12px 36px rgb(0 0 0 / 18%);
+}
+
+.dark [data-slot="input"],
+.dark [data-slot="textarea"],
+.dark select,
+.dark textarea {
+  color: var(--foreground);
+  background-color: #0e172a;
+  border-color: var(--input);
+}
+
+.dark [data-slot="input"]::placeholder,
+.dark textarea::placeholder {
+  color: var(--muted-foreground);
+}
+
+.dark [class~="bg-white"],
+.dark [class*="bg-gray-50"],
+.dark [class*="bg-slate-50"],
+.dark [class*="bg-zinc-50"] {
+  background-color: var(--card) !important;
+}
+
+.dark [class*="text-gray-900"],
+.dark [class*="text-slate-900"],
+.dark [class*="text-zinc-900"],
+.dark [class*="text-black"] {
+  color: var(--foreground) !important;
+}
+
+.dark [class*="border-gray-"],
+.dark [class*="border-slate-"],
+.dark [class*="border-zinc-"] {
+  border-color: var(--border) !important;
+}
+
+.dark ::placeholder {
+  color: var(--muted-foreground);
+  opacity: 1;
 }
