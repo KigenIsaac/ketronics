@@ -106,7 +106,6 @@ export default function Home() {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center"><div className="mx-auto mb-4 h-2.5 w-2.5 animate-pulse rounded-full bg-orange-500" /><p className="text-sm text-black/50">{user ? "Taking you to your workspace…" : "Loading Ketronics…"}</p></div>
-      </main>
     );
   }
 
