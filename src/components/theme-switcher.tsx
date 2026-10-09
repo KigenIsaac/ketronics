@@ -1,8 +1,8 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { useState, useSyncExternalStore, useEffect } from "react";
-import { Sun, Moon, Monitor, Palette, X } from "lucide-react";
+import { useState, useSyncExternalStore } from "react";
+import { Sun, Moon, Monitor, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 
@@ -10,47 +10,10 @@ const subscribeMounted = () => () => {};
 const getMountedSnapshot = () => true;
 const getMountedServerSnapshot = () => false;
 
-function subscribeAccentColor(callback: () => void) {
-  window.addEventListener("storage", callback);
-  return () => window.removeEventListener("storage", callback);
-}
-
-function getAccentColorSnapshot() {
-  return localStorage.getItem("accentColor") || "#191970";
-}
-
-function getAccentColorServerSnapshot() {
-  return "#191970";
-}
-
-const colors = [
-  { name: "Blue", value: "#3b82f6" },
-  { name: "Green", value: "#10b981" },
-  { name: "Red", value: "#ef4444" },
-  { name: "Purple", value: "#8b5cf6" },
-  { name: "Orange", value: "#f97316" },
-  { name: "Pink", value: "#ec4899" },
-  { name: "Indigo", value: "#6366f1" },
-  { name: "Teal", value: "#14b8a6" },
-  { name: "Midnight Blue", value: "#191970" },
-];
-
 export function ThemeSwitcher() {
   const { theme, setTheme } = useTheme();
   const mounted = useSyncExternalStore(subscribeMounted, getMountedSnapshot, getMountedServerSnapshot);
-  const accentColor = useSyncExternalStore(subscribeAccentColor, getAccentColorSnapshot, getAccentColorServerSnapshot);
   const [expanded, setExpanded] = useState(false);
-
-  useEffect(() => {
-    if (mounted) {
-      document.documentElement.style.setProperty("--primary", accentColor);
-    }
-  }, [accentColor, mounted]);
-
-  const handleColorChange = (color: string) => {
-    localStorage.setItem("accentColor", color);
-    window.dispatchEvent(new Event("storage"));
-  };
 
   if (!mounted) return null;
 
@@ -62,7 +25,7 @@ export function ThemeSwitcher() {
         className="fixed bottom-4 right-4 z-50"
         onClick={() => setExpanded(true)}
       >
-        <Palette className="h-4 w-4" />
+        {theme === "dark" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
       </Button>
     );
   }
@@ -102,23 +65,6 @@ export function ThemeSwitcher() {
           >
             <Monitor className="h-4 w-4" />
           </Button>
-        </div>
-        <div className="flex items-center space-x-2 mb-2">
-          <Palette className="h-4 w-4" />
-          <span className="text-sm font-medium">Accent Color</span>
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          {colors.map((color) => (
-            <button
-              key={color.name}
-              className={`w-8 h-8 rounded border-2 ${
-                accentColor === color.value ? "border-foreground" : "border-muted"
-              }`}
-              style={{ backgroundColor: color.value }}
-              onClick={() => handleColorChange(color.value)}
-              title={color.name}
-            />
-          ))}
         </div>
       </div>
     </div>
