@@ -104,7 +104,7 @@ export default function Home() {
 
   if (userLoading || user) {
     return (
-      <main className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center"><div className="mx-auto mb-4 h-2.5 w-2.5 animate-pulse rounded-full bg-orange-500" /><p className="text-sm text-black/50">{user ? "Taking you to your workspace…" : "Loading Ketronics…"}</p></div>
       </main>
     );
@@ -115,7 +115,7 @@ export default function Home() {
   const heroSub = ["Shop laptops, phones, displays and accessories from Ketronics.", "Find dependable devices and components for home and business.", "Discover current products and practical technology services."][slide];
 
   return (
-    <main className="-mx-4 -mt-6 -mb-4 overflow-hidden bg-[#fffdf9] text-[#151515] lg:-mx-6 lg:-mt-6 lg:-mb-6">
+    <div className="-mx-4 -mt-6 -mb-4 overflow-hidden bg-[#fffdf9] text-[#151515] lg:-mx-6 lg:-mt-6 lg:-mb-6">
       {/* Promo strip */}
       <div className="bg-[#151515] px-4 py-2 text-center text-[10px] font-medium tracking-wide text-white sm:text-xs">
         <span className="text-orange-400">Special offers</span> · Shop technology with Ketronics · M-Pesa checkout available · <Link href="/contact" className="underline underline-offset-2">Need help?</Link>
@@ -232,6 +232,6 @@ export default function Home() {
       <section className="mx-auto max-w-[1400px] px-4 pb-10 sm:px-6 lg:px-8">
         <div className="rounded-2xl bg-[#f0eee8] px-6 py-12 text-center sm:px-10"><p className="text-[10px] font-bold uppercase tracking-[.2em] text-black/35">Need a recommendation?</p><h2 className="mx-auto mt-3 max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">Tell us what you’re trying to build.</h2><p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-black/50">Our team can help you choose products, plan installations and find practical technology for your home or business.</p><div className="mt-6 flex justify-center gap-3"><Link href="/contact" className="rounded-full bg-orange-500 px-6 py-3 text-xs font-bold text-white">Contact Ketronics</Link><Link href="/products" className="rounded-full border border-black/10 bg-white px-6 py-3 text-xs font-bold">Browse store</Link></div></div>
       </section>
-    </main>
+    </div>
   );
 }
