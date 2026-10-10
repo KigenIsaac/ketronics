@@ -10,6 +10,7 @@ const ThemeSwitcher = dynamic(
 
 export function ClientThemeSwitcher() {
   const pathname = usePathname();
-  if (pathname === "/") return null;
+  // Keep the floating theme control available on every route, including the homepage.
+  void pathname;
   return <ThemeSwitcher />;
 }
