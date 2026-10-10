@@ -299,3 +299,70 @@
   color: var(--muted-foreground);
   opacity: 1;
 }
+
+/*
+ * Page-wide dark-theme compatibility for legacy Tailwind colour utilities.
+ * Neutral surfaces/text are normalized; brand, status, and product imagery accents
+ * are intentionally left alone.
+ */
+.dark [class*="bg-[#fdfcf9]"],
+.dark [class*="bg-[#f7f6f2]"],
+.dark [class*="bg-[#f5f5f3]"],
+.dark [class*="bg-[#f5f4f0]"],
+.dark [class*="bg-[#f4f3ef]"],
+.dark [class*="bg-[#f2f1ed]"],
+.dark [class*="bg-[#f0efeb]"],
+.dark [class*="bg-[#fafafa]"],
+.dark [class*="bg-[#f9fafb]"],
+.dark [class*="bg-[#fff8f2]"],
+.dark [class*="bg-gray-100"],
+.dark [class*="bg-slate-100"],
+.dark [class*="bg-zinc-100"],
+.dark [class*="bg-neutral-100"] {
+  background-color: var(--muted) !important;
+}
+
+.dark [class*="border-black/"],
+.dark [class*="border-[#171717"],
+.dark [class*="border-[#f0f0f0"] {
+  border-color: var(--border) !important;
+}
+
+/* Explicitly muted legacy text remains muted instead of becoming full-bright white. */
+.dark [class*="text-black/"],
+.dark [class*="text-gray-400"],
+.dark [class*="text-gray-500"],
+.dark [class*="text-gray-600"],
+.dark [class*="text-slate-400"],
+.dark [class*="text-slate-500"],
+.dark [class*="text-slate-600"],
+.dark [class*="text-zinc-400"],
+.dark [class*="text-zinc-500"],
+.dark [class*="text-neutral-500"],
+.dark [class*="text-[#171717]/"],
+.dark [class*="text-[#555555]"],
+.dark [class*="text-[#666666]"] {
+  color: var(--muted-foreground) !important;
+}
+
+/* Hard-coded near-black copy becomes readable without changing semantic colour utilities. */
+.dark [class~="text-black"],
+.dark [class~="text-[#171717]"],
+.dark [class~="text-[#1f2937]"],
+.dark [class~="text-gray-700"],
+.dark [class~="text-gray-800"],
+.dark [class~="text-gray-900"],
+.dark [class~="text-slate-700"],
+.dark [class~="text-slate-800"],
+.dark [class~="text-slate-900"],
+.dark [class~="text-zinc-700"],
+.dark [class~="text-zinc-800"],
+.dark [class~="text-zinc-900"] {
+  color: var(--foreground) !important;
+}
+
+/* Soft brand-tinted tiles stay distinct against the navy surfaces. */
+.dark [class*="bg-orange-50"],
+.dark [class*="bg-amber-50"] {
+  background-color: #2a2630 !important;
+}
