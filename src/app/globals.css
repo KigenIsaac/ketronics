@@ -366,3 +366,12 @@
 .dark [class*="bg-amber-50"] {
   background-color: #2a2630 !important;
 }
+/* Additional fixed neutrals found in the homepage, empty states, and product galleries. */
+.dark [class*="bg-[#fffdf9]"],
+.dark [class*="bg-[#f2f4f7]"] {
+  background-color: var(--muted) !important;
+}
+
+.dark [class~="text-[#151515]"] {
+  color: var(--foreground) !important;
+}
