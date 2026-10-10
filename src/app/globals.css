@@ -368,10 +368,16 @@
 }
 /* Additional fixed neutrals found in the homepage, empty states, and product galleries. */
 .dark [class*="bg-[#fffdf9]"],
-.dark [class*="bg-[#f2f4f7]"] {
+.dark [class*="bg-[#f2f4f7]"],
+.dark [class*="bg-[#f6f5f2]"],
+.dark [class*="bg-[#f5f5f3]"],
+.dark [class*="bg-[#f6f6f6]"],
+.dark [class*="bg-[#f8f8f8]"] {
   background-color: var(--muted) !important;
 }
 
-.dark [class~="text-[#151515]"] {
+.dark [class~="text-[#151515]"],
+.dark [class~="text-[#111111]"],
+.dark [class~="text-[#222222]"] {
   color: var(--foreground) !important;
 }
