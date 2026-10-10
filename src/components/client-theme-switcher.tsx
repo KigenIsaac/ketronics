@@ -1,7 +1,6 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { usePathname } from "next/navigation";
 
 const ThemeSwitcher = dynamic(
   () => import("@/components/theme-switcher").then((mod) => mod.ThemeSwitcher),
@@ -9,7 +8,6 @@ const ThemeSwitcher = dynamic(
 );
 
 export function ClientThemeSwitcher() {
-  const pathname = usePathname();
-  if (pathname === "/") return null;
+  // Keep the floating theme control available on every route, including the homepage.
   return <ThemeSwitcher />;
 }

@@ -28,9 +28,9 @@ export function SectionHeader({ eyebrow, title, description, href, actionLabel =
   return (
     <div className="mb-5 flex items-end justify-between gap-4">
       <div>
-        {eyebrow && <p className="mb-1 text-[10px] font-bold uppercase tracking-[.22em] text-black/40">{eyebrow}</p>}
-        <h2 className="text-2xl font-bold tracking-[-.04em] text-[#171717] sm:text-3xl">{title}</h2>
-        {description && <p className="mt-1 text-sm text-black/50">{description}</p>}
+        {eyebrow && <p className="mb-1 text-[10px] font-bold uppercase tracking-[.22em] text-muted-foreground">{eyebrow}</p>}
+        <h2 className="text-2xl font-bold tracking-[-.04em] text-foreground sm:text-3xl">{title}</h2>
+        {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
       </div>
       {href && <Link href={href} className="shrink-0 text-sm font-bold text-orange-600 hover:text-orange-700">{actionLabel} <ArrowRight className="ml-1 inline h-4 w-4" /></Link>}
     </div>
@@ -38,20 +38,20 @@ export function SectionHeader({ eyebrow, title, description, href, actionLabel =
 }
 
 export function Surface({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={cn("rounded-2xl border border-black/[.06] bg-white shadow-[0_8px_30px_rgba(16,24,40,.05)]", className)}>{children}</div>;
+  return <div className={cn("rounded-2xl border border-border bg-card text-card-foreground shadow-[0_8px_30px_rgba(16,24,40,.05)] dark:shadow-[0_12px_36px_rgba(0,0,0,.18)]", className)}>{children}</div>;
 }
 
 export function EmptyState({ title, description, action }: { title: string; description?: string; action?: React.ReactNode }) {
   return (
     <Surface className="flex min-h-[320px] flex-col items-center justify-center px-6 py-12 text-center">
-      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f2f4f7]"><PackageOpen className="h-6 w-6 text-black/45" /></div>
+      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted"><PackageOpen className="h-6 w-6 text-muted-foreground" /></div>
       <h2 className="text-xl font-bold tracking-[-.02em]">{title}</h2>
-      {description && <p className="mt-2 max-w-md text-sm leading-6 text-black/50">{description}</p>}
+      {description && <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">{description}</p>}
       {action && <div className="mt-6">{action}</div>}
     </Surface>
   );
 }
 
 export function StatCard({ label, value, hint, icon: Icon }: { label: string; value: React.ReactNode; hint?: string; icon: React.ComponentType<{ className?: string }> }) {
-  return <Surface className="p-5"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[.12em] text-black/40">{label}</p><p className="mt-2 text-2xl font-bold tracking-[-.04em]">{value}</p>{hint && <p className="mt-1 text-xs text-black/45">{hint}</p>}</div><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-600"><Icon className="h-5 w-5" /></div></div></Surface>;
+  return <Surface className="p-5"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[.12em] text-muted-foreground">{label}</p><p className="mt-2 text-2xl font-bold tracking-[-.04em]">{value}</p>{hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}</div><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-accent-foreground"><Icon className="h-5 w-5" /></div></div></Surface>;
 }
