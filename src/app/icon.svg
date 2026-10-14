@@ -1,4 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#ffffff"/>
-  <image href="/ketronics-logo.png" x="0" y="0" width="512" height="512" preserveAspectRatio="xMidYMid meet"/>
+  <rect width="512" height="512" rx="100" fill="#0b1220"/>
+  <path d="M116 88h70v142l132-142h91L265 247l151 177h-91L209 285l-23 25v114h-70z" fill="#ffffff"/>
+  <path d="M345 91h70v70h-70z" fill="#22d3ee"/>
+  <path d="M345 351h70v70h-70z" fill="#22d3ee"/>
 </svg>
