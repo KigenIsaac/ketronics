@@ -1,0 +1,45 @@
+name: Supabase read-only catalog diagnostics
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  catalog-diagnostics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_ID: klepxrustnlpzyivwxwf
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Validate required credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_ACCESS_TOKEN"
+          test -n "$SUPABASE_DB_PASSWORD"
+
+      - name: Link production project
+        run: supabase link --project-ref "$SUPABASE_PROJECT_ID" --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Report category and product counts (read-only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "=== Category counts: all products and active products ==="
+          supabase db query --linked "SELECT c.id AS category_id, c.name AS category_name, COUNT(p.id) AS all_products, COUNT(p.id) FILTER (WHERE p.status = 'active') AS active_products FROM public.categories c LEFT JOIN public.products p ON p.category_id = c.id GROUP BY c.id, c.name ORDER BY c.name;"
+          echo "=== Products with missing or invalid category relationships ==="
+          supabase db query --linked "SELECT COUNT(*) AS total_products, COUNT(*) FILTER (WHERE category_id IS NULL) AS without_category, COUNT(*) FILTER (WHERE category_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM public.categories c WHERE c.id = products.category_id)) AS orphaned_category_id, COUNT(*) FILTER (WHERE status = 'active') AS active_products FROM public.products;"
+          echo "=== Subcategory counts ==="
+          supabase db query --linked "SELECT c.name AS category_name, s.name AS subcategory_name, COUNT(p.id) AS all_products, COUNT(p.id) FILTER (WHERE p.status = 'active') AS active_products FROM public.subcategories s JOIN public.categories c ON c.id = s.category_id LEFT JOIN public.products p ON p.subcategory_id = s.id GROUP BY c.name, s.name ORDER BY c.name, s.name;"
