@@ -12,12 +12,23 @@ import { EmptyState, PageHero, SectionHeader, StorePage } from '@/components/sto
 
 interface Category { id:string; name:string }
 
+const categoryAliases: Record<string, { categories: string[]; subcategories: string[]; title: string }> = {
+ laptops: { categories: ['Laptops'], subcategories: ['Laptop', 'Laptops'], title: 'Laptops' },
+ phones: { categories: ['Phones', 'Phones & Tablets'], subcategories: ['Phones', 'Tablets'], title: 'Phones & Tablets' },
+ tvs: { categories: ['TVs', 'TVs & Displays', 'Displays'], subcategories: ['TVs', 'Digital TVs', 'Smart TVs'], title: 'TVs & Displays' },
+ pcs: { categories: ['Computing', 'Hardware', 'PCs & Components'], subcategories: ['Desktop', 'Desktops', 'PCs', 'Components'], title: 'PCs & Components' },
+ printers: { categories: ['Printers'], subcategories: ['Printer', 'Printers'], title: 'Printers' },
+ accessories: { categories: ['Accessories', 'Electronics', 'Hardware'], subcategories: ['Accessories', 'Extension Cable', 'Input Device', 'Cleaning', 'Cat6 Cable'], title: 'Accessories' },
+};
+
+const normalize = (value?: string) => (value || '').trim().toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '');
+
 function ProductsContent(){
  const params=useSearchParams(); const categoryParam=params.get('category')||''; const queryParam=params.get('search')||'';
  const [products,setProducts]=useState<Product[]>([]); const [categories,setCategories]=useState<Category[]>([]); const [search,setSearch]=useState(queryParam); const [category,setCategory]=useState(categoryParam); const [loading,setLoading]=useState(true); const [error,setError]=useState('');
  useEffect(()=>{void Promise.all([supabase.from('categories').select('id,name').order('name'),supabase.from('products').select('*,category:categories(*),subcategory:subcategories(*)').eq('status','active').order('created_at',{ascending:false})]).then(([cr,pr])=>{if(cr.error)throw cr.error;if(pr.error)throw pr.error;setCategories(cr.data||[]);setProducts(pr.data||[]);}).catch(()=>setError('We could not load the catalog right now.')).finally(()=>setLoading(false));},[]);
- const filtered=useMemo(()=>{const q=search.trim().toLowerCase();return products.filter(p=>(!category||p.category?.id===category||p.category?.name.toLowerCase()===category.toLowerCase())&&(!q||[p.name,p.description,p.brand,p.category?.name,p.subcategory?.name].some(v=>v?.toLowerCase().includes(q))))},[products,search,category]);
- const selectedName=categories.find(c=>c.id===category)?.name||category;
+ const filtered=useMemo(()=>{const q=search.trim().toLowerCase();const alias=categoryAliases[category.toLowerCase()];return products.filter(p=>{const categoryMatch=!category||p.category?.id===category||normalize(p.category?.name)===normalize(category)||normalize(p.subcategory?.name)===normalize(category)||(alias&&(alias.categories.some(n=>normalize(n)===normalize(p.category?.name))||alias.subcategories.some(n=>normalize(n)===normalize(p.subcategory?.name))));const searchMatch=!q||[p.name,p.description,p.brand,p.category?.name,p.subcategory?.name].some(v=>v?.toLowerCase().includes(q));return categoryMatch&&searchMatch;})},[products,search,category]);
+ const selectedName=categories.find(c=>c.id===category)?.name||categoryAliases[category.toLowerCase()]?.title||category;
  const clear=()=>{setSearch('');setCategory('');};
  if(loading)return <StorePage><PageHero eyebrow="SHOP KETRONICS" title="Find the right technology." description="Quality devices, components and accessories for work, home and business."/><LoadingGrid count={8} className="grid-cols-2 lg:grid-cols-4"/></StorePage>;
  if(error)return <StorePage><EmptyState title="Catalog unavailable" description={error} action={<Button onClick={()=>window.location.reload()}>Try again</Button>}/></StorePage>;
@@ -31,7 +42,7 @@ function ProductsContent(){
     </div>
    </div>
    <SectionHeader eyebrow="CATALOG" title={filtered.length ? filtered.length + ' products' : 'No matches'} description={(search||category)?'Showing filtered results.':'Browse everything currently available.'}/>
-   {filtered.length?<div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">{filtered.map(p=><ProductCard key={p.id} product={p}/>)}</div>:<EmptyState title="Nothing matched your search" description="Try another product name or clear your filters." action={<Button onClick={clear} className="rounded-full bg-orange-500 hover:bg-orange-600"><SlidersHorizontal className="mr-2 h-4 w-4"/>Reset filters</Button>}/>}
+   {filtered.length?<div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">{filtered.map(p=><ProductCard key={p.id} product={p}/>)}</div>:<EmptyState title="Nothing matched your search" description="Try another product name or clear your filters." action={<Button onClick={clear} className="rounded-full bg-orange-500 hover:bg-orange-600"><SlidersHorizontal className="mr-2 h-4 w-4"/>Reset filters</Button}/>}
  </StorePage>
 }
 export default function ProductsPage(){return <Suspense fallback={<StorePage><LoadingGrid count={8}/></StorePage>}><ProductsContent/></Suspense>}
