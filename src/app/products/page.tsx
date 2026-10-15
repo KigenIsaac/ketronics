@@ -42,7 +42,7 @@ function ProductsContent(){
     </div>
    </div>
    <SectionHeader eyebrow="CATALOG" title={filtered.length ? filtered.length + ' products' : 'No matches'} description={(search||category)?'Showing filtered results.':'Browse everything currently available.'}/>
-   {filtered.length?<div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">{filtered.map(p=><ProductCard key={p.id} product={p}/>)}</div>:<EmptyState title="Nothing matched your search" description="Try another product name or clear your filters." action={<Button onClick={clear} className="rounded-full bg-orange-500 hover:bg-orange-600"><SlidersHorizontal className="mr-2 h-4 w-4"/>Reset filters</Button}/>}
+   {filtered.length?<div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">{filtered.map(p=><ProductCard key={p.id} product={p}/>)}</div>:<EmptyState title="Nothing matched your search" description="Try another product name or clear your filters." action={<Button onClick={clear} className="rounded-full bg-orange-500 hover:bg-orange-600"><SlidersHorizontal className="mr-2 h-4 w-4"/>Reset filters</Button>}/>}
  </StorePage>
 }
 export default function ProductsPage(){return <Suspense fallback={<StorePage><LoadingGrid count={8}/></StorePage>}><ProductsContent/></Suspense>}
