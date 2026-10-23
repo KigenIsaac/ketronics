@@ -22,7 +22,7 @@ function normalize(value: string) {
 
 function isCatalogueCountQuestion(value: string) {
   const query = normalize(value);
-  return /\b(how many|number of|count|total number of)\b.{0,50}\b(products?|items?)\b/.test(query)
+  return /\b(product|products|catalogue|catalog|category|categories|price|prices|cost|stock|available|availability|buy|purchase|recommend|recommendation|compare|comparison|budget|cheap|cheapest|best value|tv|tvs|television|televisions|oled|qled|laptop|laptops|notebook|desktop|computer|pc|phone|phones|smartphone|iphone|android|tablet|tablets|ipad|printer|printers|scanner|router|routers|networking|wifi|wi-fi|monitor|keyboard|mouse|headphones|earbuds|speaker|microphone|charger|charging|cable|adapter|dongle|power bank|extension|surge protector|starlink|macbook|samsung|hp|dell|lenovo|asus|acer|apple|camera|cameras|webcam|projector|smartwatch|smart watch|watch|ssd|hard drive|memory|ram|graphics card|gpu|processor|cpu|gaming|console|playstation|xbox|nintendo|accessory|accessories|how many|show me|looking for|what do you have|what .* have|do you sell|in your store)\b/.test(query);
     || /\b(products?|items?)\b.{0,50}\b(count|total|how many|number)\b/.test(query);
 }
 
