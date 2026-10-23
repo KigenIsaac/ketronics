@@ -82,9 +82,9 @@ export async function callAgnes(messages: AgnesMessage[], options?: {
   // Some model/provider responses accidentally expose internal <think> blocks.
   // Remove the full block (not merely its tags) before any content reaches customers.
   const answer = rawAnswer
-    .replace(/<think\\b[^>]*>[\\s\\S]*?<\\/think\\s*>/gi, "")
-    .replace(/<think\\b[^>]*>[\\s\\S]*$/gi, "")
-    .replace(/<\\/?think\\b[^>]*>/gi, "")
+    .replace(/<think\b[^>]*>[\s\S]*?<\/think\s*>/gi, "")
+    .replace(/<think\b[^>]*>[\s\S]*$/gi, "")
+    .replace(/<\/?think\b[^>]*>/gi, "")
     .trim();
   const toolCalls = message?.tool_calls ?? [];
   if (!answer && toolCalls.length === 0) throw new Error("AGNES_EMPTY_RESPONSE");
