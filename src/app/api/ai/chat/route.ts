@@ -241,6 +241,9 @@ async function executeCatalogueTool(name: string, args: Record<string, unknown>)
     const merged = new Map<string, typeof data[number]>();
     for (const item of [...(data ?? []), ...categoryProducts]) merged.set(String(item.id), item);
     let allMatches = [...merged.values()];
+    if (minPrice !== null) allMatches = allMatches.filter((item) => Number(item.price) >= minPrice);
+    if (maxPrice !== null) allMatches = allMatches.filter((item) => Number(item.price) <= maxPrice);
+    if (brand) allMatches = allMatches.filter((item) => String(item.brand ?? "").toLowerCase().includes(brand.toLowerCase()));
     if (category) {
       const needle = category.toLowerCase();
       allMatches = allMatches.filter((item) => {
@@ -250,7 +253,19 @@ async function executeCatalogueTool(name: string, args: Record<string, unknown>)
       });
     }
     if (sortBy === "price_low_to_high") allMatches.sort((a, b) => Number(a.price) - Number(b.price));
-    if (sortBy === "price_high_to_low") allMatches.sort((a, b) => Number(b.price) - Number(a.price));
+    else if (sortBy === "price_high_to_low") allMatches.sort((a, b) => Number(b.price) - Number(a.price));
+    else if (sortBy === "relevance") {
+      const score = (item: typeof allMatches[number]) => {
+        const name = String(item.name ?? "").toLowerCase();
+        const itemBrand = String(item.brand ?? "").toLowerCase();
+        const description = String(item.description ?? "").toLowerCase();
+        const cat = item.category as { name?: string } | null;
+        const subcat = item.subcategory as { name?: string } | null;
+        const categoryText = `${cat?.name ?? ""} ${subcat?.name ?? ""}`.toLowerCase();
+        return terms.reduce((total, term) => total + (name.includes(term) ? 5 : 0) + (itemBrand.includes(term) ? 3 : 0) + (categoryText.includes(term) ? 2 : 0) + (description.includes(term) ? 1 : 0), 0);
+      };
+      allMatches.sort((a, b) => score(b) - score(a));
+    }
     return {
       query, offset, limit, filters: { min_price: minPrice, max_price: maxPrice, brand: brand || null, category: category || null, sort_by: sortBy },
       totalMatches: allMatches.length,
