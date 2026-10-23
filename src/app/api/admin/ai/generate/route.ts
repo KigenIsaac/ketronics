@@ -21,7 +21,7 @@ async function authorizeStaff() {
   if (profileError || !profile?.is_active || !["manager", "admin"].includes(profile.role)) {
     return { response: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
-  return { response: null, userId: user.id };
+  return { response: null, userId: user.id, supabase };
 }
 
 const instructions: Record<z.infer<typeof schema>["task"], string> = {
@@ -51,6 +51,46 @@ export async function POST(request: NextRequest) {
     if (!globalAllowed || !staffAllowed) return NextResponse.json({ error: "AI generation limit reached. Try again in a minute." }, { status: 429, headers: { "Retry-After": "60" } });
 
     let context = parsed.data.input;
+    if (parsed.data.task === "insights") {
+      const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+      const [ordersResult, itemsResult, productsResult] = await Promise.all([
+        auth.supabase.from("orders").select("total,status,created_at").gte("created_at", since).limit(5000),
+        auth.supabase.from("order_items").select("product_name,quantity,price,created_at").gte("created_at", since).limit(10000),
+        auth.supabase.from("products").select("name,status,price,track_inventory,stock_quantity,low_stock_threshold").eq("status", "active").limit(5000),
+      ]);
+      if (ordersResult.error || itemsResult.error || productsResult.error) {
+        return NextResponse.json({ error: "Could not read the business metrics needed for AI analysis." }, { status: 503 });
+      }
+      const orders = ordersResult.data ?? [];
+      const paidStatuses = new Set(["paid", "shipped", "delivered"]);
+      const recognizedOrders = orders.filter((order) => paidStatuses.has(String(order.status)));
+      const recognizedRevenue = recognizedOrders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+      const sales = new Map<string, number>();
+      for (const item of itemsResult.data ?? []) {
+        const name = String(item.product_name || "Unknown product");
+        sales.set(name, (sales.get(name) ?? 0) + Number(item.quantity || 0));
+      }
+      const topProducts = [...sales.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10).map(([name, units]) => ({ name, units }));
+      const lowStock = (productsResult.data ?? [])
+        .filter((product) => product.track_inventory && Number(product.stock_quantity ?? 0) <= Number(product.low_stock_threshold ?? 0))
+        .slice(0, 30)
+        .map((product) => ({ name: product.name, stock_quantity: product.stock_quantity, low_stock_threshold: product.low_stock_threshold }));
+      context = JSON.stringify({
+        analysis_request: parsed.data.input,
+        period: "Last 90 days",
+        orders: {
+          total: orders.length,
+          recognized_revenue_kes: recognizedRevenue,
+          recognized_order_count: recognizedOrders.length,
+          pending_count: orders.filter((order) => order.status === "pending").length,
+          cancelled_count: orders.filter((order) => order.status === "cancelled").length,
+        },
+        top_products_by_units: topProducts,
+        active_catalogue_count: (productsResult.data ?? []).length,
+        low_stock_products: lowStock,
+        limitations: ["Only the most recent 5000 orders, 10000 order items, and 5000 active products are included.", "Revenue counts orders marked paid, shipped, or delivered only; verify accounting treatment before financial decisions.", "Stock alerts are meaningful only for products with inventory tracking enabled."],
+      }, null, 2);
+    }
     if (parsed.data.productId && ["product-description", "seo"].includes(parsed.data.task)) {
       const { data: product, error } = await authSupabaseProduct(parsed.data.productId);
       if (error || !product) return NextResponse.json({ error: "Product not found or unavailable." }, { status: 404 });
