@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/sidebar";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { ScrollingBanner } from "@/components/scrolling-banner";
+import { KetronicsAI } from "@/components/ai/KetronicsAI";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 
@@ -166,6 +167,7 @@ export default function RootLayout({
             {/* Footer - full width */}
             <Footer />
           </div>
+          <KetronicsAI />
         </Providers>
       </body>
     </html>
