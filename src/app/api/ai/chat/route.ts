@@ -26,25 +26,51 @@ function isCatalogueCountQuestion(value: string) {
     || /\b(products?|items?)\b.{0,50}\b(count|total|how many|number)\b/.test(query);
 }
 
+const SEARCH_STOP_WORDS = new Set([
+  "a", "an", "and", "are", "can", "do", "does", "for", "find", "give", "have",
+  "hello", "help", "i", "in", "is", "me", "my", "of", "on", "please", "show",
+  "the", "there", "to", "want", "what", "which", "with", "you", "your",
+]);
+
+const SEARCH_SYNONYMS: Record<string, string[]> = {
+  tv: ["tv", "television", "smart tv", "oled", "qled"],
+  tvs: ["tv", "television", "smart tv", "oled", "qled"],
+  television: ["tv", "television", "smart tv", "oled", "qled"],
+  televisions: ["tv", "television", "smart tv", "oled", "qled"],
+  laptop: ["laptop", "notebook"],
+  laptops: ["laptop", "notebook"],
+  printer: ["printer", "printing"],
+  printers: ["printer", "printing"],
+  phone: ["phone", "smartphone", "mobile"],
+  phones: ["phone", "smartphone", "mobile"],
+  tablet: ["tablet"],
+  tablets: ["tablet"],
+  router: ["router", "networking", "wifi", "wi-fi"],
+  routers: ["router", "networking", "wifi", "wi-fi"],
+};
+
+function getSearchTerms(query: string) {
+  const words = normalize(query).split(" ").filter((word) => word.length >= 2 && !SEARCH_STOP_WORDS.has(word));
+  const expanded = words.flatMap((word) => SEARCH_SYNONYMS[word] ?? [word]);
+  return [...new Set(expanded.map((word) => word.replace(/[%_(),]/g, "")).filter(Boolean))].slice(0, 10);
+}
+
 async function getRelevantProducts(query: string, imageAttached = false) {
   const supabase = getSupabaseAdmin();
-  const words = normalize(query).split(" ").filter((word) => word.length >= 3).slice(0, 5);
+  const terms = getSearchTerms(query);
   let request = supabase.from("products")
     .select("id,name,description,price,brand,discount,stock_quantity,track_inventory,attributes,images,category:categories(name),subcategory:subcategories(name)")
     .eq("status", "active")
     .order("created_at", { ascending: false })
     .limit(imageAttached ? 20 : 8);
 
-  if (words.length && !imageAttached) {
-    const terms = words.map((word) => word.replace(/[%_(),]/g, "")).filter(Boolean);
-    if (terms.length) {
-      const filters = terms.flatMap((word) => [
-        `name.ilike.%${word}%`,
-        `brand.ilike.%${word}%`,
-        `description.ilike.%${word}%`,
-      ]).join(",");
-      request = request.or(filters);
-    }
+  if (terms.length && !imageAttached) {
+    const filters = terms.flatMap((word) => [
+      `name.ilike.%${word}%`,
+      `brand.ilike.%${word}%`,
+      `description.ilike.%${word}%`,
+    ]).join(",");
+    request = request.or(filters);
   }
 
   const { data, error } = await request;
@@ -117,6 +143,7 @@ export async function POST(request: NextRequest) {
       "You are Ketronics AI, a helpful electronics shopping and customer-support assistant for a Kenyan electronics store.",
       "Be concise, practical, friendly and use KSh/KES for prices.",
       "Use ONLY the catalogue data supplied below for product names, prices, specifications, discounts and availability. Never invent items, prices, stock or policies.",
+      "The supplied products are search matches, not necessarily the entire catalogue. Never infer the total catalogue count from this sample. If no matching products are supplied, say no matching item was found in the search results and invite the customer to contact Ketronics to confirm; do not claim the store definitely does not sell that category.",
       "If the catalogue does not establish an answer, say you cannot verify it and direct the customer to Ketronics support or WhatsApp ordering.",
       "For stock_quantity 'not tracked', explain that live stock is not confirmed. Do not claim an item is in stock based only on its presence in the catalogue.",
       "Never claim an order, payment, reservation, refund, delivery or account change has been completed. You cannot perform those actions.",
