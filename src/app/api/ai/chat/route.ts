@@ -147,10 +147,11 @@ async function executeCatalogueTool(name: string, args: Record<string, unknown>)
     const categoryNames = [...new Set(terms.map((term) => term.trim()).filter((term) => term.length >= 2))];
     const categoryIds = new Set<string>();
     const subcategoryIds = new Set<string>();
-    for (const term of categoryNames) {
+    if (categoryNames.length) {
+      const categoryFilters = categoryNames.map((term) => `name.ilike.%${term}%`).join(",");
       const [categories, subcategories] = await Promise.all([
-        supabase.from("categories").select("id").ilike("name", `%${term}%`).limit(50),
-        supabase.from("subcategories").select("id").ilike("name", `%${term}%`).limit(50),
+        supabase.from("categories").select("id").or(categoryFilters).limit(100),
+        supabase.from("subcategories").select("id").or(categoryFilters).limit(100),
       ]);
       for (const item of categories.data ?? []) categoryIds.add(String(item.id));
       for (const item of subcategories.data ?? []) subcategoryIds.add(String(item.id));
@@ -168,7 +169,7 @@ async function executeCatalogueTool(name: string, args: Record<string, unknown>)
     }
     const merged = new Map<string, typeof data[number]>();
     for (const item of [...(data ?? []), ...categoryProducts]) merged.set(String(item.id), item);
-    const allMatches = [...merged.values()].sort((a, b) => String(b.id).localeCompare(String(a.id)));
+    const allMatches = [...merged.values()];
     return {
       query, offset, limit,
       totalMatches: allMatches.length,
