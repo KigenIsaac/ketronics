@@ -27,6 +27,11 @@ test("public AI endpoint validates inputs, rate limits shared quota and uses act
   assert.match(source, /get_catalogue_count/);
   assert.match(source, /list_categories/);
   assert.match(source, /compare_products/);
+  assert.match(source, /get_business_info/);
+  assert.match(source, /isBusinessInfoIntent/);
+  assert.match(source, /Verified public Ketronics business information/);
+  assert.match(source, /AA Building, 1st Floor, Room F6A, Eldoret, Kenya/);
+  assert.match(source, /public_faqs/);
   assert.match(source, /min_price/);
   assert.match(source, /max_price/);
   assert.match(source, /price_low_to_high/);
