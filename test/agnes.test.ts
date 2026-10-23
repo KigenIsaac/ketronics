@@ -9,6 +9,8 @@ test("Agnes integration keeps provider secrets server-only and uses OpenAI-compa
   assert.doesNotMatch(source, /NEXT_PUBLIC_AGNES_API_KEY/);
   assert.match(source, /Authorization:.*apiKey/);
   assert.match(source, /AbortSignal\.timeout/);
+  assert.match(source, /nullable\(\)\.optional\(\)/);
+  assert.match(source, /tool_calls/);
 });
 
 test("public AI endpoint validates inputs, rate limits shared quota and uses active catalogue products", async () => {
