@@ -29,7 +29,7 @@ test("admin AI endpoint requires active manager/admin and never publishes genera
   assert.match(source, /\["manager", "admin"\]/);
   assert.match(source, /agnes:global:admin/);
   assert.match(source, /Do not claim to have changed or published anything/);
-  assert.match(source, /product-description[\\s\\S]*seo/);
+  assert.match(source, /product-description[\s\S]*seo/);
 });
 
 test("customer AI widget is present and accessible from the site layout", async () => {
