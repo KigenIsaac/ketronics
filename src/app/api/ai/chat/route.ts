@@ -20,6 +20,12 @@ function normalize(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9\s-]/g, " ").replace(/\s+/g, " ").trim();
 }
 
+function isCatalogueCountQuestion(value: string) {
+  const query = normalize(value);
+  return /\\b(how many|number of|count|total number of)\\b.{0,50}\\b(products?|items?)\\b/.test(query)
+    || /\\b(products?|items?)\\b.{0,50}\\b(count|total|how many|number)\\b/.test(query);
+}
+
 async function getRelevantProducts(query: string, imageAttached = false) {
   const supabase = getSupabaseAdmin();
   const words = normalize(query).split(" ").filter((word) => word.length >= 3).slice(0, 5);
@@ -87,6 +93,21 @@ export async function POST(request: NextRequest) {
 
     const latestUser = [...parsed.data.messages].reverse().find((m) => m.role === "user");
     if (!latestUser) return NextResponse.json({ error: "A user message is required." }, { status: 400 });
+
+    // Answer catalogue-count questions from an exact database count, not the small recommendation sample sent to the LLM.
+    if (isCatalogueCountQuestion(latestUser.content)) {
+      const { count, error } = await getSupabaseAdmin()
+        .from("products")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "active");
+      if (error) throw new Error("CATALOG_UNAVAILABLE");
+      const total = count ?? 0;
+      return NextResponse.json({
+        answer: `There are ${total.toLocaleString("en-KE")} active products currently listed in the Ketronics catalogue.`,
+        model: "catalogue-count",
+        products: [],
+      }, { headers: { "Cache-Control": "no-store" } });
+    }
 
     const imageDataUrl = safeImageDataUrl(parsed.data.imageDataUrl);
     if (parsed.data.imageDataUrl && !imageDataUrl) return NextResponse.json({ error: "Use a PNG, JPEG or WebP image under 2 MB." }, { status: 400 });
