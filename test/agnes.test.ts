@@ -51,7 +51,8 @@ test("customer AI widget is present and accessible from the site layout", async 
   assert.match(widget, /function MessageContent/);
   assert.match(widget, /ReactMarkdown/);
   assert.match(widget, /remarkGfm/);
-  assert.match(widget, /showProducts && products.length > 0/);
+  assert.match(widget, /isProductMentioned/);
+  assert.match(widget, /relevantProducts.length > 0/);
   assert.match(widget, /Attach product image/);
   assert.match(widget, /2 \* 1024 \* 1024/);
   assert.match(widget, /\/api\/ai\/chat/);
