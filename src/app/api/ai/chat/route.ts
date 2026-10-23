@@ -33,7 +33,7 @@ function isGreeting(value: string) {
 
 function isBusinessInfoIntent(value: string) {
   const query = normalize(value);
-  return /\\b(where are you|where are you located|location|located|physical address|address|branch|branches|contact|contact details|phone number|email address|whatsapp|opening hours|business hours|working hours|delivery|deliver|shipping|delivery fee|delivery time|returns|return policy|refund|warranty|repair|repairs|cctv|installation|technical support|support|network setup|services|service offerings|payment methods|how do i reach|how can i reach|visit your store|visit you)\\b/.test(query);
+  return /\b(where are you|where are you located|location|located|physical address|address|branch|branches|contact|contact details|phone number|email address|whatsapp|opening hours|business hours|working hours|delivery|deliver|shipping|delivery fee|delivery time|returns|return policy|refund|warranty|repair|repairs|cctv|installation|technical support|support|network setup|services|service offerings|payment methods|how do i reach|how can i reach|visit your store|visit you)\b/.test(query);
 }
 
 function isCatalogueIntent(value: string) {
@@ -392,9 +392,10 @@ export async function POST(request: NextRequest) {
     const catalogueIntent = isCatalogueIntent(latestUser.content) || Boolean(imageDataUrl);
     const businessIntent = isBusinessInfoIntent(latestUser.content);
     const assistantToolsIntent = catalogueIntent || businessIntent;
+    const businessContext = businessIntent ? await executeCatalogueTool("get_business_info", {}) : null;
     const system = [
       "You are Ketronics AI, a helpful electronics shopping and customer-support assistant for a Kenyan electronics store.",
-      "You have access to read-only tools for both the live product catalogue and public business information. You are not limited to product search. For location, contact details, opening hours, delivery, services, support, warranties, returns, refunds or payment-policy questions, call get_business_info and answer directly from its returned public business records. Do not tell customers you do not know the location when the tool supplies it. Do not invent details missing from the records."
+      "You have access to read-only tools for both the live product catalogue and public business information. You are not limited to product search. For location, contact details, opening hours, delivery, services, support, warranties, returns, refunds or payment-policy questions, call get_business_info and answer directly from its returned public business records. Do not tell customers you do not know the location when the tool supplies it. Do not invent details missing from the records.",
       "Be concise, practical, friendly and use KSh/KES for prices.",
       "Use ONLY the catalogue data supplied below for product names, prices, specifications, discounts and availability. Never invent items, prices, stock or policies.",
       "For greetings or general conversation, answer naturally without steering the customer into shopping or pretending to have searched products. The catalogue is queried only when the customer asks a product-related question or attaches a product photo.",
@@ -444,7 +445,7 @@ export async function POST(request: NextRequest) {
     }
     // Some OpenAI-compatible providers silently ignore tools. In that case, do a server-side search
     // and ground the answer in those records instead of trusting an ungrounded product response.
-    if (assistantToolsIntent && result.toolCalls.length === 0 && productsFallback.size === 0) {
+    if (assistantToolsIntent && result.toolCalls.length === 0 && productsFallback.size === 0 && !businessContext) {
       toolCallingSupported = false;
       const fallback = businessIntent
         ? await executeCatalogueTool("get_business_info", {})
