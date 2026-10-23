@@ -36,8 +36,8 @@ function isCatalogueIntent(value: string) {
 }
 
 const SEARCH_STOP_WORDS = new Set([
-  "a", "an", "and", "are", "can", "do", "does", "for", "find", "give", "have",
-  "hello", "help", "i", "in", "is", "me", "my", "of", "on", "please", "show",
+  "a", "all", "an", "and", "are", "can", "catalog", "catalogue", "do", "does", "for", "find", "give", "have",
+  "hello", "help", "i", "in", "is", "item", "items", "me", "my", "of", "on", "please", "product", "products", "show",
   "the", "there", "to", "want", "what", "which", "with", "you", "your",
 ]);
 
