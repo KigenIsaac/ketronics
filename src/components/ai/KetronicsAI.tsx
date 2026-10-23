@@ -7,7 +7,7 @@ type ChatMessage = { role: "user" | "assistant"; content: string };
 type Product = { id: string; name: string; price_kes: number; image: string | null; brand: string | null };
 
 function MessageContent({ content }: { content: string }) {
-  return <>{content.split(/(\\*\\*[^*]+\\*\\*)/g).map((part, index) =>
+  return <>{content.split(/(\*\*[^*]+\*\*)/g).map((part, index) =>
     part.startsWith("**") && part.endsWith("**")
       ? <strong key={index}>{part.slice(2, -2)}</strong>
       : <span key={index}>{part}</span>
