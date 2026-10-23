@@ -22,8 +22,8 @@ function normalize(value: string) {
 
 function isCatalogueCountQuestion(value: string) {
   const query = normalize(value);
-  return /\b(how many|number of|count|total number of)\\b.{0,50}\\b(products?|items?)\b/.test(query)
-    || /\b(products?|items?)\\b.{0,50}\\b(count|total|how many|number)\b/.test(query);
+  return /\b(how many|number of|count|total number of)\b.{0,50}\b(products?|items?)\b/.test(query)
+    || /\b(products?|items?)\b.{0,50}\b(count|total|how many|number)\b/.test(query);
 }
 
 function isGreeting(value: string) {
