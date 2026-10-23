@@ -438,10 +438,10 @@ export async function POST(request: NextRequest) {
       if (!assistantToolsIntent || !/^AGNES_UPSTREAM_(400|404|422)$/.test(code)) throw error;
       // Compatibility fallback for providers/models that don't support the OpenAI tools field.
       toolCallingSupported = false;
-      const fallback = await executeCatalogueTool("search_products", { query: latestUser.content, limit: 8, offset: 0 });
-      const fallbackProducts = (fallback as { products?: ReturnType<typeof formatProduct>[] }).products ?? [];
+      const fallback = businessIntent ? businessContext : await executeCatalogueTool("search_products", { query: latestUser.content, limit: 8, offset: 0 });
+      const fallbackProducts = (fallback as { products?: ReturnType<typeof formatProduct>[] } | null)?.products ?? [];
       for (const product of fallbackProducts) productsFallback.set(String(product.id), product);
-      messages[0] = { role: "system", content: `${String(messages[0]?.content ?? "")}\n\nFallback catalogue search results (read-only, grounded database data):\n${JSON.stringify(fallback)}` };
+      messages[0] = { role: "system", content: `${String(messages[0]?.content ?? "")}\\n\\nFallback ${businessIntent ? "public business information" : "catalogue search results"} (read-only, grounded data):\\n${JSON.stringify(fallback)}` };
       result = await callAgnes(messages, { maxTokens: 700, temperature: 0.25 });
     }
     // Some OpenAI-compatible providers silently ignore tools. In that case, do a server-side search
