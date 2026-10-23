@@ -144,6 +144,7 @@ export async function POST(request: NextRequest) {
       "Be concise, practical, friendly and use KSh/KES for prices.",
       "Use ONLY the catalogue data supplied below for product names, prices, specifications, discounts and availability. Never invent items, prices, stock or policies.",
       "The supplied products are search matches, not necessarily the entire catalogue. Never infer the total catalogue count from this sample. If no matching products are supplied, say no matching item was found in the search results and invite the customer to contact Ketronics to confirm; do not claim the store definitely does not sell that category.",
+      "The supplied products are search matches, not necessarily the entire catalogue. Never infer the total catalogue count from this sample. If no matching products are supplied, say no matching item was found in the search results and invite the customer to contact Ketronics to confirm; do not claim the store definitely does not sell that category.",
       "If the catalogue does not establish an answer, say you cannot verify it and direct the customer to Ketronics support or WhatsApp ordering.",
       "For stock_quantity 'not tracked', explain that live stock is not confirmed. Do not claim an item is in stock based only on its presence in the catalogue.",
       "Never claim an order, payment, reservation, refund, delivery or account change has been completed. You cannot perform those actions.",
