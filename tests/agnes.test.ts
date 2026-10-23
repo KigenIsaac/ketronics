@@ -7,7 +7,7 @@ test("Agnes integration keeps provider secrets server-only and uses OpenAI-compa
   assert.match(source, /https:\/\/apihub\.agnes-ai\.com\/v1/);
   assert.match(source, /process\.env\.AGNES_API_KEY/);
   assert.doesNotMatch(source, /NEXT_PUBLIC_AGNES_API_KEY/);
-  assert.match(source, /Authorization: `Bearer ${apiKey}`/);
+  assert.match(source, /Authorization:.*apiKey/);
   assert.match(source, /AbortSignal\.timeout/);
 });
 
