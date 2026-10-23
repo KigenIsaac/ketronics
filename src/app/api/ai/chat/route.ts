@@ -20,16 +20,16 @@ function normalize(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9\s-]/g, " ").replace(/\s+/g, " ").trim();
 }
 
-async function getRelevantProducts(query: string) {
+async function getRelevantProducts(query: string, imageAttached = false) {
   const supabase = getSupabaseAdmin();
   const words = normalize(query).split(" ").filter((word) => word.length >= 3).slice(0, 5);
   let request = supabase.from("products")
     .select("id,name,description,price,brand,discount,stock_quantity,track_inventory,attributes,images,category:categories(name),subcategory:subcategories(name)")
     .eq("status", "active")
     .order("created_at", { ascending: false })
-    .limit(8);
+    .limit(imageAttached ? 20 : 8);
 
-  if (words.length) {
+  if (words.length && !imageAttached) {
     const terms = words.map((word) => word.replace(/[%_(),]/g, "")).filter(Boolean);
     if (terms.length) {
       const filters = terms.flatMap((word) => [
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
     const imageDataUrl = safeImageDataUrl(parsed.data.imageDataUrl);
     if (parsed.data.imageDataUrl && !imageDataUrl) return NextResponse.json({ error: "Use a PNG, JPEG or WebP image under 2 MB." }, { status: 400 });
 
-    const products = await getRelevantProducts(latestUser.content);
+    const products = await getRelevantProducts(latestUser.content, Boolean(imageDataUrl));
     const system = [
       "You are Ketronics AI, a helpful electronics shopping and customer-support assistant for a Kenyan electronics store.",
       "Be concise, practical, friendly and use KSh/KES for prices.",
