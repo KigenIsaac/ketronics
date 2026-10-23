@@ -9,6 +9,8 @@ test("Agnes integration keeps provider secrets server-only and uses OpenAI-compa
   assert.doesNotMatch(source, /NEXT_PUBLIC_AGNES_API_KEY/);
   assert.match(source, /Authorization:.*apiKey/);
   assert.match(source, /AbortSignal\.timeout/);
+  assert.match(source, /nullable\(\)\.optional\(\)/);
+  assert.match(source, /tool_calls/);
 });
 
 test("public AI endpoint validates inputs, rate limits shared quota and uses active catalogue products", async () => {
@@ -17,6 +19,15 @@ test("public AI endpoint validates inputs, rate limits shared quota and uses act
   assert.match(source, /consumeRateLimit\("agnes:global:chat", 12, 60\)/);
   assert.match(source, /consumeRateLimit\(`agnes:chat:ip:/);
   assert.match(source, /\.eq\("status", "active"\)/);
+  assert.match(source, /isCatalogueCountQuestion/);
+  assert.match(source, /isGreeting/);
+  assert.match(source, /showProducts: false/);
+  assert.match(source, /search_products/);
+  assert.match(source, /get_product_details/);
+  assert.match(source, /get_catalogue_count/);
+  assert.match(source, /toolCallingSupported/);
+  assert.match(source, /count: "exact", head: true/);
+  assert.match(source, /catalogue-count/);
   assert.match(source, /Never invent items, prices, stock or policies/);
   assert.match(source, /Cache-Control.*no-store|Cache-Control/);
   assert.match(source, /imageDataUrl/);
@@ -37,6 +48,10 @@ test("customer AI widget is present and accessible from the site layout", async 
   const widget = await readFile("src/components/ai/KetronicsAI.tsx", "utf8");
   assert.match(layout, /KetronicsAI/);
   assert.match(widget, /aria-label="Ketronics AI shopping assistant"/);
+  assert.match(widget, /function MessageContent/);
+  assert.match(widget, /ReactMarkdown/);
+  assert.match(widget, /remarkGfm/);
+  assert.match(widget, /showProducts && products.length > 0/);
   assert.match(widget, /Attach product image/);
   assert.match(widget, /2 \* 1024 \* 1024/);
   assert.match(widget, /\/api\/ai\/chat/);
