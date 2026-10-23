@@ -18,6 +18,12 @@ test("public AI endpoint validates inputs, rate limits shared quota and uses act
   assert.match(source, /consumeRateLimit\(`agnes:chat:ip:/);
   assert.match(source, /\.eq\("status", "active"\)/);
   assert.match(source, /isCatalogueCountQuestion/);
+  assert.match(source, /isGreeting/);
+  assert.match(source, /showProducts: false/);
+  assert.match(source, /search_products/);
+  assert.match(source, /get_product_details/);
+  assert.match(source, /get_catalogue_count/);
+  assert.match(source, /toolCallingSupported/);
   assert.match(source, /count: "exact", head: true/);
   assert.match(source, /catalogue-count/);
   assert.match(source, /Never invent items, prices, stock or policies/);
@@ -41,6 +47,9 @@ test("customer AI widget is present and accessible from the site layout", async 
   assert.match(layout, /KetronicsAI/);
   assert.match(widget, /aria-label="Ketronics AI shopping assistant"/);
   assert.match(widget, /function MessageContent/);
+  assert.match(widget, /ReactMarkdown/);
+  assert.match(widget, /remarkGfm/);
+  assert.match(widget, /showProducts && products.length > 0/);
   assert.match(widget, /Attach product image/);
   assert.match(widget, /2 \* 1024 \* 1024/);
   assert.match(widget, /\/api\/ai\/chat/);
