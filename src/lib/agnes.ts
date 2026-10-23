@@ -6,7 +6,7 @@ export const DEFAULT_AGNES_MODEL = "agnes-2.5-flash";
 const responseSchema = z.object({
   choices: z.array(z.object({
     message: z.object({
-      content: z.union([z.string(), z.array(z.unknown())]).optional(),
+      content: z.union([z.string(), z.array(z.unknown())]).nullable().optional(),
       tool_calls: z.array(z.object({
         id: z.string(),
         type: z.literal("function"),
