@@ -11,6 +11,10 @@ test("Agnes integration keeps provider secrets server-only and uses OpenAI-compa
   assert.match(source, /AbortSignal\.timeout/);
   assert.match(source, /nullable\(\)\.optional\(\)/);
   assert.match(source, /tool_calls/);
+  assert.match(source, /retryableStatuses/);
+  assert.match(source, /setTimeout\(resolve, 300 \* \(2 \*\* attempt\)\)/);
+  assert.match(source, /<think/);
+  assert.match(source, /rawAnswer/);
 });
 
 test("public AI endpoint validates inputs, rate limits shared quota and uses active catalogue products", async () => {
@@ -31,7 +35,7 @@ test("public AI endpoint validates inputs, rate limits shared quota and uses act
   assert.match(source, /isBusinessInfoIntent/);
   assert.match(source, /Verified public Ketronics business information/);
   assert.match(source, /AA Building, 1st Floor, Room F6A, Eldoret, Kenya/);
-  assert.match(source, /public_faqs/);
+  assert.match(source, /published_faqs/);
   assert.match(source, /min_price/);
   assert.match(source, /max_price/);
   assert.match(source, /price_low_to_high/);
