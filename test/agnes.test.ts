@@ -17,6 +17,9 @@ test("public AI endpoint validates inputs, rate limits shared quota and uses act
   assert.match(source, /consumeRateLimit\("agnes:global:chat", 12, 60\)/);
   assert.match(source, /consumeRateLimit\(`agnes:chat:ip:/);
   assert.match(source, /\.eq\("status", "active"\)/);
+  assert.match(source, /isCatalogueCountQuestion/);
+  assert.match(source, /count: "exact", head: true/);
+  assert.match(source, /catalogue-count/);
   assert.match(source, /Never invent items, prices, stock or policies/);
   assert.match(source, /Cache-Control.*no-store|Cache-Control/);
   assert.match(source, /imageDataUrl/);
