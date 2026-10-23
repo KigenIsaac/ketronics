@@ -306,6 +306,17 @@ export async function POST(request: NextRequest) {
       messages[0] = { role: "system", content: `${String(messages[0]?.content ?? "")}\n\nFallback catalogue search results (read-only, grounded database data):\n${JSON.stringify(fallback)}` };
       result = await callAgnes(messages, { maxTokens: 700, temperature: 0.25 });
     }
+    // Some OpenAI-compatible providers silently ignore tools. In that case, do a server-side search
+    // and ground the answer in those records instead of trusting an ungrounded product response.
+    if (catalogueIntent && result.toolCalls.length === 0 && productsFallback.size === 0) {
+      toolCallingSupported = false;
+      const fallback = await executeCatalogueTool("search_products", { query: latestUser.content, limit: 8, offset: 0 });
+      const fallbackProducts = (fallback as { products?: ReturnType<typeof formatProduct>[] }).products ?? [];
+      for (const product of fallbackProducts) productsFallback.set(String(product.id), product);
+      messages[0] = { role: "system", content: `${String(messages[0]?.content ?? "")}\n\nCatalogue search results (read-only database data):\n${JSON.stringify(fallback)}\nAnswer only from these results and be clear if there are no matches.` };
+      result = await callAgnes(messages, { maxTokens: 700, temperature: 0.25 });
+    }
+
     // Bounded tool loop: the model can search, inspect details or count products, but cannot mutate the store.
     for (let turn = 0; toolCallingSupported && result.toolCalls.length > 0 && turn < 3; turn++) {
       const calls = result.toolCalls;
