@@ -6,6 +6,14 @@ import { Bot, ImagePlus, LoaderCircle, MessageCircle, Send, X } from "lucide-rea
 type ChatMessage = { role: "user" | "assistant"; content: string };
 type Product = { id: string; name: string; price_kes: number; image: string | null; brand: string | null };
 
+function MessageContent({ content }: { content: string }) {
+  return <>{content.split(/(\\*\\*[^*]+\\*\\*)/g).map((part, index) =>
+    part.startsWith("**") && part.endsWith("**")
+      ? <strong key={index}>{part.slice(2, -2)}</strong>
+      : <span key={index}>{part}</span>
+  )}</>;
+}
+
 export function KetronicsAI() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -73,7 +81,7 @@ export function KetronicsAI() {
           <div className="flex-1 space-y-3 overflow-y-auto bg-neutral-50 p-3" aria-live="polite">
             <p className="rounded-lg border border-orange-100 bg-orange-50 px-3 py-2 text-xs text-neutral-600">AI-generated guidance can be imperfect. Verify specifications and stock with Ketronics before ordering.</p>
             {messages.map((message, index) => (
-              <div key={index} className={message.role === "user" ? "ml-7 rounded-2xl rounded-br-sm bg-neutral-900 px-3 py-2.5 text-sm leading-relaxed text-white" : "mr-5 whitespace-pre-wrap rounded-2xl rounded-bl-sm border border-neutral-200 bg-white px-3 py-2.5 text-sm leading-relaxed text-neutral-800"}>{message.content}</div>
+              <div key={index} className={message.role === "user" ? "ml-7 whitespace-pre-wrap rounded-2xl rounded-br-sm bg-neutral-900 px-3 py-2.5 text-sm leading-relaxed text-white" : "mr-5 whitespace-pre-wrap rounded-2xl rounded-bl-sm border border-neutral-200 bg-white px-3 py-2.5 text-sm leading-relaxed text-neutral-800"}><MessageContent content={message.content} /></div>
             ))}
             {busy && <div className="flex items-center gap-2 text-sm text-neutral-500"><LoaderCircle className="animate-spin" size={16}/> Checking the catalogue…</div>}
             {products.length > 0 && <div className="space-y-2"><p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Related catalogue items</p>{products.slice(0,4).map((p) => <div key={p.id} className="flex items-center gap-3 rounded-xl border bg-white p-2">{p.image ? <img src={p.image} alt="" className="h-12 w-12 rounded-lg object-contain" /> : <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-neutral-100"><Bot size={18}/></div>}<div className="min-w-0 flex-1"><p className="line-clamp-2 text-xs font-medium">{p.name}</p><p className="mt-1 text-xs font-semibold text-orange-700">KSh {Number(p.price_kes).toLocaleString("en-KE")}</p></div><a className="text-xs font-semibold underline" href={`/products?search=${encodeURIComponent(p.name)}`}>View</a></div>)}</div>}
