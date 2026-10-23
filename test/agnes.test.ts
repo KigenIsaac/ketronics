@@ -40,6 +40,7 @@ test("customer AI widget is present and accessible from the site layout", async 
   const widget = await readFile("src/components/ai/KetronicsAI.tsx", "utf8");
   assert.match(layout, /KetronicsAI/);
   assert.match(widget, /aria-label="Ketronics AI shopping assistant"/);
+  assert.match(widget, /function MessageContent/);
   assert.match(widget, /Attach product image/);
   assert.match(widget, /2 \* 1024 \* 1024/);
   assert.match(widget, /\/api\/ai\/chat/);
