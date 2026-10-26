@@ -82,7 +82,7 @@ export function KetronicsAI() {
     setBusy(true);
     setError("");
     try {
-      const isOrderQuestion = /\b(order|delivery|tracking|parcel|refund|payment|paid|shipped|where is my|my purchase)\b/i.test(content);
+      const isOrderQuestion = /\b(my order|order status|track my order|tracking (my )?(order|parcel|package)|delivery (status|update|date)|where is my|refund|payment (failed|status|problem|issue)|did (my|the) payment|have i paid|paid for my order|shipped|parcel|package)\b/i.test(content);
       const response = await fetch(isOrderQuestion ? "/api/ai/order-support" : "/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
