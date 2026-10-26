@@ -33,6 +33,25 @@ function BusinessIntelligencePanel() {
   const [metrics, setMetrics] = useState<BusinessMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [actionPlan, setActionPlan] = useState("");
+  const [analysisError, setAnalysisError] = useState("");
+  const [analyzing, setAnalyzing] = useState(false);
+
+  async function generateActionPlan() {
+    setAnalyzing(true);
+    setAnalysisError("");
+    setActionPlan("");
+    try {
+      const response = await fetch("/api/admin/ai/business-intelligence/analyze", { method: "POST" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not generate an action plan.");
+      setActionPlan(data.analysis || "No analysis was returned.");
+    } catch (err) {
+      setAnalysisError(err instanceof Error ? err.message : "Could not generate an action plan.");
+    } finally {
+      setAnalyzing(false);
+    }
+  }
 
   const loadMetrics = useCallback(async (windowDays: string) => {
     setLoading(true);
@@ -64,6 +83,14 @@ function BusinessIntelligencePanel() {
       </div>
     </div>
     {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+    <div className="rounded-xl border border-orange-200 bg-orange-50/60 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div><h3 className="font-semibold">Ask Agnes for a growth plan</h3><p className="mt-1 text-sm text-neutral-600">Analyze verified sales and inventory signals for prioritized, measurable actions. No changes are made to your store.</p></div>
+        <button type="button" onClick={() => void generateActionPlan()} disabled={analyzing} className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{analyzing ? "Analyzing…" : "Generate AI action plan"}</button>
+      </div>
+      {analysisError && <p role="alert" className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-700">{analysisError}</p>}
+      {actionPlan && <div className="mt-4 space-y-2 rounded-lg bg-white p-4"><div className="flex items-center justify-between gap-2"><h4 className="font-semibold">Agnes growth recommendations</h4><button type="button" onClick={() => void navigator.clipboard.writeText(actionPlan)} className="rounded-md border px-3 py-1.5 text-xs">Copy plan</button></div><pre className="whitespace-pre-wrap break-words font-sans text-sm leading-relaxed">{actionPlan}</pre><p className="text-xs text-neutral-500">Recommendations are hypotheses based on bounded store data. Review before acting.</p></div>}
+    </div>
     {loading && !metrics && <p className="text-sm text-neutral-500">Loading verified store metrics…</p>}
     {metrics && <>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
