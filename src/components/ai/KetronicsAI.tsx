@@ -90,7 +90,10 @@ export function KetronicsAI() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "The assistant could not respond.");
-      setMessages((current) => [...current, { role: "assistant", content: data.answer }]);
+      const answer = typeof data.answer === "string" ? data.answer.trim() : "";
+      if (!answer) throw new Error("The assistant returned no customer-facing answer. Please try again.");
+      // Render only the explicit final answer field; never render model reasoning or tool traces.
+      setMessages((current) => [...current, { role: "assistant", content: answer }]);
       const returnedProducts = Array.isArray(data.products) ? data.products : [];
       setProducts(returnedProducts);
       const shouldShowProducts = !isOrderQuestion && data.showProducts === true && returnedProducts.length > 0;
@@ -113,7 +116,7 @@ export function KetronicsAI() {
             <div className="min-w-0 flex-1"><p className="font-semibold">Ketronics AI</p><p className="text-xs text-white/65">Product finder · Agnes AI</p></div>
             <button type="button" onClick={() => setOpen(false)} aria-label="Close assistant" className="rounded-lg p-2 hover:bg-white/10"><X size={19}/></button>
           </header>
-          <div className="flex-1 space-y-3 overflow-y-auto bg-neutral-50 p-3" aria-live="polite">
+          <div className="flex-1 space-y-3 overflow-y-auto bg-neutral-50 p-3">
             <p className="rounded-lg border border-orange-100 bg-orange-50 px-3 py-2 text-xs text-neutral-600">AI-generated guidance can be imperfect. Verify specifications and stock with Ketronics before ordering.</p>
             {messages.length === 1 && (
               <div className="space-y-2">
@@ -135,7 +138,7 @@ export function KetronicsAI() {
             {messages.map((message, index) => (
               <div key={index} className={message.role === "user" ? "ml-7 whitespace-pre-wrap rounded-2xl rounded-br-sm bg-neutral-900 px-3 py-2.5 text-sm leading-relaxed text-white" : "mr-5 whitespace-pre-wrap rounded-2xl rounded-bl-sm border border-neutral-200 bg-white px-3 py-2.5 text-sm leading-relaxed text-neutral-800"}><MessageContent content={message.content} /></div>
             ))}
-            {busy && <div className="flex items-center gap-2 text-sm text-neutral-500"><LoaderCircle className="animate-spin" size={16}/> Thinking…</div>}
+            {busy && <div role="status" aria-live="polite" aria-atomic="true" className="mx-5 flex items-center gap-2 rounded-xl border border-orange-100 bg-orange-50 px-3 py-2 text-xs text-neutral-600"><LoaderCircle className="animate-spin" size={15} aria-hidden="true"/> Preparing your answer…</div>}
             {relevantProducts.length > 0 && <div className="space-y-2"><p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Matching catalogue products</p>{relevantProducts.slice(0,4).map((p) => <div key={p.id} className="flex items-center gap-3 rounded-xl border bg-white p-2">{p.image ? <img src={p.image} alt="" className="h-12 w-12 rounded-lg object-contain" /> : <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-neutral-100"><Bot size={18}/></div>}<div className="min-w-0 flex-1"><p className="line-clamp-2 text-xs font-medium">{p.name}</p><p className="mt-1 text-xs font-semibold text-orange-700">KSh {Number(p.price_kes).toLocaleString("en-KE")}</p></div><a className="text-xs font-semibold underline" onClick={() => trackAiEvent("ai_recommendation_clicked", p.id)} href={`/products?search=${encodeURIComponent(p.name)}`}>View product</a></div>)}</div>}
             {error && <p role="alert" className="rounded-lg bg-red-50 p-2 text-xs text-red-700">{error}</p>}
           </div>

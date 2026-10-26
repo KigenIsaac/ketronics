@@ -115,7 +115,8 @@ test("admin business intelligence is staff-only, bounded and read-only", async (
   assert.match(route, /consumeRateLimit/);
   assert.match(route, /\.limit\(5000\)/);
   assert.match(route, /\.limit\(10000\)/);
-  assert.match(route, /recognizedRevenue/);
+  assert.match(route, /new Set\(\["paid", "shipped", "delivered"\]\)/);
+  assert.match(route, /revenueKes: revenue/);
   assert.match(route, /recognizedIds\.has\(item\.order_id\)/);
   assert.match(route, /lowStock/);
   assert.match(page, /BusinessIntelligencePanel/);

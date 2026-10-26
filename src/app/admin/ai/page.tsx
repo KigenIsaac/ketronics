@@ -68,7 +68,27 @@ function BusinessIntelligencePanel() {
     }
   }, []);
 
-  useEffect(() => { void loadMetrics(days); }, [days, loadMetrics]);
+  useEffect(() => {
+    let active = true;
+
+    async function refreshMetrics() {
+      setLoading(true);
+      setError("");
+      try {
+        const response = await fetch(`/api/admin/ai/business-intelligence?days=${days}`, { cache: "no-store" });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not load business metrics.");
+        if (active) setMetrics(data as BusinessMetrics);
+      } catch (err) {
+        if (active) setError(err instanceof Error ? err.message : "Could not load business metrics.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    void refreshMetrics();
+    return () => { active = false; };
+  }, [days]);
 
   const maxRevenue = Math.max(1, ...(metrics?.daily.map((day) => day.revenueKes) ?? [0]));
   return <section className="space-y-5 rounded-2xl border bg-white p-5 shadow-sm">
