@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 
 const tasks = ["product-description", "seo", "social-caption", "campaign", "support-draft", "insights", "catalogue-audit"] as const;
 const taskLabels: Record<(typeof tasks)[number], string> = {
@@ -34,7 +34,7 @@ function BusinessIntelligencePanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  async function loadMetrics(windowDays: string) {
+  const loadMetrics = useCallback(async (windowDays: string) => {
     setLoading(true);
     setError("");
     try {
@@ -47,9 +47,9 @@ function BusinessIntelligencePanel() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
-  useEffect(() => { void loadMetrics(days); }, [days]);
+  useEffect(() => { void loadMetrics(days); }, [days, loadMetrics]);
 
   const maxRevenue = Math.max(1, ...(metrics?.daily.map((day) => day.revenueKes) ?? [0]));
   return <section className="space-y-5 rounded-2xl border bg-white p-5 shadow-sm">
