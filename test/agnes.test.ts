@@ -35,6 +35,8 @@ test("public AI endpoint validates inputs, rate limits shared quota and uses act
   assert.match(source, /without pressure/);
   assert.match(source, /Cache-Control.*no-store|Cache-Control/);
   assert.match(source, /imageDataUrl/);
+  assert.match(source, /scoreProduct/);
+  assert.match(source, /rankedMatches/);
 });
 
 test("admin AI endpoint requires active manager/admin and never publishes generated content", async () => {
@@ -68,5 +70,7 @@ test("customer AI widget is present and accessible from the site layout", async 
   assert.match(widget, /Attach product image/);
   assert.match(widget, /2 \* 1024 \* 1024/);
   assert.match(widget, /\/api\/ai\/chat/);
+  assert.match(widget, /Help me choose the right laptop/);
+  assert.match(widget, /Recommend Wi-Fi equipment/);
   assert.match(await readFile("src/app/admin/ai/page.tsx", "utf8"), /AI catalogue quality audit/);
 });
