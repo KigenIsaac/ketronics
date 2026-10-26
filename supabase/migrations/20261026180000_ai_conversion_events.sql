@@ -19,3 +19,8 @@ CREATE INDEX IF NOT EXISTS idx_ai_conversion_events_session_id ON public.ai_conv
 ALTER TABLE public.ai_conversion_events ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.ai_conversion_events FROM anon, authenticated;
 GRANT SELECT, INSERT ON public.ai_conversion_events TO service_role;
+
+-- A retried checkout must not inflate purchase conversion counts.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ai_conversion_events_one_purchase_per_order
+  ON public.ai_conversion_events(order_id)
+  WHERE event_type = 'purchase' AND order_id IS NOT NULL;
