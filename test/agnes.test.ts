@@ -105,3 +105,20 @@ test("AI conversion funnel records recommendations, add-to-cart and completed pu
   assert.match(migration, /ENABLE ROW LEVEL SECURITY/);
   assert.match(migration, /REVOKE ALL ON public\.ai_conversion_events FROM anon, authenticated/);
 });
+
+
+test("admin business intelligence is staff-only, bounded and read-only", async () => {
+  const route = await readFile("src/app/api/admin/ai/business-intelligence/route.ts", "utf8");
+  const page = await readFile("src/app/admin/ai/page.tsx", "utf8");
+  assert.match(route, /supabase\.auth\.getUser\(\)/);
+  assert.match(route, /\["manager", "admin"\]/);
+  assert.match(route, /consumeRateLimit/);
+  assert.match(route, /\.limit\(5000\)/);
+  assert.match(route, /\.limit\(10000\)/);
+  assert.match(route, /recognizedRevenue/);
+  assert.match(route, /recognizedIds\.has\(item\.order_id\)/);
+  assert.match(route, /lowStock/);
+  assert.match(page, /BusinessIntelligencePanel/);
+  assert.match(page, /business-intelligence\?days=/);
+  assert.match(page, /Metric definitions and limitations/);
+});
