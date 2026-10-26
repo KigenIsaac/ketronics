@@ -74,7 +74,7 @@ const catalogueTools = [
         type: "object",
         properties: {
           query: { type: "string", description: "Product name, brand, category, specification or search phrase." },
-          limit: { type: "integer", minimum: 1, maximum: 20, description: "Number of results to return; default 8." },
+          limit: { type: "integer", minimum: 1, maximum: 12, description: "Number of results to return; default 8." },
           offset: { type: "integer", minimum: 0, maximum: 500, description: "Pagination offset; default 0." },
         },
         required: ["query"],
