@@ -100,7 +100,7 @@ test("AI conversion funnel records recommendations, add-to-cart and completed pu
   assert.match(widget, /trackAiEvent\("ai_recommendation_clicked"/);
   assert.match(cart, /trackAddToCart\(product\.id\)/);
   assert.match(checkout, /event_type: 'purchase'/);
-  assert.match(checkout, /event_type: 'purchase'/);
+  assert.match(checkout, /ai_conversion_events/);
   assert.match(migration, /idx_ai_conversion_events_one_purchase_per_order/);
   assert.match(migration, /ENABLE ROW LEVEL SECURITY/);
   assert.match(migration, /REVOKE ALL ON public\.ai_conversion_events FROM anon, authenticated/);
