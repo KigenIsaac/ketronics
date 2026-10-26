@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { createSupabaseServerClient } from "@/lib/supabaseServerClient";
 import { consumeRateLimit, getClientIp } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
@@ -26,8 +27,9 @@ export async function POST(request: NextRequest) {
   if (!allowed) return NextResponse.json({ error: "Too many events." }, { status: 429, headers: { "Retry-After": "60" } });
 
   try {
+    const serverClient = await createSupabaseServerClient();
+    const { data: { user } } = await serverClient.auth.getUser();
     const supabase = getSupabaseAdmin();
-    const { data: { user } } = await (await import("@/lib/supabaseServerClient")).createSupabaseServerClient().then((client) => client.auth.getUser());
     const { error } = await supabase.from("ai_conversion_events").insert({
       event_type: parsed.data.event,
       session_id: parsed.data.sessionId,
