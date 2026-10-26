@@ -122,3 +122,20 @@ test("admin business intelligence is staff-only, bounded and read-only", async (
   assert.match(page, /business-intelligence\?days=/);
   assert.match(page, /Metric definitions and limitations/);
 });
+
+
+test("AI growth planner uses verified sales, staff authorization and human-reviewed recommendations", async () => {
+  const route = await readFile("src/app/api/admin/ai/business-intelligence/analyze/route.ts", "utf8");
+  const page = await readFile("src/app/admin/ai/page.tsx", "utf8");
+  assert.match(route, /supabase\.auth\.getUser\(\)/);
+  assert.match(route, /\["manager", "admin"\]/);
+  assert.match(route, /getClientIp\(request\)/);
+  assert.match(route, /consumeRateLimit/);
+  assert.match(route, /\.in\("order_id", recognizedIds\)/);
+  assert.match(route, /top_products_by_units_in_recognized_orders/);
+  assert.match(route, /Never claim to have changed stock, prices, products, campaigns or orders/);
+  assert.match(route, /up to 5 prioritized actions/);
+  assert.match(page, /Generate AI action plan/);
+  assert.match(page, /business-intelligence\/analyze/);
+  assert.match(page, /Recommendations are hypotheses/);
+});
