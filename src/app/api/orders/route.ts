@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createSupabaseServerClient } from '@/lib/supabaseServerClient';
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
+import { randomUUID } from 'node:crypto';
 
 const checkoutItemSchema = z.object({
   productId: z.string().uuid(),
@@ -78,6 +80,20 @@ export async function POST(request: NextRequest) {
     }
 
     const order = orders[0];
+    // Conversion analytics are best-effort and must never fail checkout.
+    try {
+      const { error: analyticsError } = await getSupabaseAdmin().from('ai_conversion_events').insert({
+        event_type: 'purchase',
+        session_id: randomUUID(),
+        user_id: user.id,
+        order_id: order.id,
+        source: 'checkout',
+        value_kes: Number(order.total || 0),
+      });
+      if (analyticsError) console.error('Purchase analytics insert failed:', analyticsError.message);
+    } catch (analyticsError) {
+      console.error('Purchase analytics unavailable:', analyticsError instanceof Error ? analyticsError.message : 'unknown');
+    }
     return NextResponse.json(
       {
         success: true,
