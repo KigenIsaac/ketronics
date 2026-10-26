@@ -38,7 +38,7 @@ function isCatalogueIntent(value: string) {
 const SEARCH_STOP_WORDS = new Set([
   "a", "all", "an", "and", "are", "can", "catalog", "catalogue", "do", "does", "for", "find", "give", "have",
   "hello", "help", "i", "in", "is", "item", "items", "me", "my", "of", "on", "please", "product", "products", "show",
-  "the", "there", "to", "want", "what", "which", "with", "you", "your", "under", "below", "less", "than", "budget", "ksh", "kes", "around", "within", "maximum", "max", "affordable", "cheap", "cheaper", "for", "student", "work", "gaming",
+  "the", "there", "to", "want", "what", "which", "with", "you", "your", "under", "below", "less", "than", "budget", "ksh", "kes", "around", "within", "maximum", "max", "affordable", "cheap", "cheaper", "for",
 ]);
 
 const SEARCH_SYNONYMS: Record<string, string[]> = {
