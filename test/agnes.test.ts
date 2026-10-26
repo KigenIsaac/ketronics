@@ -139,3 +139,20 @@ test("AI growth planner uses verified sales, staff authorization and human-revie
   assert.match(page, /business-intelligence\/analyze/);
   assert.match(page, /Recommendations are hypotheses/);
 });
+
+
+test("AI campaign studio is staff-only, catalogue-grounded and draft-only", async () => {
+  const route = await readFile("src/app/api/admin/ai/campaign-studio/route.ts", "utf8");
+  const page = await readFile("src/app/admin/ai/page.tsx", "utf8");
+  assert.match(route, /supabase\.auth\.getUser\(\)/);
+  assert.match(route, /\["manager", "admin"\]/);
+  assert.match(route, /consumeRateLimit/);
+  assert.match(route, /\.eq\("status", "active"\)/);
+  assert.match(route, /Do not invent discounts, stock availability, specifications/);
+  assert.match(route, /do not publish, schedule, message customers or change catalogue data/);
+  assert.match(route, /7-day measurement plan/);
+  assert.match(page, /AI campaign studio/);
+  assert.match(page, /Generate campaign draft/);
+  assert.match(page, /campaign-studio/);
+  assert.match(page, /Verify price, tracked stock, product compatibility/);
+});
