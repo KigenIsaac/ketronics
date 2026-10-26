@@ -74,3 +74,33 @@ test("customer AI widget is present and accessible from the site layout", async 
   assert.match(widget, /Recommend Wi-Fi equipment/);
   assert.match(await readFile("src/app/admin/ai/page.tsx", "utf8"), /AI catalogue quality audit/);
 });
+
+test("AI order support only loads the authenticated customer's orders and grounds answers in records", async () => {
+  const source = await readFile("src/app/api/ai/order-support/route.ts", "utf8");
+  assert.match(source, /supabase\.auth\.getUser\(\)/);
+  assert.match(source, /\.eq\("user_id", user\.id\)/);
+  assert.match(source, /\.limit\(10\)/);
+  assert.match(source, /Never guess order status, delivery date, tracking information/);
+  assert.match(source, /refund request/);
+  assert.doesNotMatch(source, /shipping_address|phone_number|customer_email/);
+});
+
+test("AI conversion funnel records recommendations, add-to-cart and completed purchases", async () => {
+  const events = await readFile("src/app/api/ai/events/route.ts", "utf8");
+  const widget = await readFile("src/components/ai/KetronicsAI.tsx", "utf8");
+  const cart = await readFile("src/components/AddToCartButton.tsx", "utf8");
+  const checkout = await readFile("src/app/api/orders/route.ts", "utf8");
+  const migration = await readFile("supabase/migrations/20261026180000_ai_conversion_events.sql", "utf8");
+  assert.match(events, /ai_recommendation_shown/);
+  assert.match(events, /ai_recommendation_clicked/);
+  assert.match(events, /add_to_cart/);
+  assert.match(events, /consumeRateLimit/);
+  assert.match(widget, /\/api\/ai\/order-support/);
+  assert.match(widget, /trackAiEvent\("ai_recommendation_shown"/);
+  assert.match(widget, /trackAiEvent\("ai_recommendation_clicked"/);
+  assert.match(cart, /trackAddToCart\(product\.id\)/);
+  assert.match(checkout, /event_type: 'purchase'/);
+  assert.match(checkout, /ignoreDuplicates: true/);
+  assert.match(migration, /ENABLE ROW LEVEL SECURITY/);
+  assert.match(migration, /REVOKE ALL ON public\.ai_conversion_events FROM anon, authenticated/);
+});
