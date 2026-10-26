@@ -1,8 +1,8 @@
 name: CI
 
 on:
+  # Run checks for stacked feature PRs as well as PRs targeting main.
   pull_request:
-    branches: [main]
   push:
     branches: [main]
 
