@@ -82,14 +82,14 @@ export async function POST(request: NextRequest) {
     const order = orders[0];
     // Conversion analytics are best-effort and must never fail checkout.
     try {
-      const { error: analyticsError } = await getSupabaseAdmin().from('ai_conversion_events').upsert({
+      const { error: analyticsError } = await getSupabaseAdmin().from('ai_conversion_events').insert({
         event_type: 'purchase',
         session_id: randomUUID(),
         user_id: user.id,
         order_id: order.id,
         source: 'checkout',
         value_kes: Number(order.total || 0),
-      }, { onConflict: 'order_id', ignoreDuplicates: true });
+      });
       if (analyticsError) console.error('Purchase analytics insert failed:', analyticsError.message);
     } catch (analyticsError) {
       console.error('Purchase analytics unavailable:', analyticsError instanceof Error ? analyticsError.message : 'unknown');
