@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabaseServerClient";
 import { callAgnes } from "@/lib/agnes";
 import { consumeRateLimit, getClientIp } from "@/lib/rateLimit";
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 const revenueStatuses = new Set(["paid", "shipped", "delivered"]);
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
     const supabase = await createSupabaseServerClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -19,7 +19,7 @@ export async function POST() {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const ip = getClientIp(new Request("https://ketronics.local", { headers: { "x-forwarded-for": ipSafeHeader() } }));
+    const ip = getClientIp(request);
     const [globalAllowed, staffAllowed] = await Promise.all([
       consumeRateLimit("agnes:global:growth-plan", 3, 60),
       consumeRateLimit(`agnes:growth-plan:${user.id}:${ip}`, 2, 60),
@@ -97,6 +97,3 @@ export async function POST() {
   }
 }
 
-function ipSafeHeader() {
-  return "127.0.0.1";
-}
