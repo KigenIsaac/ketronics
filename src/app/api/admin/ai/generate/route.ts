@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const schema = z.object({
-  task: z.enum(["product-description", "seo", "social-caption", "campaign", "support-draft", "insights"]),
+  task: z.enum(["product-description", "seo", "social-caption", "campaign", "support-draft", "insights", "catalogue-audit"]),
   input: z.string().trim().min(10).max(5000),
   productId: z.string().uuid().optional(),
 });
@@ -31,6 +31,7 @@ const instructions: Record<z.infer<typeof schema>["task"], string> = {
   campaign: "Draft a small campaign concept with audience, truthful value proposition, caption, CTA and measurable success metric. Do not publish or schedule anything.",
   "support-draft": "Draft a helpful customer-support response. Do not promise refunds, delivery dates, stock, discounts or policy exceptions not stated in the input.",
   insights: "Analyze only the supplied facts. Separate observations from hypotheses, identify missing data, and suggest measurable next steps. Never fabricate sales or inventory metrics.",
+  "catalogue-audit": "Audit the verified catalogue quality metrics. Prioritize issues likely to harm customer trust, search discovery or conversion. Distinguish measured counts from hypotheses and propose a practical, measurable cleanup plan. Do not invent products or claim that records were changed.",
 };
 
 export async function POST(request: NextRequest) {
@@ -91,6 +92,59 @@ export async function POST(request: NextRequest) {
         limitations: ["Only the most recent 5000 orders, 10000 order items, and 5000 active products are included.", "Top-product unit counts include order items across all order statuses because this query does not join each item to its parent order; do not interpret them as paid-sales rankings.", "Revenue counts orders marked paid, shipped, or delivered only; verify accounting treatment before financial decisions.", "Stock alerts are meaningful only for products with inventory tracking enabled."],
       }, null, 2);
     }
+    if (parsed.data.task === "catalogue-audit") {
+      const { data: products, error, count } = await auth.supabase
+        .from("products")
+        .select("id,name,description,price,brand,attributes,images,status", { count: "exact" })
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(5000);
+      if (error) return NextResponse.json({ error: "Could not read the catalogue needed for the AI audit." }, { status: 503 });
+
+      const rows = products ?? [];
+      const normalizeName = (value: unknown) => String(value ?? "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+      const missingDescription = rows.filter((product) => String(product.description ?? "").trim().length < 40);
+      const missingBrand = rows.filter((product) => !String(product.brand ?? "").trim());
+      const missingImages = rows.filter((product) => !Array.isArray(product.images) || product.images.length === 0);
+      const missingAttributes = rows.filter((product) => !product.attributes || typeof product.attributes !== "object" || Array.isArray(product.attributes) || Object.keys(product.attributes as Record<string, unknown>).length === 0);
+      const invalidPrices = rows.filter((product) => !Number.isFinite(Number(product.price)) || Number(product.price) <= 0);
+      const nameCounts = new Map<string, number>();
+      for (const product of rows) {
+        const name = normalizeName(product.name);
+        if (name) nameCounts.set(name, (nameCounts.get(name) ?? 0) + 1);
+      }
+      const duplicateNameGroups = [...nameCounts.entries()].filter(([, occurrences]) => occurrences > 1);
+      const sampleNames = (items: typeof rows) => items.slice(0, 12).map((product) => String(product.name ?? "Unnamed product").slice(0, 120));
+      context = JSON.stringify({
+        analysis_request: parsed.data.input,
+        audit_type: "Active catalogue quality audit",
+        active_catalogue_count: count ?? rows.length,
+        records_reviewed: rows.length,
+        truncated: (count ?? rows.length) > rows.length,
+        metrics: {
+          short_or_missing_descriptions: missingDescription.length,
+          missing_brand: missingBrand.length,
+          missing_product_images: missingImages.length,
+          missing_structured_attributes: missingAttributes.length,
+          invalid_or_non_positive_prices: invalidPrices.length,
+          duplicate_normalized_name_groups_in_reviewed_records: duplicateNameGroups.length,
+        },
+        examples: {
+          short_or_missing_descriptions: sampleNames(missingDescription),
+          missing_brand: sampleNames(missingBrand),
+          missing_product_images: sampleNames(missingImages),
+          invalid_or_non_positive_prices: sampleNames(invalidPrices),
+          duplicate_names: duplicateNameGroups.slice(0, 12).map(([normalized_name, occurrences]) => ({ normalized_name, occurrences })),
+        },
+        limitations: [
+          "This is a read-only audit; no catalogue records are changed.",
+          "The audit checks up to 5000 most recently created active products. If truncated is true, metrics describe only the reviewed sample.",
+          "Short descriptions and missing attributes are quality signals, not proof that the product is incorrect.",
+          "Duplicate names are normalized text matches and require human review before merging or deleting anything.",
+        ],
+      }, null, 2);
+    }
+
     if (parsed.data.productId && ["product-description", "seo"].includes(parsed.data.task)) {
       const { data: product, error } = await authSupabaseProduct(parsed.data.productId);
       if (error || !product) return NextResponse.json({ error: "Product not found or unavailable." }, { status: 404 });

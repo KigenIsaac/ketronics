@@ -38,7 +38,7 @@ function isCatalogueIntent(value: string) {
 const SEARCH_STOP_WORDS = new Set([
   "a", "all", "an", "and", "are", "can", "catalog", "catalogue", "do", "does", "for", "find", "give", "have",
   "hello", "help", "i", "in", "is", "item", "items", "me", "my", "of", "on", "please", "product", "products", "show",
-  "the", "there", "to", "want", "what", "which", "with", "you", "your",
+  "the", "there", "to", "want", "what", "which", "with", "you", "your", "under", "below", "less", "than", "budget", "ksh", "kes", "around", "within", "maximum", "max", "affordable", "cheap", "cheaper", "for",
 ]);
 
 const SEARCH_SYNONYMS: Record<string, string[]> = {
@@ -59,7 +59,7 @@ const SEARCH_SYNONYMS: Record<string, string[]> = {
 };
 
 function getSearchTerms(query: string) {
-  const words = normalize(query).split(" ").filter((word) => word.length >= 2 && !SEARCH_STOP_WORDS.has(word));
+  const words = normalize(query).split(" ").filter((word) => word.length >= 2 && !/^\d+$/.test(word) && !SEARCH_STOP_WORDS.has(word));
   const expanded = words.flatMap((word) => SEARCH_SYNONYMS[word] ?? [word]);
   return [...new Set(expanded.map((word) => word.replace(/[%_(),]/g, "")).filter(Boolean))].slice(0, 10);
 }
@@ -189,10 +189,35 @@ async function executeCatalogueTool(name: string, args: Record<string, unknown>)
     const merged = new Map<string, typeof data[number]>();
     for (const item of [...(data ?? []), ...categoryProducts]) merged.set(String(item.id), item);
     const allMatches = [...merged.values()];
+    const queryWords = terms.filter((term) => !term.includes(" "));
+    const scoreProduct = (item: typeof allMatches[number]) => {
+      const name = normalize(String(item.name ?? ""));
+      const brand = normalize(String(item.brand ?? ""));
+      const description = normalize(String(item.description ?? ""));
+      const category = normalize(String((item.category as { name?: string } | null)?.name ?? ""));
+      const subcategory = normalize(String((item.subcategory as { name?: string } | null)?.name ?? ""));
+      let score = 0;
+      const normalizedQuery = normalize(query);
+      if (normalizedQuery && name === normalizedQuery) score += 20;
+      else if (normalizedQuery && name.includes(normalizedQuery)) score += 10;
+      for (const word of queryWords) {
+        if (name.includes(word)) score += 5;
+        if (brand.includes(word)) score += 4;
+        if (category.includes(word)) score += 4;
+        if (subcategory.includes(word)) score += 3;
+        if (description.includes(word)) score += 1;
+      }
+      if (item.track_inventory && Number(item.stock_quantity ?? 0) <= 0) score -= 2;
+      return score;
+    };
+    const rankedMatches = allMatches
+      .map((product, index) => ({ product, index, score: scoreProduct(product) }))
+      .sort((a, b) => b.score - a.score || a.index - b.index)
+      .map(({ product }) => product);
     return {
       query, offset, limit,
-      totalMatches: allMatches.length,
-      products: allMatches.slice(offset, offset + limit).map(formatProduct),
+      totalMatches: rankedMatches.length,
+      products: rankedMatches.slice(offset, offset + limit).map(formatProduct),
       note: "Only active catalogue records are returned. Stock is confirmed only when tracked data says so. Use offset to inspect further pages.",
     };
   }

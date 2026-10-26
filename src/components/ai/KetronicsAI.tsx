@@ -88,6 +88,23 @@ export function KetronicsAI() {
           </header>
           <div className="flex-1 space-y-3 overflow-y-auto bg-neutral-50 p-3" aria-live="polite">
             <p className="rounded-lg border border-orange-100 bg-orange-50 px-3 py-2 text-xs text-neutral-600">AI-generated guidance can be imperfect. Verify specifications and stock with Ketronics before ordering.</p>
+            {messages.length === 1 && (
+              <div className="space-y-2">
+                <p className="px-1 text-xs font-semibold text-neutral-500">Try asking</p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    "Help me choose the right laptop",
+                    "Find a TV within my budget",
+                    "Compare products for a small business",
+                    "Recommend Wi-Fi equipment",
+                  ].map((prompt) => (
+                    <button key={prompt} type="button" onClick={() => setDraft(prompt)} className="rounded-full border border-neutral-200 bg-white px-3 py-2 text-left text-xs text-neutral-700 transition hover:border-orange-300 hover:bg-orange-50">
+                      {prompt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             {messages.map((message, index) => (
               <div key={index} className={message.role === "user" ? "ml-7 whitespace-pre-wrap rounded-2xl rounded-br-sm bg-neutral-900 px-3 py-2.5 text-sm leading-relaxed text-white" : "mr-5 whitespace-pre-wrap rounded-2xl rounded-bl-sm border border-neutral-200 bg-white px-3 py-2.5 text-sm leading-relaxed text-neutral-800"}><MessageContent content={message.content} /></div>
             ))}
