@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
         "If important information is missing or contradictory, state exactly what needs verification instead of guessing. Clearly separate measured facts from hypotheses and recommendations.",
         "For marketing content, make the value proposition specific and useful, use a natural Kenyan-English tone, and include a clear but non-manipulative call to action. Avoid fake urgency, unsupported superlatives and fabricated social proof.",
         "Return a polished, easy-to-review draft with concise headings or bullets where helpful. Do not claim to have changed, published, scheduled, sent or saved anything."
-      ].join("\\n\\n") },
+      ].join("\n\n") },
       { role: "user", content: context },
     ], { maxTokens: 1000, temperature: 0.35 });
 
