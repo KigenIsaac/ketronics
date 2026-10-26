@@ -59,7 +59,7 @@ const SEARCH_SYNONYMS: Record<string, string[]> = {
 };
 
 function getSearchTerms(query: string) {
-  const words = normalize(query).split(" ").filter((word) => word.length >= 2 && !/^\\d+$/.test(word) && !SEARCH_STOP_WORDS.has(word));
+  const words = normalize(query).split(" ").filter((word) => word.length >= 2 && !/^\d+$/.test(word) && !SEARCH_STOP_WORDS.has(word));
   const expanded = words.flatMap((word) => SEARCH_SYNONYMS[word] ?? [word]);
   return [...new Set(expanded.map((word) => word.replace(/[%_(),]/g, "")).filter(Boolean))].slice(0, 10);
 }
