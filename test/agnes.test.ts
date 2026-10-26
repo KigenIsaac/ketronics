@@ -48,6 +48,10 @@ test("admin AI endpoint requires active manager/admin and never publishes genera
   assert.match(source, /top_products_by_units_across_all_order_statuses/);
   assert.match(source, /non-manipulative call to action/);
   assert.match(source, /product-description[\s\S]*seo/);
+  assert.match(source, /catalogue-audit/);
+  assert.match(source, /missing_product_images/);
+  assert.match(source, /duplicate_normalized_name_groups_in_reviewed_records/);
+  assert.match(source, /This is a read-only audit/);
 });
 
 test("customer AI widget is present and accessible from the site layout", async () => {
@@ -64,4 +68,5 @@ test("customer AI widget is present and accessible from the site layout", async 
   assert.match(widget, /Attach product image/);
   assert.match(widget, /2 \* 1024 \* 1024/);
   assert.match(widget, /\/api\/ai\/chat/);
+  assert.match(await readFile("src/app/admin/ai/page.tsx", "utf8"), /AI catalogue quality audit/);
 });
