@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error:
-          "Email delivery is not configured yet. Set SMTP_HOST or SMTP_URL on the server.",
+          "Online messages are temporarily unavailable. Please call Ketronics on 0728 097 922.",
       },
       { status: 503 },
     );

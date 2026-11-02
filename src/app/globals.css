@@ -381,3 +381,25 @@
 .dark [class~="text-[#222222]"] {
   color: var(--foreground) !important;
 }
+
+/* Storefront uses semantic surfaces so both themes retain readable contrast. */
+.store-home { background: var(--background); color: var(--foreground); }
+.home-wrap { max-width: 1360px; margin-inline: auto; padding-inline: clamp(1rem, 4vw, 3rem); }
+.home-hero { background: #101d2c; color: #f8fafc; overflow: hidden; }
+.home-eyebrow { font-size: .65rem; font-weight: 700; letter-spacing: .16em; line-height: 1.8; }
+.home-heading { font-size: clamp(1.75rem, 3vw, 2.5rem); font-weight: 600; letter-spacing: -.04em; line-height: 1.15; text-wrap: balance; }
+.home-button { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; gap: .75rem; padding: .8rem 1.35rem; border-radius: .65rem; font-size: .875rem; font-weight: 600; transition: background .2s; }
+.home-button-primary { background: #c94f00; color: #fff; }
+.home-button-primary:hover { background: #ae4300; }
+.home-text-link { display: inline-flex; min-height: 44px; align-items: center; gap: .65rem; font-size: .875rem; font-weight: 600; }
+.home-text-link:hover { text-decoration: underline; }
+.home-studio { border: 1px solid #ffffff20; border-radius: 1.25rem; background: #192a3b; padding: clamp(1.25rem, 3vw, 2rem); transform: rotate(-2deg); }
+.home-monitor { width: 100%; max-width: 360px; padding: 8px; border-radius: 14px; background: #0b121c; box-shadow: 0 24px 45px #0004; }
+.home-screen { min-height: 230px; padding: 25px; border-radius: 8px; background: #2c4a58; color: #fff; }
+.home-category { position: relative; padding: 1.5rem 1rem; border: 1px solid var(--border); border-radius: .9rem; background: var(--card); transition: border-color .2s; }
+.home-category:hover, .home-service:hover { border-color: var(--primary); }
+.home-catalog { background: var(--card); border-block: 1px solid var(--border); }
+.home-catalog-state { border: 1px dashed var(--border); border-radius: 1rem; padding: 2.5rem 1rem; text-align: center; }
+.home-service { display: flex; gap: 1.25rem; padding: 1.5rem; border: 1px solid var(--border); border-radius: .9rem; background: var(--card); }
+.home-visit { display: flex; justify-content: space-between; align-items: center; gap: 2rem; border: 1px solid var(--border); background: var(--card); padding: clamp(1.5rem, 4vw, 3rem); border-radius: 1.25rem; }
+@media (max-width: 639px) { .home-visit { align-items: stretch; flex-direction: column; } .home-studio { transform: none; } }

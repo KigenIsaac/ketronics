@@ -5,13 +5,13 @@ import Link from 'next/link';
 import { ArrowUpRight, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCartStore } from '@/lib/stores/cartStore';
-import { StatusBadge } from '@/components/status-badge';
+import { salePrice } from '@/lib/catalog';
 import type { Product } from '@/types/product';
 
 export function ProductCard({ product }: { product: Product }) {
   const addItem = useCartStore((state) => state.addItem);
   const discount = Number(product.discount || 0);
-  const price = discount > 0 ? product.price * (1 - discount / 100) : product.price;
+  const price = salePrice(product);
   const image = product.images?.[0];
   const outOfStock = product.track_inventory && Number(product.stock_quantity || 0) <= 0;
 
@@ -62,7 +62,7 @@ export function ProductCard({ product }: { product: Product }) {
           onClick={handleAdd}
           disabled={outOfStock}
           aria-label={outOfStock ? 'Out of stock' : `Add ${product.name} to cart`}
-          className="absolute bottom-3 right-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white text-black shadow-md ring-1 ring-black/5 transition hover:bg-orange-500 hover:text-white focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-40 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+          className="absolute bottom-3 right-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white text-black shadow-md ring-1 ring-black/5 transition hover:bg-orange-500 hover:text-white focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
         >
           <ShoppingCart className="h-4 w-4" />
         </button>
@@ -73,7 +73,7 @@ export function ProductCard({ product }: { product: Product }) {
           <span className="truncate text-[10px] font-bold uppercase tracking-[.12em] text-black/45 sm:text-[11px]">
             {product.brand || product.category?.name || 'Ketronics'}
           </span>
-          {product.status && <StatusBadge status={product.status} />}
+
         </div>
         <h3 className="line-clamp-2 min-h-10 text-[13px] font-semibold leading-5 tracking-[-.01em] text-[#171717] transition-colors group-hover:text-orange-600 sm:text-sm">
           {product.name}
