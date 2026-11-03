@@ -132,7 +132,7 @@ export default function AdminUsersPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="admin-page">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
@@ -144,7 +144,7 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="admin-page">
       <div className="flex flex-col gap-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -155,7 +155,7 @@ export default function AdminUsersPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -288,7 +288,7 @@ export default function AdminUsersPage() {
                               Verified
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="text-orange-600">
+                            <Badge variant="outline" className="text-primary">
                               Unverified
                             </Badge>
                           )}

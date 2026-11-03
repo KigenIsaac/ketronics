@@ -1,41 +1,16 @@
-"use client";
-
-import { useState, type FormEvent } from "react";
-
-const tasks = ["product-description", "seo", "social-caption", "campaign", "support-draft", "insights"] as const;
-
-export default function AdminAIPage() {
-  const [task, setTask] = useState<(typeof tasks)[number]>("product-description");
-  const [input, setInput] = useState("");
-  const [productId, setProductId] = useState("");
-  const [result, setResult] = useState("");
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
-
-  async function generate(event: FormEvent) {
-    event.preventDefault();
-    setBusy(true); setError(""); setResult("");
-    try {
-      const response = await fetch("/api/admin/ai/generate", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ task, input, ...(productId.trim() ? { productId: productId.trim() } : {}) }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Generation failed.");
-      setResult(data.result);
-    } catch (err) { setError(err instanceof Error ? err.message : "Generation failed."); }
-    finally { setBusy(false); }
-  }
-
-  return <div className="mx-auto max-w-4xl space-y-6">
-    <div><p className="text-sm font-semibold uppercase tracking-wide text-orange-700">Ketronics workspace</p><h1 className="text-3xl font-bold">AI business assistant</h1><p className="mt-1 text-sm text-neutral-500">Draft content and analyze facts with Agnes AI. Nothing is published automatically.</p></div>
-    <form onSubmit={generate} className="space-y-4 rounded-2xl border bg-white p-5 shadow-sm">
-      <label className="block space-y-2"><span className="text-sm font-semibold">Task</span><select value={task} onChange={(e) => setTask(e.target.value as typeof task)} className="w-full rounded-xl border px-3 py-3 text-sm">{tasks.map((item) => <option key={item} value={item}>{item.replaceAll("-", " ")}</option>)}</select></label>
-      <label className="block space-y-2"><span className="text-sm font-semibold">Verified source facts / context</span><textarea required minLength={10} maxLength={5000} rows={7} value={input} onChange={(e) => setInput(e.target.value)} placeholder="Paste verified product specs, campaign goals, anonymized sales figures or a customer message. Do not include secrets." className="w-full rounded-xl border px-3 py-3 text-sm"/></label>
-      {["product-description", "seo"].includes(task) && <label className="block space-y-2"><span className="text-sm font-semibold">Optional active product ID (UUID)</span><input value={productId} onChange={(e) => setProductId(e.target.value)} placeholder="Product UUID for verified catalogue context" className="w-full rounded-xl border px-3 py-3 text-sm"/></label>}
-      <button disabled={busy || input.trim().length < 10} className="rounded-xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50">{busy ? "Generating…" : "Generate draft"}</button>
-      {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-    </form>
-    {result && <section className="space-y-3 rounded-2xl border bg-white p-5"><div className="flex items-center justify-between"><h2 className="font-semibold">Generated draft</h2><button type="button" onClick={() => void navigator.clipboard.writeText(result)} className="rounded-lg border px-3 py-2 text-sm">Copy</button></div><pre className="whitespace-pre-wrap break-words font-sans text-sm leading-relaxed">{result}</pre><p className="text-xs text-neutral-500">Review facts and edit before publishing or sending.</p></section>}
-  </div>;
+'use client';
+import { useState,type FormEvent } from 'react';
+import { FileText,Search,Megaphone,MessageSquare,BarChart3,Copy,Check,Sparkles,LoaderCircle } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { PageHero,StorePage,Surface } from '@/components/store-ui';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+const tasks=[{id:'product-description',label:'Product copy',icon:FileText,help:'Turn verified specifications into clear, useful product descriptions.'},{id:'seo',label:'Search listing',icon:Search,help:'Draft titles and descriptions that help customers find your products.'},{id:'social-caption',label:'Social caption',icon:Megaphone,help:'Create a caption around a product, audience and message.'},{id:'campaign',label:'Campaign',icon:Sparkles,help:'Explore campaign ideas from a clear goal and verified offer.'},{id:'support-draft',label:'Customer reply',icon:MessageSquare,help:'Prepare a helpful response using the customer’s question and known facts.'},{id:'insights',label:'Business insights',icon:BarChart3,help:'Understand patterns in the figures and context you provide.'}] as const;
+export default function AdminAIPage(){
+ const [task,setTask]=useState<string>('product-description');const [input,setInput]=useState('');const [productId,setProductId]=useState('');const [result,setResult]=useState('');const [error,setError]=useState('');const [busy,setBusy]=useState(false);const [copied,setCopied]=useState(false);const selected=tasks.find(t=>t.id===task)!;
+ async function generate(event:FormEvent){event.preventDefault();if(busy)return;setBusy(true);setError('');setCopied(false);try{const response=await fetch('/api/admin/ai/generate',{method:'POST',headers:{'Content-Type':'application/json'},signal:AbortSignal.timeout(60000),body:JSON.stringify({task,input,...(productId.trim()?{productId:productId.trim()}:{})})});const data=await response.json();if(!response.ok)throw new Error(data.error||'Unable to generate a draft.');setResult(data.result)}catch(err){setError(err instanceof Error?err.message:'Unable to generate a draft.')}finally{setBusy(false)}}
+ async function copy(){try{await navigator.clipboard.writeText(result);setCopied(true)}catch{setError('Copy was unavailable. Select the draft text and copy it manually.')}}
+ return <StorePage><PageHero eyebrow="KETRONICS AI STUDIO" title="A little help with the next draft." description="Start with facts. Shape the message. Review every detail before you publish."/><div className="ai-studio-layout"><div><div className="ai-task-grid">{tasks.map(({id,label,icon:Icon})=><button key={id} aria-pressed={task===id} disabled={busy} onClick={()=>setTask(id)}><Icon size={18}/>{label}</button>)}</div><Surface className="mt-5 p-5 sm:p-6"><h2 className="text-lg font-semibold">{selected.label}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{selected.help}</p><form onSubmit={generate} className="mt-6 space-y-5"><label className="block"><span className="text-sm font-medium">Your brief</span><Textarea className="mt-2" required minLength={10} maxLength={5000} rows={9} value={input} onChange={e=>setInput(e.target.value)} placeholder="Include the facts, audience, tone and what you want the reader to do. Leave out private customer details and credentials."/></label>{['product-description','seo'].includes(task)&&<label className="block"><span className="text-sm font-medium">Product reference <span className="text-muted-foreground">(optional)</span></span><Input className="mt-2" value={productId} onChange={e=>setProductId(e.target.value)} placeholder="Active product ID"/><span className="mt-2 block text-xs text-muted-foreground">Add a product ID to include its current catalog details.</span></label>}{error&&<p role="alert" className="form-error">{error}</p>}<Button disabled={busy||input.trim().length<10}>{busy?<LoaderCircle size={17} className="animate-spin"/>:<Sparkles size={17}/>} {busy?'Preparing your draft…':'Generate draft'}</Button></form></Surface></div><Surface className="ai-draft-panel"><div className="flex items-center justify-between gap-3 border-b border-border pb-5"><div><p className="eyebrow">WORKING DRAFT</p><h2 className="mt-1 font-semibold">Your starting point</h2></div>{result&&<Button variant="outline" onClick={()=>void copy()}>{copied?<Check size={15}/>:<Copy size={15}/>} {copied?'Copied':'Copy'}</Button>}</div>{result?<div className="ai-draft-content"><ReactMarkdown remarkPlugins={[remarkGfm]}>{result}</ReactMarkdown></div>:<div className="ai-draft-empty"><FileText size={35} strokeWidth={1}/><h3>Your words, with a head start.</h3><p>Choose a task, add your brief and generate a draft to get started.</p></div>}<p className="mt-6 border-t border-border pt-4 text-xs leading-6 text-muted-foreground">AI can make mistakes. Verify prices, specifications and claims before using this draft. Nothing is published automatically.</p></Surface></div></StorePage>;
 }

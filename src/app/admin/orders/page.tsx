@@ -73,7 +73,7 @@ export default function AdminOrdersPage() {
 
   if (!user || !['manager', 'admin'].includes(user.role)) {
     return (
-      <div className="container mx-auto p-6 text-center">
+      <div className="admin-page text-center">
         <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
         <p className="text-muted-foreground mb-6">You need manager privileges to view this page.</p>
         <Button asChild>
@@ -84,11 +84,11 @@ export default function AdminOrdersPage() {
   }
 
   if (loading) {
-    return <div className="container mx-auto p-6">Loading orders...</div>;
+    return <div className="admin-page">Loading orders...</div>;
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="admin-page">
       <div className="flex items-center gap-2 mb-8">
         <Users className="h-8 w-8" />
         <h1 className="text-3xl font-bold">Order Management</h1>

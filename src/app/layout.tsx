@@ -1,11 +1,7 @@
 import type { Metadata } from "next";
 import React from "react";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Sidebar } from "@/components/sidebar";
-import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
-import { ScrollingBanner } from "@/components/scrolling-banner";
-import { KetronicsAI } from "@/components/ai/KetronicsAI";
+import { SiteShell } from "@/components/site-shell";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 
@@ -91,10 +87,10 @@ const structuredData = JSON.stringify({
     "Ketronics LTD offers laptops, printers, TVs, PCs, CCTV installation, network setup, repairs, and expert tech services across Kenya.",
   url: "https://ketronics.co.ke",
   logo: "https://ketronics.co.ke/ketronics-logo.png",
-  telephone: "+254 700 000 000",
+  telephone: "+254728097922",
   address: {
     "@type": "PostalAddress",
-    streetAddress: "AA building floor room F6A",
+    streetAddress: "AA building, 1st floor, room F6A",
     addressLocality: "Eldoret",
     addressRegion: "Kenya",
     addressCountry: "KE",
@@ -119,10 +115,6 @@ const structuredData = JSON.stringify({
       closes: "16:00",
     },
   ],
-  sameAs: [
-    "https://facebook.com/ketronics",
-    "https://twitter.com/ketronics",
-  ],
 });
 
 export default function RootLayout({
@@ -138,36 +130,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-background focus:px-5 focus:py-3">Skip to content</a>
         <Providers>
-          <div className="min-h-screen flex flex-col">
-            {/* Scrolling Banner */}
-            <ScrollingBanner />
-            
-            {/* Header - full width */}
-            <Header />
-            <script
-              type="application/ld+json"
-              dangerouslySetInnerHTML={{ __html: structuredData }}
-            />
-
-            <div className="flex flex-1 min-h-0">
-              {/* Sidebar - positioned between header and footer on desktop */}
-              <Sidebar className="w-auto flex-shrink-0" />
-
-              {/* Main content */}
-              <div className="flex-1 flex flex-col min-w-0 lg:ml-0">
-
-                {/* Page content */}
-                <main className="flex-1 lg:px-6 lg:py-6 px-4 py-4">
-                  {children}
-                </main>
-              </div>
-            </div>
-
-            {/* Footer - full width */}
-            <Footer />
-          </div>
-          <KetronicsAI />
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: structuredData }}/>
+          <SiteShell>{children}</SiteShell>
         </Providers>
       </body>
     </html>

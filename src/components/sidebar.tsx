@@ -1,17 +1,14 @@
-"use client";
-import { isStaffRole } from "@/lib/roles";
-import { useUserStore } from "@/lib/stores/userStore";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { LayoutDashboard,Package,ShoppingCart,Users,BarChart3,Tag,Settings,X,Bot } from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { useMobileSidebar } from "@/components/providers";
-
-export function Sidebar({className}:{className?:string}){
- const{user}=useUserStore();const pathname=usePathname();const{isOpen,setIsOpen}=useMobileSidebar();if(!pathname.startsWith("/admin")||!isStaffRole(user?.role))return null;
- const items=[["Overview","/admin",LayoutDashboard],["Products","/admin/products",Package],["Categories","/admin/categories",Tag],["Orders","/admin/orders",ShoppingCart],["Users","/admin/users",Users],["Analytics","/admin/analytics",BarChart3],["Settings","/admin/settings",Settings],["AI Assistant","/admin/ai",Bot]] as const;
- const nav=<nav className="space-y-1">{items.map(([label,href,Icon])=>{const active=pathname===href||pathname.startsWith(href+"/");return <Link key={href} href={href} onClick={()=>setIsOpen(false)} className={cn("flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold",active?"bg-orange-50 text-orange-700":"text-black/55 hover:bg-black/[.04] hover:text-black")}><Icon className="h-4 w-4"/>{label}</Link>})}</nav>;
- return <><div className={cn("hidden w-60 shrink-0 border-r border-black/[.06] bg-white lg:block",className)}><div className="sticky top-[107px] p-4"><p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[.2em] text-black/35">Workspace</p>{nav}</div></div>{isOpen&&<button type="button" aria-label="Close admin menu" className="fixed inset-0 z-40 cursor-default bg-black/40 lg:hidden" onClick={()=>setIsOpen(false)}/>}<aside className={cn("fixed inset-y-0 left-0 z-50 w-72 bg-white p-5 shadow-2xl transition-transform lg:hidden",isOpen?"translate-x-0":"-translate-x-full")}><div className="mb-8 flex items-center justify-between"><span className="font-black">Ketronics Admin</span><Button variant="ghost" size="sm" onClick={()=>setIsOpen(false)}><X/></Button></div><ScrollArea className="h-[calc(100vh-100px)]">{nav}</ScrollArea></aside></>;
+'use client';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { LayoutDashboard,Package,ShoppingCart,Users,BarChart3,Tags,Settings,Bot,ArrowUpRight } from 'lucide-react';
+import { Sheet,SheetContent,SheetHeader,SheetTitle,SheetDescription } from '@/components/ui/sheet';
+import { useMobileSidebar } from '@/components/providers';
+import { isStaffRole } from '@/lib/roles';
+import { useUserStore } from '@/lib/stores/userStore';
+const groups=[{label:'STORE',items:[['Overview','/admin',LayoutDashboard],['Products','/admin/products',Package],['Categories','/admin/categories',Tags],['Orders','/admin/orders',ShoppingCart]]},{label:'BUSINESS',items:[['Customers & team','/admin/users',Users],['Analytics','/admin/analytics',BarChart3],['AI studio','/admin/ai',Bot],['Store settings','/admin/settings',Settings]]}] as const;
+export function Sidebar(){
+ const {user}=useUserStore();const path=usePathname();const {isOpen,setIsOpen}=useMobileSidebar();if(!isStaffRole(user?.role))return null;
+ const navigation=<><div className="workspace-identity"><span>K</span><div><strong>Ketronics</strong><p>{user?.role==='admin'?'Administrator':'Store manager'}</p></div></div>{groups.map(group=><div className="workspace-nav-group" key={group.label}><p>{group.label}</p><nav aria-label={group.label+' navigation'}>{group.items.map(([label,href,Icon])=><Link key={href} href={href} onClick={()=>setIsOpen(false)} aria-current={path===href||(href!=='/admin'&&path.startsWith(href+'/'))?'page':undefined}><Icon size={18}/>{label}</Link>)}</nav></div>)}<Link href="/" onClick={()=>setIsOpen(false)} className="workspace-store-link">View storefront <ArrowUpRight size={16}/></Link></>;
+ return <><aside className="workspace-sidebar">{navigation}</aside><Sheet open={isOpen} onOpenChange={setIsOpen}><SheetContent side="left" className="w-72 overflow-y-auto p-5"><SheetHeader className="sr-only"><SheetTitle>Store workspace</SheetTitle><SheetDescription>Manage Ketronics products, orders and settings.</SheetDescription></SheetHeader>{navigation}</SheetContent></Sheet></>;
 }

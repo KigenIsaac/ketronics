@@ -1,236 +1,45 @@
-"use client";
-
-import { useEffect, useMemo, useState } from "react";
-import { isStaffRole } from "@/lib/roles";
-import { useUserStore } from "@/lib/stores/userStore";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
-import { supabase } from "@/lib/supabase";
-import type { Product } from "@/types/product";
-import {
-  ArrowRight, ChevronLeft, ChevronRight, Laptop, Package,
-  Phone, Printer, ShieldCheck, Smartphone, Star, Tag, Truck,
-  Tv, Headphones, Cpu
-} from "lucide-react";
+import Link from 'next/link';
+import { ArrowRight, ArrowUpRight, Laptop, Smartphone, Monitor, Printer, Headphones, Cpu, ShieldCheck, Network, Wrench, MapPin, Phone, MessageCircle } from 'lucide-react';
+import { HomeCatalog } from '@/components/products/HomeCatalog';
 
 const categories = [
-  { title: "Laptops", icon: Laptop, href: "/products?category=laptops", tone: "from-orange-50 to-white" },
-  { title: "Phones & Tablets", icon: Smartphone, href: "/products?category=phones", tone: "from-blue-50 to-white" },
-  { title: "TVs & Displays", icon: Tv, href: "/products?category=tvs", tone: "from-violet-50 to-white" },
-  { title: "PCs & Components", icon: Cpu, href: "/products?category=pcs", tone: "from-emerald-50 to-white" },
-  { title: "Printers", icon: Printer, href: "/products?category=printers", tone: "from-amber-50 to-white" },
-  { title: "Accessories", icon: Headphones, href: "/products?category=accessories", tone: "from-pink-50 to-white" },
+  { name: 'Laptops', value: 'laptops', icon: Laptop, detail: 'Work. Create. Go further.' },
+  { name: 'Phones & tablets', value: 'phones', icon: Smartphone, detail: 'Your everyday companion.' },
+  { name: 'TVs & displays', value: 'tvs', icon: Monitor, detail: 'See the bigger picture.' },
+  { name: 'PCs & components', value: 'pcs', icon: Cpu, detail: 'Build your next setup.' },
+  { name: 'Printers', value: 'printers', icon: Printer, detail: 'Keep business moving.' },
+  { name: 'Accessories', value: 'accessories', icon: Headphones, detail: 'The details that matter.' },
+];
+const services = [
+  { icon: ShieldCheck, title: 'CCTV & security', text: 'Plan a camera setup around your space, coverage needs and budget.', query: 'CCTV installation' },
+  { icon: Network, title: 'Networks that connect', text: 'Get help with Wi-Fi coverage, cabling and connectivity for your team.', query: 'Network installation' },
+  { icon: Wrench, title: 'Repairs & technical support', text: 'Describe the issue. We’ll help you work out the right next step.', query: 'Device repair' },
 ];
 
-function ProductTile({ product }: { product: Product }) {
-  const price = product.discount && product.discount > 0 ? product.price * (1 - product.discount / 100) : product.price;
-  return (
-    <Link href={"/products/" + product.id} className="group min-w-0">
-      <div className="relative aspect-square overflow-hidden rounded-xl bg-[#f5f5f3]">
-        {product.images?.[0] ? (
-          <Image src={product.images[0]} alt={product.name} fill sizes="(max-width: 640px) 50vw, 220px" className="object-contain p-3 transition-transform duration-500 group-hover:scale-105" />
-        ) : <div className="flex h-full items-center justify-center text-xs text-black/25">No image</div>}
-        {product.discount && product.discount > 0 ? <span className="absolute left-2 top-2 rounded bg-orange-500 px-2 py-1 text-[9px] font-bold text-white">-{product.discount}%</span> : null}
-        
-      </div>
-      <div className="px-1 pt-3">
-        <p className="truncate text-[11px] uppercase tracking-[0.1em] text-black/45">{product.brand || product.category?.name || "Technology"}</p>
-        <h3 className="mt-1 line-clamp-2 min-h-10 text-[13px] font-medium leading-[1.2rem] text-black/85">{product.name}</h3>
-        <div className="mt-2 flex items-center gap-2">
-          <span className="text-sm font-bold">KSh {price.toLocaleString("en-KE", { maximumFractionDigits: 0 })}</span>
-          {product.discount ? <span className="text-[10px] text-black/30 line-through">KSh {product.price.toLocaleString("en-KE", { maximumFractionDigits: 0 })}</span> : null}
-        </div>
-        <div className="mt-1 flex items-center gap-1 text-[9px] text-amber-500"><Star className="h-3 w-3 fill-current" /> <span className="text-black/35">Featured pick</span></div>
-      </div>
-    </Link>
-  );
-}
-
 export default function Home() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [productLoadError, setProductLoadError] = useState<string | null>(null);
-  const [slide, setSlide] = useState(0);
-  const [arrivalPage, setArrivalPage] = useState(0);
-  const { user, loading: userLoading } = useUserStore();
-  const router = useRouter();
-
-  useEffect(() => {
-    let cancelled = false;
-    const loadProducts = async () => {
-      setProductLoadError(null);
-
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .eq("status", "active")
-        .order("created_at", { ascending: false })
-        .limit(16);
-
-      if (cancelled) return;
-
-      if (error) {
-        console.error("[Ketronics] Failed to load homepage products:", error);
-        setProducts([]);
-        setProductLoadError(error.message);
-        return;
-      }
-
-      setProducts(data ?? []);
-    };
-    void loadProducts();
-    return () => { cancelled = true; };
-  }, []);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => setSlide((value) => (value + 1) % 3), 5500);
-    return () => window.clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    if (!userLoading && user) {
-      const timer = window.setTimeout(() => router.push(isStaffRole(user.role) ? "/admin" : "/dashboard"), 900);
-      return () => window.clearTimeout(timer);
-    }
-  }, [user, userLoading, router]);
-
-  const heroProducts = useMemo(() => products.slice(0, 3), [products]);
-  const firstProducts = products.slice(0, 4);
-  const secondProducts = products.slice(4, 8);
-  const fourthProducts = products.slice(12, 16);
-  const arrivalPageCount = Math.max(1, Math.ceil(products.length / 4));
-  const arrivalProducts = products.slice(arrivalPage * 4, arrivalPage * 4 + 4);
-
-  if (userLoading || user) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center"><div className="mx-auto mb-4 h-2.5 w-2.5 animate-pulse rounded-full bg-orange-500" /><p className="text-sm text-black/50">{user ? "Taking you to your workspace…" : "Loading Ketronics…"}</p></div>
+  return <div className="store-home">
+    <section className="home-hero" aria-labelledby="home-title">
+      <div className="home-wrap grid gap-12 py-14 sm:py-20 lg:grid-cols-[1.15fr_1fr] lg:items-center lg:py-24">
+        <div>
+          <p className="home-eyebrow text-orange-300">KETRONICS SOLUTIONS LTD · ELDORET, KENYA</p>
+          <h1 id="home-title" className="mt-6 max-w-[13ch] text-5xl font-semibold leading-[1.03] tracking-[-.055em] sm:text-6xl xl:text-7xl">Good technology.<br/><span className="text-orange-300">Great possibilities.</span></h1>
+          <p className="mt-6 max-w-lg text-base leading-7 text-slate-300 sm:text-lg">From your next laptop to a connected business. Find the devices, practical advice and hands-on support to make it happen.</p>
+          <div className="mt-8 flex flex-wrap gap-3"><Link href="/products" className="home-button home-button-primary">Explore the store <ArrowRight size={18}/></Link><Link href="/contact" className="home-button border border-white/30 text-white hover:bg-white/10">Discuss a project <ArrowUpRight size={18}/></Link></div>
+          <div className="mt-9 flex flex-wrap gap-x-6 gap-y-3 text-sm text-slate-300"><span className="flex items-center gap-2"><MapPin size={16}/> Local team in Eldoret</span><span className="flex items-center gap-2"><MessageCircle size={16}/> Advice before you buy</span></div>
+        </div>
+        <div className="home-studio">
+          <div className="flex items-center justify-between border-b border-white/10 pb-5"><span className="home-eyebrow text-slate-400">YOUR NEXT SETUP STARTS HERE</span><span className="h-2 w-2 rounded-full bg-orange-300"/></div>
+          <div className="relative flex min-h-64 items-center justify-center py-10" aria-hidden="true"><div className="home-monitor"><div className="home-screen"><span className="text-xs tracking-[.25em] text-orange-200">WORK / CREATE / CONNECT</span><span className="mt-5 block text-5xl font-semibold tracking-[-.07em]">Make<br/>what’s next.</span><div className="mt-6 h-1 w-12 bg-orange-300"/></div></div></div>
+          <div className="mt-6 grid grid-cols-3 gap-2 border-t border-white/10 pt-5">{[['01','Find your device'],['02','Build your setup'],['03','Get support']].map(([n,label])=><div key={n}><span className="text-xs text-orange-300">{n}</span><p className="mt-2 text-xs leading-5 text-slate-200">{label}</p></div>)}</div>
+        </div>
       </div>
-    );
-  }
-
-  const hero = heroProducts[slide];
-  const heroTitle = ["Smart technology. Better everyday.", "Power your work. Upgrade your setup.", "Great tech, ready when you are."][slide];
-  const heroSub = ["Shop laptops, phones, displays and accessories from Ketronics.", "Find dependable devices and components for home and business.", "Discover current products and practical technology services."][slide];
-
-  return (
-    <div className="-mx-4 -mt-6 -mb-4 overflow-hidden bg-[#fffdf9] text-[#151515] lg:-mx-6 lg:-mt-6 lg:-mb-6">
-      {/* Promo strip */}
-      <div className="bg-[#151515] px-4 py-2 text-center text-[10px] font-medium tracking-wide text-white sm:text-xs">
-        <span className="text-orange-400">Special offers</span> · Shop technology with Ketronics · M-Pesa checkout available · <Link href="/contact" className="underline underline-offset-2">Need help?</Link>
-      </div>
-
-      {/* Hero carousel */}
-      <section className="mx-auto max-w-[1400px] px-4 pt-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-2xl bg-[#071a37] shadow-[0_20px_60px_rgba(7,26,55,.16)]">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_30%,rgba(35,118,255,.55),transparent_34%),linear-gradient(120deg,#071a37,#07377e_58%,#0b75bd)]" />
-          <div className="relative grid min-h-[520px] lg:min-h-[470px] lg:grid-cols-[.92fr_1.08fr]">
-            <div className="relative z-10 flex flex-col justify-center px-6 pb-5 pt-10 sm:px-10 lg:px-14 lg:py-12">
-              <p className="text-[9px] font-bold uppercase tracking-[0.24em] text-white/55">KETRONICS · FEATURED</p>
-              <h1 className="mt-3 max-w-[12ch] text-[clamp(2rem,8vw,2.65rem)] font-bold leading-[.98] tracking-[-0.055em] text-white sm:text-6xl">{heroTitle}</h1>
-              <p className="mt-4 max-w-md text-sm leading-5 text-white/65 sm:mt-5 sm:text-base sm:leading-6">{heroSub}</p>
-              <div className="mt-5 flex gap-2.5 sm:mt-7">
-                <Link href="/products" className="inline-flex h-10 items-center rounded-full bg-orange-500 px-5 text-xs font-bold text-white shadow-lg shadow-orange-950/20 hover:bg-orange-600">Shop now <ArrowRight className="ml-2 h-3.5 w-3.5" /></Link>
-                <Link href="/contact" className="hidden h-10 items-center rounded-full border border-white/20 px-5 text-xs font-semibold text-white sm:inline-flex">Talk to an expert</Link>
-              </div>
-            </div>
-            <div className="relative mx-4 mb-4 flex min-h-[205px] items-center justify-center overflow-hidden rounded-xl bg-white sm:mx-6 sm:mb-6 sm:min-h-[245px] lg:mx-0 lg:mb-0 lg:min-h-0 lg:rounded-none lg:bg-white/95">
-              {hero?.images?.[0] ? <Image src={hero.images[0]} alt={hero.name} width={700} height={560} priority className="h-full max-h-[205px] w-full object-contain p-3 sm:max-h-[245px] sm:p-5 lg:max-h-[400px] lg:p-8" /> : <div className="h-40 w-40 rounded-full bg-black/5" />}
-            </div>
-          </div>
-          <div className="absolute bottom-4 left-6 flex gap-1.5 sm:left-10">
-            {[0,1,2].map((index) => <button key={index} type="button" onClick={() => setSlide(index)} aria-label={"Show slide " + (index + 1)} className={"h-1.5 rounded-full transition-all " + (slide === index ? "w-8 bg-white" : "w-3 bg-white/30")} />)}
-          </div>
-        </div>
-      </section>
-
-      {productLoadError ? (
-        <section className="mx-auto max-w-[1400px] px-4 pt-8 sm:px-6 lg:px-8">
-          <div className="rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-xs text-orange-900">
-            <p className="font-semibold">We’re connecting to the Ketronics catalog.</p>
-            <p className="mt-1 text-orange-800/70">The storefront could not load products from Supabase right now. Please refresh shortly or browse the store page.</p>
-            <Link href="/products" className="mt-2 inline-flex font-semibold underline underline-offset-2">Open product catalog</Link>
-          </div>
-        </section>
-      ) : null}
-
-      {/* Category row */}
-      <section className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-4 flex items-end justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-black/35">Shop by category</p><h2 className="mt-1 text-xl font-bold tracking-tight">Find your next essential</h2></div><Link href="/products" className="text-[11px] font-semibold text-orange-600">View all</Link></div>
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-6 sm:gap-3">
-          {categories.map((category) => { const Icon = category.icon; return <Link key={category.title} href={category.href} className={"group rounded-xl bg-gradient-to-b " + category.tone + " p-3 text-center ring-1 ring-black/5 transition-transform hover:-translate-y-1 sm:p-4"}><div className="mx-auto flex h-14 items-center justify-center sm:h-20"><Icon className="h-9 w-9 stroke-[1.4] text-black/70 transition-transform group-hover:scale-110" /></div><p className="truncate text-[10px] font-semibold sm:text-xs">{category.title}</p></Link>; })}
-        </div>
-      </section>
-
-      {/* Product section 1 */}
-      <section className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mb-5 flex items-end justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-black/35">Trending now</p><h2 className="mt-1 text-xl font-bold tracking-tight">Check out today’s great deals</h2></div><Link href="/products" className="flex items-center text-[11px] font-semibold text-orange-600">See all <ArrowRight className="ml-1 h-3 w-3" /></Link></div>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">{firstProducts.map((p) => <ProductTile key={p.id} product={p} />)}</div>
-      </section>
-
-      {/* Dark promo banner */}
-      <section className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
-        <div className="relative min-h-[230px] overflow-hidden rounded-2xl bg-[#100c28] px-6 py-8 sm:px-10">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_45%,rgba(139,92,246,.55),transparent_35%),linear-gradient(100deg,#100c28,#28105d)]" />
-          <div className="relative z-10 max-w-md text-white"><p className="text-[10px] font-bold uppercase tracking-[.2em] text-white/50">Smart device collection</p><h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Grab the right tech for your day.</h2><p className="mt-3 text-xs leading-5 text-white/60">Everyday devices, entertainment and accessories selected for practical use.</p><Link href="/products" className="mt-6 inline-flex h-9 items-center rounded-full bg-orange-500 px-5 text-[11px] font-bold">Explore collection <ArrowRight className="ml-2 h-3 w-3" /></Link></div>
-          {secondProducts[0]?.images?.[0] ? <Image src={secondProducts[0].images[0]} alt="" width={380} height={280} className="absolute bottom-[-30px] right-4 hidden h-[270px] w-[300px] object-contain drop-shadow-2xl sm:block sm:right-10 sm:h-[320px] sm:w-[380px]" /> : null}
-        </div>
-      </section>
-
-      {/* Product section 2 */}
-      <section className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mb-5 flex items-end justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-black/35">Popular picks</p><h2 className="mt-1 text-xl font-bold tracking-tight">Top technology for every setup</h2></div><Link href="/products" className="text-[11px] font-semibold text-orange-600">More products</Link></div>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">{secondProducts.map((p) => <ProductTile key={p.id} product={p} />)}</div>
-      </section>
-
-      {/* Service / discovery banner */}
-      <section className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-8">
-        <div className="grid overflow-hidden rounded-2xl border border-black/10 bg-[#f1efe9] lg:grid-cols-[1fr_1.15fr]">
-          <div className="flex flex-col justify-center p-7 sm:p-10"><p className="text-[10px] font-bold uppercase tracking-[.2em] text-black/35">Ketronics services</p><h2 className="mt-3 text-3xl font-bold tracking-tight">Discover more than products.</h2><p className="mt-3 max-w-md text-sm leading-6 text-black/55">Repairs, CCTV, network setup, installation and technical support from a team that understands the technology.</p><Link href="/contact" className="mt-6 inline-flex w-fit items-center rounded-full bg-black px-5 py-2.5 text-xs font-bold text-white">Explore services <ArrowRight className="ml-2 h-3.5 w-3.5" /></Link></div>
-          <div className="relative min-h-[260px] overflow-hidden bg-[#d8d5cd]">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_65%_35%,rgba(255,255,255,.8),transparent_35%)]" />
-            <div className="absolute left-[15%] top-[18%] h-28 w-28 rounded-[2rem] border border-white/50 bg-white/50 shadow-xl rotate-[-8deg]"><ShieldCheck className="m-auto mt-9 h-12 w-12 text-black/40" /></div>
-            <div className="absolute right-[15%] bottom-[15%] h-36 w-36 rounded-full border border-white/60 bg-white/45 shadow-xl"><Package className="m-auto mt-11 h-14 w-14 text-black/35" /></div>
-            <div className="absolute bottom-5 left-5 flex items-center gap-2 rounded-full bg-white/75 px-3 py-2 text-[10px] font-semibold"><Truck className="h-3.5 w-3.5" /> Delivery · Installation · Support</div>
-          </div>
-        </div>
-      </section>
-
-      {/* New arrivals */}
-      <section className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mb-5 flex items-end justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-black/35">Just landed</p><h2 className="mt-1 text-xl font-bold tracking-tight">New arrival products</h2></div><div className="flex gap-1"><button type="button" aria-label="Previous products" onClick={() => setArrivalPage((page) => Math.max(0, page - 1))} disabled={arrivalPage === 0} className="flex h-9 w-9 items-center justify-center rounded-full border border-black/10 transition hover:border-black/30 disabled:cursor-not-allowed disabled:opacity-30"><ChevronLeft className="h-4 w-4" /></button><button type="button" aria-label="Next products" onClick={() => setArrivalPage((page) => Math.min(arrivalPageCount - 1, page + 1))} disabled={arrivalPage >= arrivalPageCount - 1} className="flex h-9 w-9 items-center justify-center rounded-full border border-black/10 transition hover:border-black/30 disabled:cursor-not-allowed disabled:opacity-30"><ChevronRight className="h-4 w-4" /></button></div></div>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">{arrivalProducts.map((p) => <ProductTile key={p.id} product={p} />)}</div>
-      </section>
-
-      {/* Sale banner */}
-      <section className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-2xl bg-[#101010] px-6 py-9 text-white sm:px-10">
-          <div className="absolute right-0 top-0 h-full w-2/3 bg-[radial-gradient(circle_at_65%_45%,rgba(255,255,255,.18),transparent_38%)]" />
-          <div className="relative z-10 max-w-md"><p className="text-[10px] font-bold uppercase tracking-[.2em] text-white/45">Better value, same ambition</p><h2 className="mt-3 text-3xl font-bold sm:text-4xl">Great deals on all your tech essentials.</h2><p className="mt-3 text-xs text-white/55">Explore current prices and available discounts across the store.</p><Link href="/products" className="mt-6 inline-flex rounded-full bg-white px-5 py-2.5 text-[11px] font-bold text-black">Shop deals</Link></div>
-          {fourthProducts[0]?.images?.[0] ? <Image src={fourthProducts[0].images[0]} alt="" width={340} height={260} className="absolute bottom-[-25px] right-3 hidden h-64 w-72 object-contain sm:block sm:right-12" /> : null}
-        </div>
-      </section>
-
-      {/* Best selling */}
-      <section className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mb-5 flex items-end justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-black/35">Customer favourites</p><h2 className="mt-1 text-xl font-bold tracking-tight">Explore best selling products</h2></div><Link href="/products" className="text-[11px] font-semibold text-orange-600">Shop all</Link></div>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">{fourthProducts.map((p) => <ProductTile key={p.id} product={p} />)}</div>
-      </section>
-
-      {/* Trust row */}
-      <section className="mx-auto max-w-[1400px] px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[["Secure checkout", ShieldCheck], ["Fast local support", Phone], ["Quality technology", Tag], ["Delivery available", Truck]].map(([label, Icon]) => {
-            const I = Icon as typeof ShieldCheck;
-            return <div key={label as string} className="flex items-center gap-3 rounded-xl border border-black/8 bg-white p-4"><I className="h-5 w-5 text-black/55" /><div><p className="text-xs font-bold">{label as string}</p><p className="mt-0.5 text-[9px] text-black/40">Ketronics service</p></div></div>;
-          })}
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="mx-auto max-w-[1400px] px-4 pb-10 sm:px-6 lg:px-8">
-        <div className="rounded-2xl bg-[#f0eee8] px-6 py-12 text-center sm:px-10"><p className="text-[10px] font-bold uppercase tracking-[.2em] text-black/35">Need a recommendation?</p><h2 className="mx-auto mt-3 max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">Tell us what you’re trying to build.</h2><p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-black/50">Our team can help you choose products, plan installations and find practical technology for your home or business.</p><div className="mt-6 flex justify-center gap-3"><Link href="/contact" className="rounded-full bg-orange-500 px-6 py-3 text-xs font-bold text-white">Contact Ketronics</Link><Link href="/products" className="rounded-full border border-black/10 bg-white px-6 py-3 text-xs font-bold">Browse store</Link></div></div>
-      </section>
-    </div>
-  );
+    </section>
+    <section className="home-wrap py-12 sm:py-16" aria-labelledby="categories-title">
+      <div className="mb-7 flex flex-wrap items-end justify-between gap-4"><div><p className="home-eyebrow text-muted-foreground">FIND YOUR FOCUS</p><h2 id="categories-title" className="home-heading mt-2">A better setup starts here.</h2></div><Link href="/products" className="home-text-link">All products <ArrowRight size={16}/></Link></div>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">{categories.map(({name,value,icon:Icon,detail})=><Link key={value} href={`/products?category=${value}`} className="home-category group"><Icon size={30} strokeWidth={1.5} className="mb-7 text-primary transition-transform group-hover:-translate-y-1"/><h3 className="text-sm font-semibold">{name}</h3><p className="mt-2 text-xs leading-5 text-muted-foreground">{detail}</p><ArrowUpRight size={16} className="absolute right-4 top-4 text-muted-foreground"/></Link>)}</div>
+    </section>
+    <HomeCatalog/>
+    <section className="home-wrap py-12 sm:py-20" aria-labelledby="services-title"><div className="grid gap-8 border-t border-border pt-12 lg:grid-cols-[.8fr_1.2fr]"><div><p className="home-eyebrow text-muted-foreground">BEYOND THE BOX</p><h2 id="services-title" className="home-heading mt-3 max-w-sm">Technology is only the beginning.</h2><p className="mt-4 max-w-sm text-sm leading-7 text-muted-foreground">A device is useful when it works for you. Talk to Ketronics about installation, connectivity and keeping your equipment running.</p><Link href="/services" className="home-text-link mt-6">Talk about your project <ArrowRight size={16}/></Link></div><div className="space-y-3">{services.map(({icon:Icon,title,text,query})=><Link key={title} href={`/contact?subject=${encodeURIComponent(query)}`} className="home-service group"><Icon size={24} strokeWidth={1.5} className="mt-1 shrink-0 text-primary"/><div><h3 className="font-semibold">{title}</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">{text}</p></div><ArrowUpRight size={18} className="ml-auto shrink-0 text-muted-foreground"/></Link>)}</div></div></section>
+    <section className="home-wrap pb-16"><div className="home-visit"><div><p className="home-eyebrow text-muted-foreground">REAL PEOPLE. PRACTICAL ANSWERS.</p><h2 className="home-heading mt-3">Let’s find what works for you.</h2><p className="mt-4 max-w-lg text-sm leading-7 text-muted-foreground">Visit us at AA Building, 1st floor, room F6A, Eldoret. Bring your questions, your ideas or the device that needs a little attention.</p><p className="mt-3 text-xs text-muted-foreground">Monday–Friday, 8am–6pm · Saturday, 9am–4pm</p></div><div className="flex shrink-0 flex-col gap-3"><a href="tel:+254728097922" className="home-button home-button-primary"><Phone size={17}/> Call 0728 097 922</a><Link href="/contact" className="home-button border border-border">Send an enquiry <ArrowUpRight size={17}/></Link></div></div></section>
+  </div>;
 }
