@@ -1,6 +1,6 @@
 import { pageMetadata } from '@/lib/seo';
 export const metadata=pageMetadata('Laptops, Electronics & IT Services in Eldoret','Shop laptops, phones, printers and electronics at Ketronics Solutions Ltd, Eldoret. Get help with CCTV installation, networks and device repairs.','/');
-import { getPublicCatalog } from '@/lib/public-catalog';
+import { getFeaturedProducts } from '@/lib/public-catalog';
 import Link from 'next/link';
 import { ArrowRight, ArrowUpRight, Laptop, Smartphone, Monitor, Printer, Headphones, Cpu, ShieldCheck, Network, Wrench, MapPin, Phone, MessageCircle } from 'lucide-react';
 import { HomeCatalog } from '@/components/products/HomeCatalog';
@@ -20,7 +20,7 @@ const services = [
 ];
 
 export default async function Home() {
-  const catalog=await getPublicCatalog().catch(()=>null);
+  const catalog=await getFeaturedProducts().catch(()=>null);
   return <div className="store-home">
     <section className="home-hero" aria-labelledby="home-title">
       <div className="home-wrap grid gap-12 py-14 sm:py-20 lg:grid-cols-[1.15fr_1fr] lg:items-center lg:py-24">
@@ -42,7 +42,7 @@ export default async function Home() {
       <div className="mb-7 flex flex-wrap items-end justify-between gap-4"><div><p className="home-eyebrow text-muted-foreground">FIND YOUR FOCUS</p><h2 id="categories-title" className="home-heading mt-2">A better setup starts here.</h2></div><Link href="/products" className="home-text-link">All products <ArrowRight size={16}/></Link></div>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">{categories.map(({name,value,icon:Icon,detail})=><Link key={value} href={`/collections/${value}`} className="home-category group"><Icon size={30} strokeWidth={1.5} className="mb-7 text-primary transition-transform group-hover:-translate-y-1"/><h3 className="text-sm font-semibold">{name}</h3><p className="mt-2 text-xs leading-5 text-muted-foreground">{detail}</p><ArrowUpRight size={16} className="absolute right-4 top-4 text-muted-foreground"/></Link>)}</div>
     </section>
-    <HomeCatalog initialProducts={catalog?.products.slice(0,8)??null}/>
+    <HomeCatalog initialProducts={catalog}/>
     <section className="home-wrap py-12 sm:py-20" aria-labelledby="services-title"><div className="grid gap-8 border-t border-border pt-12 lg:grid-cols-[.8fr_1.2fr]"><div><p className="home-eyebrow text-muted-foreground">BEYOND THE BOX</p><h2 id="services-title" className="home-heading mt-3 max-w-sm">Technology is only the beginning.</h2><p className="mt-4 max-w-sm text-sm leading-7 text-muted-foreground">A device is useful when it works for you. Talk to Ketronics about installation, connectivity and keeping your equipment running.</p><Link href="/services" className="home-text-link mt-6">Talk about your project <ArrowRight size={16}/></Link></div><div className="space-y-3">{services.map(({icon:Icon,title,text,query})=><Link key={title} href={`/contact?subject=${encodeURIComponent(query)}`} className="home-service group"><Icon size={24} strokeWidth={1.5} className="mt-1 shrink-0 text-primary"/><div><h3 className="font-semibold">{title}</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">{text}</p></div><ArrowUpRight size={18} className="ml-auto shrink-0 text-muted-foreground"/></Link>)}</div></div></section>
     <section className="home-wrap pb-16"><div className="home-visit"><div><p className="home-eyebrow text-muted-foreground">REAL PEOPLE. PRACTICAL ANSWERS.</p><h2 className="home-heading mt-3">Let’s find what works for you.</h2><p className="mt-4 max-w-lg text-sm leading-7 text-muted-foreground">Visit us at AA Building, 1st floor, room F6A, Eldoret. Bring your questions, your ideas or the device that needs a little attention.</p><p className="mt-3 text-xs text-muted-foreground">Monday–Friday, 8am–6pm · Saturday, 9am–4pm</p></div><div className="flex shrink-0 flex-col gap-3"><a href="tel:+254728097922" className="home-button home-button-primary"><Phone size={17}/> Call 0728 097 922</a><Link href="/contact" className="home-button border border-border">Send an enquiry <ArrowUpRight size={17}/></Link></div></div></section>
   </div>;
