@@ -1,9 +1,7 @@
-import { Metadata } from "next";
+import { pageMetadata } from '@/lib/seo';
+export const metadata=pageMetadata('Terms & Conditions','Read the terms for using the Ketronics website, ordering products, payment, delivery and customer responsibilities.','/terms-and-conditions');
 
-export const metadata: Metadata = {
-  title: "Terms and Conditions - Ketronics LTD",
-  description: "Read our terms and conditions for using Ketronics LTD services and purchasing products.",
-};
+
 
 export default function TermsPage() {
   return (
