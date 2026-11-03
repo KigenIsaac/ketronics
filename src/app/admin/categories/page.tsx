@@ -129,7 +129,7 @@ export default function CategoriesPage() {
   const filteredAttributes = attributes.filter(attr => attr.subcategory_id === selectedSubId);
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="admin-page">
       <h1 className="text-3xl font-bold mb-6">Manage Categories & Attributes</h1>
 
       <Tabs defaultValue="categories" className="w-full">

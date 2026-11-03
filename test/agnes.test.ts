@@ -46,7 +46,9 @@ test("admin AI endpoint requires active manager/admin and never publishes genera
 test("customer AI widget is present and accessible from the site layout", async () => {
   const layout = await readFile("src/app/layout.tsx", "utf8");
   const widget = await readFile("src/components/ai/KetronicsAI.tsx", "utf8");
-  assert.match(layout, /KetronicsAI/);
+  assert.match(layout, /SiteShell/);
+  const shell = await readFile("src/components/site-shell.tsx", "utf8");
+  assert.match(shell, /KetronicsAI/);
   assert.match(widget, /aria-label="Ketronics AI shopping assistant"/);
   assert.match(widget, /function MessageContent/);
   assert.match(widget, /ReactMarkdown/);

@@ -191,7 +191,7 @@ export default function AdminAnalyticsPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="admin-page">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
@@ -204,7 +204,7 @@ export default function AdminAnalyticsPage() {
 
   if (!analytics) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="admin-page">
         <div className="text-center py-12">
           <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-medium mb-2">No data available</h3>
@@ -215,7 +215,7 @@ export default function AdminAnalyticsPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="admin-page">
       <div className="flex flex-col gap-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

@@ -4,7 +4,7 @@ import { ThemeProvider } from "next-themes";
 import { useUserStore } from "@/lib/stores/userStore";
 import { Toaster } from "sonner";
 import React, { createContext, useContext, useState } from "react";
-import { ClientThemeSwitcher } from "@/components/client-theme-switcher";
+
 
 // Mobile sidebar context
 const MobileSidebarContext = createContext<{
@@ -58,7 +58,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             expand={false}
             visibleToasts={5}
           />
-          <ClientThemeSwitcher />
+
         </MobileSidebarProvider>
       </AuthProvider>
     </ThemeProvider>

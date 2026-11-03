@@ -4,6 +4,8 @@ const baseUrl = "https://ketronics.co.ke";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
+    {url: `${baseUrl}/services`},
+    {url: `${baseUrl}/faq`},
     {
       url: baseUrl,
       lastModified: new Date(),

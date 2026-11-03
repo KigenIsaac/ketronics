@@ -2,7 +2,7 @@ const base = process.env.SMOKE_BASE_URL || "http://127.0.0.1:3000";
 const routes = [
   ["/", 200], ["/products", 200], ["/products/00000000-0000-0000-0000-000000000000", 404],
   ["/cart", 200], ["/checkout", 200], ["/auth/login", 200], ["/auth/signup", 200],
-  ["/about-us", 200], ["/contact", 200], ["/faq", 200], ["/support", 200],
+  ["/about-us", 200], ["/services", 200], ["/contact", 200], ["/faq", 200], ["/support", 200],
   ["/privacy-policy", 200], ["/terms-and-conditions", 200],
   ["/dashboard", 307], ["/orders", 200], ["/profile", 200], ["/settings", 200], ["/admin", 307],
 ];
