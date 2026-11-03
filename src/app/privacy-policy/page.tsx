@@ -1,9 +1,7 @@
-import { Metadata } from "next";
+import { pageMetadata } from '@/lib/seo';
+export const metadata=pageMetadata('Privacy Policy','Read how Ketronics Solutions Ltd collects, uses and protects your personal information when you browse, enquire or place an order.','/privacy-policy');
 
-export const metadata: Metadata = {
-  title: "Privacy Policy - Ketronics LTD",
-  description: "Learn about how we protect and handle your personal information and data privacy.",
-};
+
 
 export default function PrivacyPolicyPage() {
   return (

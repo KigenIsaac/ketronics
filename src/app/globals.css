@@ -338,3 +338,5 @@
 @media(max-width:900px){.ai-studio-layout{grid-template-columns:1fr}.ai-draft-panel{position:static}.ai-draft-empty{min-height:220px}}
 
 @media(min-width:1024px){.mobile-menu-trigger{display:none}.catalog-sidebar{max-height:calc(100dvh - var(--header-height) - 40px);overflow-y:auto;scrollbar-width:thin}}
+
+.faq-accordion [data-slot="accordion-content"][data-state="closed"]{display:none}

@@ -1,3 +1,5 @@
+import { pageMetadata } from '@/lib/seo';
+export const metadata=pageMetadata('Frequently Asked Questions','Find answers to common questions about Ketronics products, orders, payments, delivery and technical support in Kenya.','/faq');
 import { createSupabaseServerClient } from "@/lib/supabaseServerClient";
 import { PageHero,StorePage } from "@/components/store-ui";
 import FAQBrowser from "./FAQBrowser";
